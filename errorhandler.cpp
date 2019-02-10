@@ -69,7 +69,7 @@ int errorHandler::error(ErrLevel el, int num, QString msg, QString Data=QString(
        case L0:
             writeLog("Abort: "+msg);
             writeStatus("Abort: "+msg);
-            exit(errno);
+            exit(num);
         break;
        default:
             writeLog(" "+msg+Data);
@@ -109,4 +109,5 @@ int errorHandler::dump(uint8_t * data, int size)
     writeLog(texta);
     writeChatter(texta);
 
+    return 0;
 }

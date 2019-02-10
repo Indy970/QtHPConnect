@@ -135,7 +135,8 @@ DISTFILES += \
     libhpcalcs/COPYING \
     libhpcalcs/README \
     ../build-QtHPConnect-Desktop-Debug/hpinterface.log \
-    model.qmodel
+    model.qmodel \
+    README.md
    ../hplp-master/libhpcalcs/tests/test_hpcalcs.c
 
 unix|win32: LIBS += -lhidapi-libusb
