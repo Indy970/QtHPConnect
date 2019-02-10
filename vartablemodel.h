@@ -1,11 +1,17 @@
-#ifndef VARTREEMODEL_H
-#define VARTREEMODEL_H
+#ifndef VARTABLEMODEL_H
+#define VARTABLEMODEL_H
 
+#include <QAbstractTableModel>
 
-class varTreeModel
+class varTableModel: public QAbstractTableModel
 {
+    Q_OBJECT
+
 public:
-    varTreeModel();
+    varTableModel(QObject *parent = nullptr);
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 };
 
-#endif // VARTREEMODEL_H
+#endif // VARTABLEMODEL_H

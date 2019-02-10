@@ -15,8 +15,10 @@ public:
     explicit getNumber(QWidget *parent = 0);
     ~getNumber();
 
+
 private:
     Ui::getNumber *ui;
+
 };
 
 #endif // GETNUMBER_H

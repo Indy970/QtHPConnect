@@ -2,12 +2,13 @@
 #define VARIABLEVIEW_H
 
 #include <QWidget>
+#include <QTableView>
 
 namespace Ui {
 class variableView;
 }
 
-class variableView : public QWidget
+class variableView : public QTableView
 {
     Q_OBJECT
 

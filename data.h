@@ -2,10 +2,12 @@
 #define DATA_H
 
 
-class data
+
+class mydata
 {
 public:
-    data();
+    mydata();
+    int getMyData();
 };
 
 #endif // DATA_H

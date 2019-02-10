@@ -2,7 +2,7 @@
  * libhpcables: hand-helds support libraries.
  * Copyright (C) 2013 Lionel Debroux
  * Code patterns and snippets borrowed from libticables & libticalcs:
- * Copyright (C) 1999-2009 Romain Liévin
+ * Copyright (C) 1999-2009 Romain LiÃ©vin
  * Copyright (C) 2009-2013 Lionel Debroux
  * Copyright (C) 1999-2013 libti* contributors.
  *
@@ -95,8 +95,15 @@ device_handle_ok:
                 goto device_handle_ok;
             }
             else {
-                res = ERR_CABLE_NOT_OPEN;
-                hpcables_error("%s: cable open failed", __FUNCTION__);
+                device_handle = hid_open(USB_VID_HP, USB_PID_PRIME3, NULL);
+                pid = USB_PID_PRIME3;
+                if (device_handle) {
+                    goto device_handle_ok;
+                }
+                else {
+                    res = ERR_CABLE_NOT_OPEN;
+                    hpcables_error("%s: cable open failed", __FUNCTION__);
+                }
             }
         }
     }

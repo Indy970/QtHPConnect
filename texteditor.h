@@ -1,22 +1,38 @@
 #ifndef TEXTEDITOR_H
 #define TEXTEDITOR_H
 
-#include <QDockWidget>
+#include <QTextEdit>
 
-namespace Ui {
-class textEditor;
-}
-
-class textEditor : public QDockWidget
+class textEditor : public QTextEdit
 {
     Q_OBJECT
 
 public:
     explicit textEditor(QWidget *parent = 0);
     ~textEditor();
+    void newFile();
+    bool loadFile(const QString &fileName);
+    bool save();
+    bool saveAs();
+    bool saveFile(const QString &fileName);
+    QString userFriendlyCurrentFile();
+    QString currentFile() { return curFile; }
+
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
+
+private slots:
+    void documentWasModified();
 
 private:
-    Ui::textEditor *ui;
+    QWidget * wParent;
+    bool maybeSave();
+    void setCurrentFile(const QString &fileName);
+    QString strippedName(const QString &fullFileName);
+
+    QString curFile;
+    bool isUntitled;
 };
 
 #endif // TEXTEDITOR_H

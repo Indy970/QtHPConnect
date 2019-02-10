@@ -2,6 +2,7 @@
 #define HP_INFODIALOG_H
 
 #include <QFrame>
+#include "hpdata.h"
 
 namespace Ui {
 class hp_infoDialog;
@@ -12,7 +13,7 @@ class hp_infoDialog : public QFrame
     Q_OBJECT
 
 public:
-    explicit hp_infoDialog(QWidget *parent = 0);
+    explicit hp_infoDialog(hp_Information info, QWidget *parent = 0);
     ~hp_infoDialog();
 
 private:

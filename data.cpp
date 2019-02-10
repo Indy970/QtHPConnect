@@ -1,6 +1,11 @@
 #include "data.h"
 
-data::data()
+mydata::mydata()
 {
 
+}
+
+int mydata::getMyData()
+{
+    return 11;
 }

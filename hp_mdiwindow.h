@@ -3,11 +3,25 @@
 
 #include <QObject>
 #include <QWidget>
+#include <QMdiSubWindow>
 
-class hp_MDIWindow
+#include "texteditor.h"
+
+class hp_MdiWindow: public QMdiSubWindow
 {
+    Q_OBJECT
+
+protected:
+
+    QTextEdit * textEdit;
+
 public:
-    hp_MDIWindow();
+    hp_MdiWindow(QWidget * parent);
+    void setup();
+    QTextEdit * getEditor();
+    void show();
+    ~hp_MdiWindow();
+
 };
 
 #endif // HP_MDIWINDOW_H

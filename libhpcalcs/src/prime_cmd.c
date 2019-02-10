@@ -2,7 +2,7 @@
  * libhpcalcs: hand-helds support libraries.
  * Copyright (C) 2013 Lionel Debroux
  * Code patterns and snippets borrowed from libticables & libticalcs:
- * Copyright (C) 1999-2009 Romain Liévin
+ * Copyright (C) 1999-2009 Romain LiÃ©vin
  * Copyright (C) 2009-2013 Lionel Debroux
  * Copyright (C) 1999-2013 libti* contributors.
  *
@@ -198,6 +198,10 @@ HPEXPORT int HPCALL calc_prime_s_get_infos (calc_handle * handle) {
 HPEXPORT int HPCALL calc_prime_r_get_infos (calc_handle * handle, calc_infos * infos) {
     int res;
     if (handle != NULL) {
+
+
+       hpcalcs_info("%s: in calc_prime_r_get_infos", __FUNCTION__);
+
         prime_vtl_pkt * pkt;
         res = read_vtl_pkt(handle, CMD_PRIME_GET_INFOS, &pkt, 1);
         if (res == ERR_SUCCESS && pkt != NULL) {

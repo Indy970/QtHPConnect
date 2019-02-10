@@ -17,6 +17,12 @@ TEMPLATE = app
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
+DEFINES += "VERSION=0"
+
+#QMAKE_CFLAGS += -Wno-unused-parameter -Werror=shadow -Werror=write-strings -Werror=redundant-decls -Werror=format -Werror=format-nonliteral -Werror=date-time -Werror=missing-prototypes -Werror=pointer-arith -Wunreachable-code -Werror=format-security -Werror=declaration-after-statement -Werror=implicit-function-declaration -Werror=return-type -D_FORTIFY_SOURCE=2 -D__LINUX__ -fvisibility=hidden
+#QMAKE_CXXFLAGS += -include cctype -include cstdlib
+#QMAKE_CXXFLAGS += -Wno-unused-parameter -Werror=shadow -Werror=write-strings -Werror=redundant-decls -Werror=format -Werror=format-nonliteral -Werror=date-time -Werror=missing-prototypes -Werror=pointer-arith -Wunreachable-code -Werror=format-security -Werror=declaration-after-statement -Werror=implicit-function-declaration -Werror=return-type -D_FORTIFY_SOURCE=2 -D__LINUX__ -fvisibility=hidden
+
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
@@ -24,11 +30,114 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
-        main.cpp \
-        mainwindow.cpp
+    mainwindow.cpp \
+    main.cpp \
+    errorhandler.cpp \
+    libhpcalcs/src/calc_none.c \
+    libhpcalcs/src/calc_prime.c \
+    libhpcalcs/src/error.c \
+    libhpcalcs/src/filetypes.c \
+    libhpcalcs/src/hpcables.c \
+    libhpcalcs/src/hpcalcs.c \
+    libhpcalcs/src/hpfiles.c \
+    libhpcalcs/src/hpopers.c \
+    libhpcalcs/src/link_nul.c \
+    libhpcalcs/src/link_prime_hid.c \
+    libhpcalcs/src/logging.c \
+    libhpcalcs/src/prime_cmd.c \
+    libhpcalcs/src/prime_rpkt.c \
+    libhpcalcs/src/prime_vpkt.c \
+    libhpcalcs/src/type2str.c \
+    libhpcalcs/src/typesprime.c \
+    libhpcalcs/src/utils.c \
+    datamodel.cpp \
+    treemodel.cpp \
+    hpdata.cpp \
+    hptoolbox.cpp \
+    texteditor.cpp \
+    variableview.cpp \
+    hptreeitem.cpp \
+    data.cpp \
+    hp_mdiwindow.cpp \
+    hp_mditexteditor.cpp \
+    hp_mdivariableedit.cpp \
+    vartablemodel.cpp \
+    hp_infodialog.cpp \
+    getnumber.cpp \
+    hpusb.cpp
 
 HEADERS += \
-        mainwindow.h
+        mainwindow.h \
+        main.h \
+    global.h \
+    hidapi/hidapi.h \
+    errorhandler.h \
+    libhpcalcs/include/error.h \
+    libhpcalcs/include/export.h \
+    libhpcalcs/include/filetypes.h \
+    libhpcalcs/include/gettext.h \
+    libhpcalcs/include/hpcables.h \
+    libhpcalcs/include/hpcalcs.h \
+    libhpcalcs/include/hpfiles.h \
+    libhpcalcs/include/hplibs.h \
+    libhpcalcs/include/hpopers.h \
+    libhpcalcs/include/internal.h \
+    libhpcalcs/include/logging.h \
+    libhpcalcs/include/prime_cmd.h \
+    libhpcalcs/include/typesprime.h \
+    libhpcalcs/include/utils.h \
+    datamodel.h \
+    treemodel.h \
+    hpdata.h \
+    hptoolbox.h \
+    texteditor.h \
+    variableview.h \
+    hptreeitem.h \
+    data.h \
+    hp_mdiwindow.h \
+    hp_mditexteditor.h \
+    hp_mdivariableedit.h \
+    vartablemodel.h \
+    hp_infodialog.h \
+    getnumber.h \
+    hpusb.h
+
 
 FORMS += \
-        mainwindow.ui
+    mainwindow.ui \
+    variableview.ui \
+    hp_mdiwindow.ui \
+    hp_infodialog.ui \
+    getnumber.ui
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../usr/local/lib/release/ -lhpcalcs
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../usr/local/lib/debug/ -lhpcalcs
+else:unix: LIBS +=
+
+#-L$$PWD/../../../../usr/local/lib/ -lhpcalcs
+
+INCLUDEPATH += $$PWD/../../../../usr/local/include
+INCLUDEPATH += $$PWD/libhpcalcs/include/
+INCLUDEPATH += $$PWD/hidapi/
+
+INCLUDEPATH += /usr/include/libusb-1.0
+
+
+DEPENDPATH += $$PWD/../../../../usr/local/include
+
+RESOURCES += \
+    qthpconnect.qrc
+
+DISTFILES += \
+    libhpcalcs/NEWS \
+    libhpcalcs/AUTHORS \
+    libhpcalcs/ChangeLog \
+    libhpcalcs/COPYING \
+    libhpcalcs/README \
+    ../build-QtHPConnect-Desktop-Debug/hpinterface.log \
+    model.qmodel
+   ../hplp-master/libhpcalcs/tests/test_hpcalcs.c
+
+unix|win32: LIBS += -lhidapi-libusb
+
+unix|win32: LIBS += -lusb-1.0
