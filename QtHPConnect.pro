@@ -129,14 +129,13 @@ RESOURCES += \
     qthpconnect.qrc
 
 DISTFILES += \
-    libhpcalcs/NEWS \
-    libhpcalcs/AUTHORS \
-    libhpcalcs/ChangeLog \
-    libhpcalcs/COPYING \
-    libhpcalcs/README \
     ../build-QtHPConnect-Desktop-Debug/hpinterface.log \
     model.qmodel \
-    README.md
+    README.md \
+    LICENSE \
+    CHANGELOG.md \
+    NEWS \
+    AUTHORS
    ../hplp-master/libhpcalcs/tests/test_hpcalcs.c
 
 unix|win32: LIBS += -lhidapi-libusb
