@@ -3,6 +3,7 @@
 errorHandler::errorHandler()
 {
 
+
 }
 
 errorHandler::errorHandler(QObject * parent)
