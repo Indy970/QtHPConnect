@@ -108,12 +108,18 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
  //  test=data(Qt::DisplayRole).toString();
 
     switch (getType()) {
-        case HP_APP:
-                    hpCalcData * dataStore;
-                    dataStore = getDataStore();
-                    hpinfo=dataStore->getInfo();
-                    hpinfodlg = new hp_infoDialog(hpinfo,0);
-                    hpinfodlg->show();
+        case HP_MAIN:   {
+                hpCalcData * dataStore;
+                dataStore = getDataStore();
+                hpinfo=dataStore->getInfo();
+                hpinfodlg = new hp_infoDialog(hpinfo,0);
+                hpinfodlg->move(700,400);
+                hpinfodlg->show();
+            }
+            break;
+        case HP_APP: {
+
+             }
              break;
         case HP_CAS:
                 if (hpvaredit==nullptr)
@@ -208,15 +214,11 @@ void hpTreeItem::dataChange(hp_Change hpchange) {
 
     hpCalcData * ptr=nullptr;
     QString name;
-    qDebug()<<"In data Change";
     switch (hpchange.dataChange) {
             case HP_MAIN:
-                    qDebug()<<"test";
                         ptr=getDataStore();
-                        qDebug()<<"past test";
                         if (ptr) {
                             name=ptr->getName();
-                            qDebug()<<"get name";
                             setData(name,Qt::DisplayRole);
                         }
                 break;

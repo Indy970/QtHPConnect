@@ -21,6 +21,9 @@ int treeModel::addCalculator(QString name, hpusb * handle){
     hpDataLink hplink;
     hpCalcData * hpData = new hpCalcData(handle);
     hpTreeItem * hpCalc = new hpTreeItem(name,hpData,0);
+    hpCalc->setType(HP_MAIN);
+    hpCalc->setIcon(QIcon(":/icons/monitor_32x32.png"));
+    hpCalc->setToolTip(QString("Calculator contents"));
     QObject::connect(hpData, SIGNAL(dataChanged(hp_Change)),hpCalc, SLOT(dataChange(hp_Change)));
     setHpCalcData(name,hpData,hpCalc);
     rootNode->appendRow(hpCalc);

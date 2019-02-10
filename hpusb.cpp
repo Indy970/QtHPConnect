@@ -174,11 +174,10 @@ int hpusb::submit_sync_transfer(hp_Handle * handle, hp_pkt_in * pktin, hp_pkt_ou
                                              &trans,10000);
 
     log(QString().sprintf("Write Error: %s\n", libusb_error_name(ret)));
-
     log(QString().sprintf("Write bytes: %d\n", trans));
 
     //read
-        log("Recieve...");
+    log("Recieve...");
     ret = libusb_interrupt_transfer(devh,0x81,pktout->buffer,pktout->size-8,&trans,10000);
 
     log(QString().sprintf("read: %d\n", trans));
@@ -401,25 +400,16 @@ int hpusb::load_info(hp_Handle * handle, hp_Information * hpinfo) {
         log("unpacking data");
 
         int ind=0;
-        qDebug()<<"start";
         QTextCodec * codec = QTextCodec::codecForName("UTF-8");
         QByteArray rd= QByteArray(reinterpret_cast<const char*>(pktout.buffer), pktout.size);
 
         //find name
         ind=rd.indexOf(QChar(0x6c),0)+1;
         QByteArray str1 =rd.mid(ind,64);
-        qDebug()<<ind;
-        qDebug()<<str1.at(0);
-        qDebug()<<str1.at(1);
 
-       // qDebug()<<rd;
         QString name;
         name = codec->toUnicode(str1);
         hpinfo->name=name;
-        qDebug()<<name;
-
-        log("the name is ...")
-        log(name);
 
         //find OS Version
         unsigned char searchstr[] = {0x80,0x20,0x80,0x01,0x62,0x01};
@@ -439,7 +429,6 @@ int hpusb::load_info(hp_Handle * handle, hp_Information * hpinfo) {
         QString serial;
         serial = codec->toUnicode(str1);
         hpinfo->serialnum=serial;
-        qDebug()<<serial;
         log(serial);
 
         //find Application Version
@@ -448,10 +437,8 @@ int hpusb::load_info(hp_Handle * handle, hp_Information * hpinfo) {
         QString app;
         app = codec->toUnicode(str1);
         //hpinfo->appver=app;
-        qDebug()<<app;
         log(app);
 
-        //
         return 0;
     }
     else {
