@@ -3,6 +3,7 @@
 #include "hpdata.h"
 #include "hp_mditexteditor.h"
 #include "hp_infodialog.h"
+#include "dlgsettings.h"
 
 #include <QMessageBox>
 #include <QString>
@@ -30,6 +31,8 @@ const DataType hpTreeItem::func_type[FUNC_NUM]={HP_APP,
                                            HP_REAL,
                                            HP_VAR
                                            };
+
+
 
 //QString hpTreeItem::hp_name;
 
@@ -112,8 +115,8 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
                 hpCalcData * dataStore;
                 dataStore = getDataStore();
                 hpinfo=dataStore->getInfo();
-                hpinfodlg = new hp_infoDialog(hpinfo,0);
-                hpinfodlg->move(700,400);
+                hpinfodlg = new hp_infoDialog(mdiwin,hpinfo);
+                //hpinfodlg->move(700,400);
                 hpinfodlg->show();
             }
             break;
@@ -167,6 +170,32 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
    // log(test+getDataStore()->getInfo().serialnum);
 
 }
+
+void hpTreeItem::contextAction(QMdiArea * mdiwin, contextActionType cta) {
+
+    dlgSettings * hpsettingsdlg;
+    hp_Information hpinfo;
+
+    switch (getType()) {
+        case HP_MAIN: {
+            switch (cta) {
+                case CT_PREFERENCE: {
+                    hpCalcData * dataStore;
+                    dataStore = getDataStore();
+                    hpinfo=dataStore->getInfo();
+                    hpsettingsdlg = new dlgSettings(mdiwin);
+                    hpsettingsdlg->show();
+                    }
+                break;
+                default: ;
+            }
+
+        }
+        break;
+        default: ;
+    }
+}
+
 
 DataType hpTreeItem::getType() {
     return type;

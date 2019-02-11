@@ -146,6 +146,9 @@
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="contextMenuPolicy">
+        <enum>Qt::CustomContextMenu</enum>
+       </property>
        <property name="lineWidth">
         <number>2</number>
        </property>
@@ -466,6 +469,15 @@
    </property>
    <property name="toolTip">
     <string>Test Button</string>
+   </property>
+  </action>
+  <action name="actionTreePreference">
+   <property name="icon">
+    <iconset resource="qthpconnect.qrc">
+     <normaloff>:/icons/preferences_32x32.png</normaloff>:/icons/preferences_32x32.png</iconset>
+   </property>
+   <property name="text">
+    <string>TreePreference</string>
    </property>
   </action>
  </widget>

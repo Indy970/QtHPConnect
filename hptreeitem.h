@@ -2,6 +2,8 @@
 #define HPTREEITEM_H
 
 #include <QStandardItem>
+#include <QMenu>
+#include <QAction>
 #include <QString>
 #include "hpdata.h"
 #include "mainwindow.h"
@@ -10,6 +12,10 @@ class hp_mdiVariableEdit;
 class hp_mdiTextEdit;
 
 enum DataType;
+
+enum contextActionType {
+            CT_PREFERENCE
+};
 
 class hpTreeItem: public QObject, public QStandardItem
 {
@@ -24,6 +30,7 @@ public:
     void setType(DataType);
     DataType getType();
     void clickAction(QMdiArea * mwin);
+    void contextAction(QMdiArea * mdiwin, contextActionType cta );
     void setDataStore(hpCalcData *);
     hpCalcData *  getDataStore();
     QString getName();

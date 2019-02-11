@@ -1,19 +1,19 @@
 #ifndef HP_INFODIALOG_H
 #define HP_INFODIALOG_H
 
-#include <QFrame>
+#include <QDialog>
 #include "hpdata.h"
 
 namespace Ui {
 class hp_infoDialog;
 }
 
-class hp_infoDialog : public QFrame
+class hp_infoDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit hp_infoDialog(hp_Information info, QWidget *parent = 0);
+    explicit hp_infoDialog(QWidget *parent, hp_Information info );
     ~hp_infoDialog();
 
 private:

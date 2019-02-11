@@ -26,6 +26,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QTableView>
 #include <QMessageBox>
+#include <QTreeView>
 
 #include <QFile>
 #include <QTextStream>
@@ -74,6 +75,7 @@ MainWindow::MainWindow(QWidget *parent) :
                                    QIcon(":/icons/monitor_32x32.png")));
     createActions();
     createLogWindow();
+    setTreeMenu();
 
     //setup trees
     ui->tvCalculators->setModel(hpTreeModel);
@@ -90,6 +92,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->tvCalculators,SIGNAL(clicked(QModelIndex)),this,SLOT(clickedCalculator(QModelIndex)));
     connect(ui->actionLog,SIGNAL(triggered()),this,SLOT(createLogWindow()));
     connect(ui->actionTest,SIGNAL(triggered()),this,SLOT(testFunction()));
+    connect(ui->tvCalculators, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(on_tvCalculators_customContextMenuRequested(const QPoint &)));
 
     //default data
     log("Initialising....");
@@ -333,6 +336,7 @@ void MainWindow::showMonitor() {
 }
 
 void MainWindow::exit() {
+    delete treeMenu;
     close();
 }
 
@@ -358,4 +362,59 @@ void MainWindow::createLogWindow() {
 //returns the multi document area
 QMdiArea * MainWindow::getMdi() {
     return ui->mdiArea;
+}
+
+void MainWindow::setTreeMenu() {
+
+    treeMenu = new QMenu(ui->tvCalculators); // add menu items
+    treeMenu->addAction(ui->actionPreferences);
+    ui->tvCalculators->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->actionPreferences, SIGNAL(triggered(bool)),
+        this, SLOT(treeMenuAction(bool)));
+}
+
+void MainWindow::treeMenuAction(bool clicked) {
+
+    QPoint pos;
+    pos=ui->actionPreferences->data().toPoint();
+
+    QModelIndex index = ui->tvCalculators->indexAt(pos);
+    if (index.isValid()) {
+        hpTreeItem * treeItem = dynamic_cast<hpTreeItem *>(hpTreeModel->itemFromIndex(index));
+        if(treeItem) {
+          DataType treetype;
+          treetype=treeItem->getType();
+          switch (treetype) {
+           case HP_MAIN:
+               treeItem->contextAction(getMdi(),CT_PREFERENCE);
+              break;
+          }
+        }
+        else
+        {
+            log(QStringLiteral("treeItem is null"));
+        }
+    }
+}
+
+void MainWindow::on_tvCalculators_customContextMenuRequested(const QPoint &pos)
+{
+    QModelIndex index = ui->tvCalculators->indexAt(pos);
+    if (index.isValid()) {
+        hpTreeItem * treeItem = dynamic_cast<hpTreeItem *>(hpTreeModel->itemFromIndex(index));
+        if(treeItem) {
+          DataType treetype;
+          treetype=treeItem->getType();
+          switch (treetype) {
+         //only show menu on main
+          case HP_MAIN: {
+              if(treeMenu) {
+                  ui->actionPreferences->setData(QVariant(pos));
+                  treeMenu->exec(ui->tvCalculators->viewport()->mapToGlobal(pos));
+                }
+              }
+              break;
+          }
+          }
+    }
 }

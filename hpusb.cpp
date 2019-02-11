@@ -439,6 +439,24 @@ int hpusb::load_info(hp_Handle * handle, hp_Information * hpinfo) {
         //hpinfo->appver=app;
         log(app);
 
+
+
+//       QByteArray db= QByteArray(reinterpret_cast<const double*>(&pktout.buffer[ind]), pktout.size-ind);
+
+
+
+        long double num=0;
+        int i;
+        ind+=16;
+        for (i=0;  i<300; i++) {
+            ind+=1;
+            str1 =rd.mid(ind,sizeof(num));
+            num= *(long double*)(str1.constData());
+            app = codec->toUnicode(str1);
+           // qDebug()<<num;
+            qDebug()<<QString().sprintf("%e",num);
+            qDebug()<<app;
+        }
         return 0;
     }
     else {

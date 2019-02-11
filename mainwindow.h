@@ -50,12 +50,16 @@ private slots:
     void createLogWindow();
     void testFunction();
     treeModel * getTreeModel();
+    void setTreeMenu();
+    void treeMenuAction(bool);
+    void on_tvCalculators_customContextMenuRequested(const QPoint &pos);
 
 private:
 
     errorHandler *pErr;
     dataModel * myModel;
     treeModel * hpTreeModel;
+    QMenu * treeMenu=nullptr;
     hpusb * hpapi;
     QMdiSubWindow * msgWindow=0;
     hp_MdiWindow * logWindow=0;

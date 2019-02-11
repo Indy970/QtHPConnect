@@ -64,7 +64,8 @@ SOURCES += \
     vartablemodel.cpp \
     hp_infodialog.cpp \
     getnumber.cpp \
-    hpusb.cpp
+    hpusb.cpp \
+    dlgsettings.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -100,15 +101,17 @@ HEADERS += \
     vartablemodel.h \
     hp_infodialog.h \
     getnumber.h \
-    hpusb.h
+    hpusb.h \
+    dlgsettings.h
 
 
 FORMS += \
     mainwindow.ui \
     variableview.ui \
     hp_mdiwindow.ui \
-    hp_infodialog.ui \
-    getnumber.ui
+    getnumber.ui \
+    dlgsettings.ui \
+    hp_infodialog.ui
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../usr/local/lib/release/ -lhpcalcs
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../usr/local/lib/debug/ -lhpcalcs
@@ -135,7 +138,8 @@ DISTFILES += \
     LICENSE \
     CHANGELOG.md \
     NEWS \
-    AUTHORS
+    AUTHORS \
+    Notes
    ../hplp-master/libhpcalcs/tests/test_hpcalcs.c
 
 unix|win32: LIBS += -lhidapi-libusb
