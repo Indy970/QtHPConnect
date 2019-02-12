@@ -3,6 +3,8 @@
 
 #include <libusb.h>
 
+struct hp_Settings;
+
 //! USB Vendor ID of Hewlett-Packard.
 #define USB_VID_HP (0x03F0)
 //! USB Product ID of the Prime calculator in firmware revisions < 8151.
@@ -20,6 +22,7 @@
 #define USB_ENDPOINT_OUT	(LIBUSB_ENDPOINT_OUT | 2)   /* endpoint address */
 
 #define CMD_PRIME_CHECK_READY (0xFF)
+#define CMD_PRIME_GET_SETTINGS (0xF9)
 #define CMD_PRIME_GET_INFOS (0xFA)
 #define CMD_PRIME_RECV_SCREEN (0xFC)
 #define CMD_PRIME_RECV_BACKUP (0xF9)
@@ -102,6 +105,8 @@ class hpusb
         int is_ready();
         int load_info(hp_Handle *, hp_Information *);
         int get_info( /*calc_infos * infos*/);
+        int get_settings(hp_Handle * , hp_Settings * );
+        int set_settings(hp_Handle * , hp_Settings set);
 
         int vpkt_send_experiments(hp_Handle * handle, int cmd);
         // Function Prototypes:
@@ -113,7 +118,6 @@ class hpusb
         friend    void cb_in(struct libusb_transfer *transfer);
 
         ~hpusb();
-
 };
 
 #endif // HPUSB_H

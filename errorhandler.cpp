@@ -89,14 +89,15 @@ int errorHandler::dump(uint8_t * data, int size)
     QString text = QString("Dump:\n");
     QString texta = QString("ASCII:\n");
     j=0;
+   text = text + QString().sprintf("%04d | ",0);
     for (i=0; i< size; i++)
     {
-
             text = text + QString(" %1 ").arg(QChar(data[i]).unicode(),2,16,QChar('0'));
             j++;
-            if (j>16) {
+            if (j>15) {
                 j=0;
                 text=text+"\n";
+                text = text + QString().sprintf("%04d | ",i+1);
             }
             texta = texta +" "+QChar(data[i]).unicode();
 

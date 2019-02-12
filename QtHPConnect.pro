@@ -65,7 +65,7 @@ SOURCES += \
     hp_infodialog.cpp \
     getnumber.cpp \
     hpusb.cpp \
-    dlgsettings.cpp
+    hp_settingsdlg.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -102,7 +102,7 @@ HEADERS += \
     hp_infodialog.h \
     getnumber.h \
     hpusb.h \
-    dlgsettings.h
+    hp_settingsdlg.h
 
 
 FORMS += \
@@ -110,8 +110,8 @@ FORMS += \
     variableview.ui \
     hp_mdiwindow.ui \
     getnumber.ui \
-    dlgsettings.ui \
-    hp_infodialog.ui
+    hp_infodialog.ui \
+    hp_settingsdlg.ui
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../usr/local/lib/release/ -lhpcalcs
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../usr/local/lib/debug/ -lhpcalcs

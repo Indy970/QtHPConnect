@@ -471,6 +471,47 @@ int hpusb::get_info(/*calc_infos * infos*/) {
     return 0;
 }
 
+int hpusb::get_settings(hp_Handle * handle, hp_Settings * set) {
+    hp_Settings inset;
+
+    uint8_t transferbuffer[PRIME_RAW_HID_DATA_SIZE ];
+    uint8_t out_buffer[LEN_IN_BUFFER+8];
+
+    hp_pkt_in pktin;
+    hp_pkt_out pktout;
+
+    transferbuffer[0]=0x0;
+    transferbuffer[1]=CMD_PRIME_GET_SETTINGS;
+
+    pktin.buffer=transferbuffer;
+    pktin.size=2;
+
+    pktout.buffer=out_buffer;
+    pktout.size=sizeof(out_buffer);
+//    pktout.size=PRIME_RAW_HID_DATA_SIZE+16;
+    if(!handle) {
+        err(L3,0,"Passed 0 handle");
+        return -1;
+    }
+
+    if (!submit_sync_transfer(handle,&pktin,&pktout)){
+    }
+
+    inset.entry=1;
+
+    if(set)
+        *set=inset;
+
+    return 0;
+}
+
+int hpusb::set_settings(hp_Handle * handle, hp_Settings set) {
+
+
+    return 0;
+}
+
+
 int hpusb::vpkt_send_experiments(hp_Handle * handle, int cmd) {
 
     uint8_t transferbuffer[PRIME_RAW_HID_DATA_SIZE ];

@@ -92,6 +92,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->tvCalculators,SIGNAL(clicked(QModelIndex)),this,SLOT(clickedCalculator(QModelIndex)));
     connect(ui->actionLog,SIGNAL(triggered()),this,SLOT(createLogWindow()));
     connect(ui->actionTest,SIGNAL(triggered()),this,SLOT(testFunction()));
+    connect(ui->actionTestSettings,SIGNAL(triggered()),this,SLOT(onTestSettings()));
     connect(ui->tvCalculators, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(on_tvCalculators_customContextMenuRequested(const QPoint &)));
 
     //default data
@@ -151,7 +152,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::onOpen()
 {
-    qDebug()<<"MainWindow::in on OPen";
+    qDebug()<<"MainWindow::in on Open";
 
 //test to see if data model works
     hp_Information hpi;
@@ -168,6 +169,21 @@ void MainWindow::onOpen()
 
     openHP();
 }
+
+void MainWindow::onTestSettings()
+{
+    qDebug()<<"MainWindow::in test Settings";
+
+    QString key;
+    key=hpTreeModel->getLastDataKey();
+    hpCalcData * hpdata;
+    qDebug()<<"MainWindow:: getKey";
+
+    hpdata=hpTreeModel->getHpCalcData(key);
+    if(hpdata)
+        hpdata->readSettings();
+}
+
 
 //Experimental
 void MainWindow::loadTextFile()
@@ -191,7 +207,7 @@ void MainWindow::openHP()
         data=hpTreeModel->getCalculator(name1);
         if(data) {
                  qDebug()<<"Read Info";
-            data->readInfo();
+            data->readInfo();          
         }
         else {
             qDebug()<<"In open Func";

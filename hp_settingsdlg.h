@@ -2,21 +2,31 @@
 #define DLGSETTINGS_H
 
 #include <QDialog>
+#include <QAbstractButton>
+#include "hpdata.h"
 
 namespace Ui {
-class dlgSettings;
+class hp_SettingsDlg;
 }
 
-class dlgSettings : public QDialog
+class hp_SettingsDlg : public QDialog
 {
     Q_OBJECT
+    hp_Settings dlgset;
+    hp_Settings * retsettings=nullptr;
 
 public:
-    explicit dlgSettings(QWidget *parent = 0);
-    ~dlgSettings();
+    explicit hp_SettingsDlg(QWidget *parent, hp_Settings * hpset);
+    void setupSettings();
+    void putSettings();
+    ~hp_SettingsDlg();
+
+public slots:
+    void resetSettings();
+    void on_clicked(QAbstractButton *);
 
 private:
-    Ui::dlgSettings *ui;
+    Ui::hp_SettingsDlg *ui;
 };
 
 #endif // DLGSETTINGS_H

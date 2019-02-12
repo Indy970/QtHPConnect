@@ -3,7 +3,7 @@
 #include "hpdata.h"
 #include "hp_mditexteditor.h"
 #include "hp_infodialog.h"
-#include "dlgsettings.h"
+#include "hp_settingsdlg.h"
 
 #include <QMessageBox>
 #include <QString>
@@ -173,23 +173,26 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
 
 void hpTreeItem::contextAction(QMdiArea * mdiwin, contextActionType cta) {
 
-    dlgSettings * hpsettingsdlg;
+    hp_SettingsDlg * hpsettingsdlg;
     hp_Information hpinfo;
-
+    hp_Settings hpset;
+    int ret=0;
     switch (getType()) {
         case HP_MAIN: {
             switch (cta) {
                 case CT_PREFERENCE: {
                     hpCalcData * dataStore;
                     dataStore = getDataStore();
-                    hpinfo=dataStore->getInfo();
-                    hpsettingsdlg = new dlgSettings(mdiwin);
-                    hpsettingsdlg->show();
+                    dataStore->readSettings();
+                    hpset=dataStore->getSettings();
+                    hpsettingsdlg = new hp_SettingsDlg(mdiwin, &hpset);
+                    ret=hpsettingsdlg->exec();
+                    if (ret)
+                        dataStore->setSettings(hpset);
                     }
                 break;
                 default: ;
             }
-
         }
         break;
         default: ;

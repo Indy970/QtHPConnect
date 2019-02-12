@@ -67,6 +67,45 @@ QString hpCalcData::getName() {
     return hp_info.name;
 }
 
+//get Settings
+hp_Settings hpCalcData::getSettings() {
+
+    return hp_homesettings;
+}
+
+//read Settings via usb
+void hpCalcData::readSettings() {
+
+    hpusb * api;
+    hp_Handle * handle;
+    hp_Settings hpset;
+
+    log("Reading Settings");
+    qDebug()<<"Reading Settings";
+    api=getAPI();
+    handle=getHandle();
+
+    if (api) {
+      if(handle) {
+        qDebug()<<QString().sprintf("%s %p",__FUNCTION__,handle->usbhandle);
+        if (api) {
+            api->get_settings(handle,&hpset);
+        }
+      }
+    }
+    hp_homesettings=hpset;
+
+    hp_Change change;
+    change.dataChange=HP_MAIN;
+    emit dataChanged(change);
+}
+
+//set Settings
+int hpCalcData::setSettings(hp_Settings set) {
+
+    hp_homesettings=set;
+}
+
 void hpCalcData::setInfo(hp_Information dtype) {
     hp_info=dtype;
     return;
@@ -94,10 +133,7 @@ void hpCalcData::readInfo() {
     hp_Change change;
     change.dataChange=HP_MAIN;
     emit dataChanged(change);
-
-
 }
-
 
 void hpCalcData::vpkt_send_experiments(int cmd) {
 

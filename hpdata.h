@@ -25,6 +25,24 @@ struct hp_Information {
                 QString osver="-";
 };
 
+struct hp_Settings {
+                int angle_measure=0;
+                int number_format=0;
+                int precision=5;
+                int digit_grouping=0;
+                int entry=2;
+                int integers=3;
+                int bits=32;
+                bool signed_int=false;
+                int complex=0;
+                int language =1;
+                int font_size=2;
+                int theme=1;
+                bool textbook=true;
+                bool menu=false;
+};
+
+
 struct hpDataStruct {
 
 };
@@ -44,6 +62,7 @@ private:
     hpusb * hp_api;
     hp_Handle hp_handle;
     hp_Information hp_info;
+    hp_Settings hp_homesettings;
 
 public:
     hpCalcData(hpusb * hpapi);
@@ -52,8 +71,11 @@ public:
     hpusb * getAPI();
     void setInfo(hp_Information);
     void readInfo();
+    void readSettings();
     hp_Information getInfo();
     QString getName();
+    hp_Settings getSettings();
+    int setSettings(hp_Settings set);
     void vpkt_send_experiments(int );
 
 //public slots:

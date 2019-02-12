@@ -185,6 +185,7 @@
    <addaction name="actionOpen"/>
    <addaction name="separator"/>
    <addaction name="actionTest"/>
+   <addaction name="actionTestSettings"/>
   </widget>
   <widget class="QDockWidget" name="dwContent_2">
    <property name="sizePolicy">
@@ -478,6 +479,15 @@
    </property>
    <property name="text">
     <string>TreePreference</string>
+   </property>
+  </action>
+  <action name="actionTestSettings">
+   <property name="icon">
+    <iconset resource="qthpconnect.qrc">
+     <normaloff>:/icons/preferences_32x32.png</normaloff>:/icons/preferences_32x32.png</iconset>
+   </property>
+   <property name="text">
+    <string>TestSettings</string>
    </property>
   </action>
  </widget>
