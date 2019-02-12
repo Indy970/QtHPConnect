@@ -96,6 +96,7 @@ class hpusb
         hpusb();
         int hp_init();
         int is_device(libusb_device *);
+        void dumpDevice(libusb_device * );
         int hp_open(hp_Handle *);
         int submit_async_transfer(hp_Handle *, hp_pkt_in *, hp_pkt_out *);
         int submit_sync_transfer(hp_Handle *, hp_pkt_in *, hp_pkt_out *);

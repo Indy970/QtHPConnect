@@ -147,10 +147,37 @@ int hpusb::is_device(libusb_device * device) {
      else {
 //            log(QString().sprintf("Vendor:Device = %04x:%04x", desc.idVendor, desc.idProduct));
             if ((desc.idVendor==USB_VID_HP)&&(desc.idProduct==USB_PID_PRIME3)) {
+                dumpDevice(device);
                 return 1;
             }
      }
     return 0;
+}
+
+void hpusb::dumpDevice(libusb_device * device) {
+
+    QString dump("Device Descriptor\n");
+    libusb_device_descriptor desc = {0};
+    int rc=0;
+    if (device) {
+        rc = libusb_get_device_descriptor(device, &desc);
+        dump+=QString().sprintf("bLength: %d\n",(int)desc.bLength);
+        dump+=QString().sprintf("bDescriptor Type: %d\n",(int)desc.bDescriptorType);
+        dump+=QString().sprintf("bcdUSB: %d\n",(int)desc.bcdUSB);
+        dump+=QString().sprintf("bDeviceClass: %d\n",(int)desc.bDeviceClass);
+        dump+=QString().sprintf("bDeviceSubClass: %d\n",(int)desc.bDeviceSubClass);
+        dump+=QString().sprintf("bDeviceProtocal: %d\n",(int)desc.bDeviceProtocol);
+        dump+=QString().sprintf("bMaxPacketSize0: %d\n",(int)desc.bMaxPacketSize0);
+        dump+=QString().sprintf("idVendor: %X\n",(int)desc.idVendor);
+        dump+=QString().sprintf("idProduct: %d\n",(int)desc.idProduct);
+        dump+=QString().sprintf("bcdDevicel: %d\n",(int)desc.bcdDevice);
+        dump+=QString().sprintf("iManufacture: %i\n",desc.iManufacturer);
+        dump+=QString().sprintf("iProduct: %i\n",desc.iProduct);
+        dump+=QString().sprintf("iSerialNumber: %i\n",desc.iSerialNumber);
+        dump+=QString().sprintf("bNumConfigurations: %d\n",desc.bNumConfigurations);
+    }
+    log(dump);
+    qDebug()<<dump;
 }
 
 int hpusb::submit_sync_transfer(hp_Handle * handle, hp_pkt_in * pktin, hp_pkt_out * pktout) {
@@ -439,11 +466,7 @@ int hpusb::load_info(hp_Handle * handle, hp_Information * hpinfo) {
         //hpinfo->appver=app;
         log(app);
 
-
-
 //       QByteArray db= QByteArray(reinterpret_cast<const double*>(&pktout.buffer[ind]), pktout.size-ind);
-
-
 
         long double num=0;
         int i;
