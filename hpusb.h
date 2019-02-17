@@ -61,7 +61,8 @@ struct usb_chunk {
 enum usb_header_type {
     HP_HDR_FIRST,
     HP_HDR_CHUNK,
-    HP_HDR_STD
+    HP_HDR_STD,
+    HP_HDR_PNG
 
 };
 
@@ -158,7 +159,7 @@ class hpusb
         int submit_sync_r_transfer(hp_Handle *, hp_pkt_in *);
         int sync_s_recv_file(hp_Handle *);
         int sync_r_recv_file(hp_Handle *);
-        int extract_header(hp_pkt_in *, int, usb_header *);
+        int extract_header(uint8_t *, usb_header *);
         int submit_callback();
         int hp_close(hp_Handle * );
         int hp_func();

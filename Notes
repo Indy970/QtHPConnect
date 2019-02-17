@@ -15,7 +15,11 @@ Get Image return header
   00  fc  01  00  00  1d  73  5a  2d  08  ff  ff  ff  ff  || 89  [ 50 4E 47 ] (PNG)
      P N G
 
-PNG Magic number	89 50 4e 47 0d 0a 1a 0a
+  PNG Magic number	89 50 4e 47 0d 0a 1a 0a
+
+  Subsequent chucnks, byte 1 = chunk number
+
+
 
 Header format
 

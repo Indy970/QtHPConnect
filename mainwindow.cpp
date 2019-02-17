@@ -391,23 +391,27 @@ void MainWindow::dataChange(hp_Change hpchange) {
 void MainWindow::monitorAddImage(hp_ScreenShot  scrnshot) {
 
      qDebug()<<"In Monitor Add Screen Shot";
+
      QPixmap * pic;
       int col;
       int row;
       int count;
+      int maxcol=2; //number of images in a column
 
      if (scrnshot.image!=nullptr) {
 
          //Todo fix default image
-         pic=new QPixmap(":/icons/add_background_32x32.png");
+         pic=new QPixmap(*scrnshot.image);
+//         pic->scaled(200, 200,  Qt::KeepAspectRatio,Qt::SmoothTransformation);
+
          QLabel * label = new QLabel("Screenshot");
          label->setPixmap(*pic);
          row = ui->wMonitorGrid->rowCount();
          col = ui->wMonitorGrid->columnCount();
          count = ui->wMonitorGrid->count();
 
-         col=count%3;
-         row=count/3;
+         col=count%maxcol;
+         row=count/maxcol;
 
          qDebug()<<"Row set"<<row;
          qDebug()<<"Column set"<<col;

@@ -127,7 +127,7 @@ void hpCalcData::readScreen() {
             screenShot = new QPixmap();
 
             qDebug()<<"Loading data";
-            qDebug()<<imageData;
+            qDebug()<<imageData[1];
             screenShot->loadFromData(imageData);
         }
       }

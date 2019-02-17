@@ -271,7 +271,8 @@ int hpusb::submit_sync_s_transfer(hp_Handle * handle, hp_pkt_out * pktout) {
 }
 
 //extracts the header from the pkt and returns it in the header structure
-int hpusb::extract_header(hp_pkt_in * pktin, int start, usb_header * uh) {
+// very exprimental
+int hpusb::extract_header(uint8_t * raw, usb_header * uh) {
 
     int b_0;
     int b_1;
@@ -281,28 +282,34 @@ int hpusb::extract_header(hp_pkt_in * pktin, int start, usb_header * uh) {
     int b_5;
     int b_6;
     int b_7;
+    int b_8;
+    int b_9;
+    int b_10;
 
-    b_0=pktin->data[0];
-    b_1=pktin->data[1];
-    b_2=pktin->data[2];
-    b_3=pktin->data[3];
-    b_4=pktin->data[4];
-    b_5=pktin->data[5];
-    b_6=pktin->data[6];
-    b_7=pktin->data[7];
+    b_0=raw[0];
+    b_1=raw[1];
+    b_2=raw[2];
+    b_3=raw[3];
+    b_4=raw[4];
+    b_5=raw[5];
+    b_6=raw[6];
+    b_7=raw[7];
+    b_8=raw[8];
+    b_9=raw[9];
+    b_10=raw[10];
 
 
-    qDebug()<<QString("Extract Header Start is %1").arg(start);
-    b_0=pktin->data[start];
+    qDebug()<<QString("Extract Header");
+    b_0=raw[0];
 
     if(b_0==0x01) {
         uh->type=HP_HDR_CHUNK;
         uh->typecode=0;
-        uh->chunk=pktin->data[start+1];
+        uh->chunk=raw[1];
         QString msg = QString("Chunk %1").arg(uh->chunk);
-         msg += QString("\n 00 %0x1").arg(pktin->data[0]);
-         msg += QString("\n 01 %0x1").arg(pktin->data[1]);
-         msg += QString("\n 02 %0x1").arg(pktin->data[2]);
+         msg += QString("\n 00 %0x1").arg(raw[0]);
+         msg += QString("\n 01 %0x1").arg(raw[1]);
+         msg += QString("\n 02 %0x1").arg(raw[2]);
         qDebug()<<msg;
     }
     else
@@ -315,20 +322,28 @@ int hpusb::extract_header(hp_pkt_in * pktin, int start, usb_header * uh) {
             uh->size=1024;
         }
         else
-        {
-
-            uh->typecode=pktin->data[start+4];
+        {   //recieve image
+            if((b_0==0x00)&&(b_1==0xfc)) {
+                uh->type=HP_HDR_PNG;
+                uh->cmd=b_1;
+                uh->items=b_9;
+                uh->chunk=b_0;
+                uh->size=1024;
+            }
+            else  {
+            uh->typecode=raw[4];
             if(uh->typecode==0XF7)
             {
                 uh->type=HP_HDR_FIRST;
-                uh->items=pktin->data[start+5];
-                QString msg = QString("Size: %1").arg(pktin->data[start+4]);
+                uh->items=raw[5];
+                QString msg = QString("Size: %1").arg(raw[4]);
                 qDebug()<<msg;
-                uh->size=(uint32_t)(pktin->data[start+5]);
+                uh->size=(uint32_t)(raw[5]);
                 uh->chunk=0;
                 msg = QString("First Header item: %1 size: %2").arg(uh->items).arg(uh->size);
                 qDebug()<<msg;
             }
+          }
         }
     }
     return 1;
@@ -346,6 +361,8 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
    int trans=0;
    int trans_c=0;
    int chunks;
+   uint8_t raw[1024];
+
 
    log("Recieve...");
 
@@ -360,27 +377,57 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
 
    if (!devh)
        return -1;
+    memset((void *)pktin->data, 0, sizeof(pktin->size));
+    ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,1024,&trans,5000);
 
-    ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,pktin->data,1024,&trans,5000);
-
-    extract_header(pktin,0,&uh1);
-
-    qDebug()<<QString("Looking for %1 items").arg(uh1.items);
+    extract_header(raw,&uh1);
+    memcpy(pktin->data,raw,trans);
+    qDebug()<<QString("Looking for %1 items: %2 bytes read").arg(uh1.items).arg(trans);
 
     if ((uh1.type==HP_HDR_FIRST)&&(uh1.items>0x00)) {
         qDebug()<<QString("First chunk detected %1").arg(uh1.items);
 
-        for (chunks=0; chunks<uh1.items; chunks++) {
-
+        for (chunks=1; chunks<uh1.items; chunks++) {
+            trans_c=0;
             //read additional chuncks
-             ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,&pktin->data[trans],1024,&trans_c,5000);
-             extract_header(pktin,trans, &uh2);
-             qDebug()<<trans;
-             qDebug()<<QString("another chunk read %1 %2").arg(chunks).arg(uh2.chunk);
+             ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,1024,&trans_c,5000);
+             extract_header(raw, &uh2);
+             qDebug()<<QString("Copying %1 bytes").arg(trans_c);
+             memcpy(&pktin->data[trans],raw,trans_c);
+
+             qDebug()<<QString("another chunk read %1/%2").arg(chunks).arg(uh2.chunk);
              trans+=trans_c;
         }
     }
 
+    if ((uh1.type==HP_HDR_PNG)&&(uh1.items>0x00)) {
+        qDebug()<<QString("First png chunk detected %1").arg(uh1.items);
+
+        //first byte used as chunk counter
+        int headerlen=1;
+        //first message has already been read
+        for (chunks=1; chunks<uh1.items; chunks++) {
+
+            //read additional chuncks
+             ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,1024,&trans_c,5000);
+             extract_header(raw, &uh2);
+             if (trans_c>2) {
+                qDebug()<<QString("PNG: Copying %1 bytes").arg(trans_c);
+                //Assume first byte a chunck count
+                memcpy(&pktin->data[trans],&raw[headerlen],trans_c-headerlen);
+                trans+=trans_c-headerlen;
+                pktin->size=trans;
+             }
+             else
+             {
+                         qDebug()<<QString("End detected %1").arg(chunks);
+                         chunks=uh1.items;
+                         ret=0;
+             }
+        }
+    }
+
+    qDebug()<<QString("%1: Recieved ").arg(__FUNCTION__)<<trans<<" bytes";
     log(QString().sprintf("read: %d\n", trans));
 
     if (ret){
@@ -388,7 +435,7 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
     }
     else{
         //printf("%d receive %d bytes from device: %s\n");
-
+        qDebug()<<QString("Exiting %1 ret %2").arg(__FUNCTION__).arg(ret);
         log(QString().sprintf("%d bytes received",trans));
         main_err-> dump(pktin->data,trans);
     }
@@ -414,14 +461,14 @@ int hpusb::get_screen_shot(hp_Handle * handle, QByteArray * imageData) {
     int res;
     if (handle != NULL) {
 
-        uint8_t transferbuffer[LEN_IN_BUFFER*8 ];
-        uint8_t in_buffer[LEN_IN_BUFFER+8];
+        uint8_t transferbuffer[LEN_IN_BUFFER+8];
+        uint8_t in_buffer[LEN_IN_BUFFER*16];
         hp_pkt_in pktin;
         hp_pkt_out pktout;
 
         transferbuffer[0]=0x00;
         transferbuffer[1]=CMD_PRIME_RECV_SCREEN;
-        transferbuffer[2]=(uint8_t) CALC_SCREENSHOT_FORMAT_PRIME_PNG_320x240x16;
+        transferbuffer[2]=(uint8_t) CALC_SCREENSHOT_FORMAT_PRIME_PNG_320x240x4;
 
         pktout.cmd = CMD_PRIME_RECV_SCREEN;
         pktout.data = transferbuffer;
@@ -431,19 +478,21 @@ int hpusb::get_screen_shot(hp_Handle * handle, QByteArray * imageData) {
 
             pktin.cmd= CMD_PRIME_RECV_SCREEN;
             pktin.data=in_buffer;
-            pktin.size=1024*8;
+
+            pktin.size=sizeof(in_buffer);
             log(QString("%1: Waiting for a reply").arg(__FUNCTION__));
 
             if (!submit_sync_r_transfer(handle,&pktin)){
                 log(QString("%1: Recieved a reply").arg(__FUNCTION__));
                 //Trying to understand reply
-
+                int endpos;
                 QByteArray rd= QByteArray(reinterpret_cast<const char*>(pktin.data), pktin.size);
-                *imageData = QByteArray(reinterpret_cast<const char*>(&pktin.data[14]), pktin.size-14);
-
+                endpos = rd.indexOf("IEND");
+                qDebug()<<"End pos:"<<endpos;
+                *imageData = QByteArray(rd.mid(14,endpos+4-14));
+//                qDebug()<<*imageData;
                 log(QString().sprintf("%d bytes received",pktin.size));
-                main_err-> dump(pktin.data,pktin.size);
- //               lookfordouble(rd,64);
+                main_err-> dump((uint8_t *)imageData->data(),imageData->size());;
             }
         }
 
