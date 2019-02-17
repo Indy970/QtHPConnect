@@ -139,7 +139,8 @@ DISTFILES += \
     CHANGELOG.md \
     NEWS \
     AUTHORS \
-    Notes
+    Notes \
+    TODO.md
    ../hplp-master/libhpcalcs/tests/test_hpcalcs.c
 
 unix|win32: LIBS += -lhidapi-libusb

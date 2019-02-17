@@ -27,6 +27,7 @@
 #include <QtWidgets/QTableView>
 #include <QMessageBox>
 #include <QTreeView>
+#include <QLabel>
 
 #include <QFile>
 #include <QTextStream>
@@ -60,8 +61,8 @@ MainWindow::MainWindow(QWidget *parent) :
     main_err = new errorHandler(this);
 
     //data models
-    myModel= new dataModel(0);
-    hpTreeModel = new treeModel(0);
+    myModel= new dataModel(this);
+    hpTreeModel = new treeModel(this);
 
     qDebug()<<"1";
 
@@ -93,6 +94,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionLog,SIGNAL(triggered()),this,SLOT(createLogWindow()));
     connect(ui->actionTest,SIGNAL(triggered()),this,SLOT(testFunction()));
     connect(ui->actionTestSettings,SIGNAL(triggered()),this,SLOT(onTestSettings()));
+    connect(ui->actionTestScreen,SIGNAL(triggered()),this,SLOT(onTestScreen()));
     connect(ui->tvCalculators, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(on_tvCalculators_customContextMenuRequested(const QPoint &)));
 
     //default data
@@ -117,7 +119,7 @@ void MainWindow::testFunction() {
     pH=getTreeModel()->getCalculator("IAN");
     if (pH) {
 
-        cmd   = QInputDialog::getInt(this,"Get Command","CMD:",0,0,256);
+        cmd   = QInputDialog::getInt(this,"Get Command","CMD:",0,0,0xFFFF);
         log("command is "+QString().sprintf("%x",cmd));
         pH->vpkt_send_experiments(cmd);
     }
@@ -184,6 +186,19 @@ void MainWindow::onTestSettings()
         hpdata->readSettings();
 }
 
+void MainWindow::onTestScreen()
+{
+    qDebug()<<"MainWindow::in test Screen";
+
+    QString key;
+    key=hpTreeModel->getLastDataKey();
+    hpCalcData * hpdata;
+    qDebug()<<"MainWindow:: getKey";
+
+    hpdata=hpTreeModel->getHpCalcData(key);
+    if(hpdata)
+        hpdata->readScreen();
+}
 
 //Experimental
 void MainWindow::loadTextFile()
@@ -349,6 +364,61 @@ void MainWindow::showMonitor() {
     {
         ui->dwMonitor->show();
     }
+}
+
+// slot to process low level changes that affect the main Window
+void MainWindow::dataChange(hp_Change hpchange) {
+
+    hpCalcData * ptr=nullptr;
+   qDebug()<<"MainWindow Datachange";
+    switch (hpchange.dataChange) {
+            case HP_MAIN:
+
+                break;
+            case HP_SCREEN: {
+                 qDebug()<<"Reciebed screenshot changed";
+                 if (hpchange.calc!=nullptr) {
+                    hp_ScreenShot scrn;
+                    scrn = hpchange.calc->getScreenShot();
+                    monitorAddImage(scrn);
+                 }
+                }
+        break;
+    }
+}
+
+//Add screen shots to the message window
+void MainWindow::monitorAddImage(hp_ScreenShot  scrnshot) {
+
+     qDebug()<<"In Monitor Add Screen Shot";
+     QPixmap * pic;
+      int col;
+      int row;
+      int count;
+
+     if (scrnshot.image!=nullptr) {
+
+         //Todo fix default image
+         pic=new QPixmap(":/icons/add_background_32x32.png");
+         QLabel * label = new QLabel("Screenshot");
+         label->setPixmap(*pic);
+         row = ui->wMonitorGrid->rowCount();
+         col = ui->wMonitorGrid->columnCount();
+         count = ui->wMonitorGrid->count();
+
+         col=count%3;
+         row=count/3;
+
+         qDebug()<<"Row set"<<row;
+         qDebug()<<"Column set"<<col;
+         ui->wMonitorGrid->addWidget(label,row,col,Qt::AlignTop);
+     }
+     else
+     {
+         log("Could not load image");
+     }
+     ui->dwMonitor->show();
+
 }
 
 void MainWindow::exit() {

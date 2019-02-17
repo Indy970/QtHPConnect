@@ -1,1 +1,42 @@
 Command d-249 Settings
+
+Send 0x00 0xFF
+
+   Edit a 0xFF 0x59
+
+
+Read info
+    get 00 fa 01 00 00 00 6C string
+
+Read is_ready
+    get 00 fa 01 00 00 00 6c string
+
+Get Image return header
+  00  fc  01  00  00  1d  73  5a  2d  08  ff  ff  ff  ff  || 89  [ 50 4E 47 ] (PNG)
+     P N G
+
+PNG Magic number	89 50 4e 47 0d 0a 1a 0a
+
+Header format
+
+    00
+
+    Type
+
+    Num Packets
+
+    00 00 00 6c String Marker
+
+
+Set GetInfo, IsReady
+
+
+NOTE Program data comes across in ASCII :)
+
+First header with serial number is repeated
+
+tokens   calc.hpvars
+         calc.hpsettings
+         list off all apps comes through in Ascii with & as Start
+
+

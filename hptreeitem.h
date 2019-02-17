@@ -48,6 +48,9 @@ private:
     hp_mdiTextEdit * hptextedit = nullptr;
     int dt2int();
 
+signals:
+    void dataChanged(hp_Change datachange);
+
 };
 
 Q_DECLARE_METATYPE(hpTreeItem *)

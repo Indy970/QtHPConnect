@@ -43,6 +43,7 @@ hpCalcData::hpCalcData(hpusb * handle)
     if (hp_api) {
         hp_api->hp_open(getHandle());
     }
+
 }
 
 //return the interface class
@@ -100,6 +101,61 @@ void hpCalcData::readSettings() {
     emit dataChanged(change);
 }
 
+//read Settings via usb
+void hpCalcData::readScreen() {
+
+    hpusb * api;
+    hp_Handle * handle;
+    hp_Settings hpset;
+
+    log("Reading Screen");
+    qDebug()<<"Reading Screen";
+    api=getAPI();
+    handle=getHandle();
+
+    QByteArray imageData;
+
+    if (api) {
+      if(handle) {
+        qDebug()<<QString().sprintf("%s %p",__FUNCTION__,handle->usbhandle);
+        if (api) {
+            api->get_screen_shot(handle,&imageData);
+            if (screenShot!=nullptr) {
+                    delete screenShot;
+            }
+            qDebug()<<"New ScreenShot";
+            screenShot = new QPixmap();
+
+            qDebug()<<"Loading data";
+            qDebug()<<imageData;
+            screenShot->loadFromData(imageData);
+        }
+      }
+    }
+
+    emit emitChange(HP_SCREEN);
+}
+
+void hpCalcData::emitChange(DataType type) {
+
+    hp_Change change;
+    change.dataChange=type;
+    change.calc = this;
+
+    emit dataChanged(change);
+
+}
+
+hp_ScreenShot hpCalcData::getScreenShot() {
+    hp_ScreenShot scn;
+
+    scn.image = screenShot;
+    scn.format = CALC_SCREENSHOT_FORMAT_PRIME_PNG_320x240x16;
+    scn.calc = this;
+
+    return scn;
+}
+
 //set Settings
 int hpCalcData::setSettings(hp_Settings set) {
 
@@ -130,9 +186,7 @@ void hpCalcData::readInfo() {
     }
     hp_info=hpinfo;
 
-    hp_Change change;
-    change.dataChange=HP_MAIN;
-    emit dataChanged(change);
+    emit emitChange(HP_MAIN);
 }
 
 void hpCalcData::vpkt_send_experiments(int cmd) {
@@ -145,8 +199,12 @@ void hpCalcData::vpkt_send_experiments(int cmd) {
 
     if (api) {
       if(handle) {
-        if (api)
-            api->vpkt_send_experiments(handle,cmd);
+        if (api) {
+            api->is_ready(handle);
+
+            //api->vpkt_send_experiments(handle,cmd);
+
+        }
       }
     }
 

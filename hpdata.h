@@ -15,7 +15,8 @@ enum DataType {
                 HP_NOTE=6,
                 HP_PROG=7,
                 HP_REAL=8,
-                HP_VAR=9
+                HP_VAR=9,
+                HP_SCREEN=10
 };
 
 struct hp_Information {
@@ -47,8 +48,17 @@ struct hpDataStruct {
 
 };
 
+class hpCalcData;
+
+struct hp_ScreenShot {
+    QPixmap * image;
+    hp_screenshot_format format;
+    hpCalcData * calc;
+};
+
 struct hp_Change {
     DataType dataChange=HP_MAIN;
+    hpCalcData * calc;
 };
 
 class hpCalcData: public QObject
@@ -58,6 +68,7 @@ class hpCalcData: public QObject
 private:
     const static QString func_list[][2];
     const static DataType func_type[];
+    QPixmap * screenShot=nullptr;
     DataType type;
     hpusb * hp_api;
     hp_Handle hp_handle;
@@ -72,11 +83,14 @@ public:
     void setInfo(hp_Information);
     void readInfo();
     void readSettings();
+    void readScreen();
+    hp_ScreenShot getScreenShot();
     hp_Information getInfo();
     QString getName();
     hp_Settings getSettings();
     int setSettings(hp_Settings set);
     void vpkt_send_experiments(int );
+    void emitChange(DataType type);
 
 //public slots:
 

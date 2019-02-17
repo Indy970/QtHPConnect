@@ -18,6 +18,24 @@ enum ErrLevel {
     L7     //information
 };
 
+typedef enum {
+
+    ERR_SUCCESS = 0, // Must be equal to ERR_HPLIBS_GENERIC_FIRST
+    ERR_MALLOC,
+    ERR_INVALID_HANDLE,
+    ERR_INVALID_PARAMETER,
+    ERR_INVALID_MODEL,
+    ERR_LIBRARY_INIT,
+    ERR_LIBRARY_EXIT,
+    ERR_LIBRARY_CONFIG_VERSION,
+
+    ERR_FILE_FIRST,
+    ERR_FILE_FILENAME,
+    ERR_FILE_LAST
+
+} hp_error;
+
+
 class errorHandler {
 private:
     QObject * pParent;

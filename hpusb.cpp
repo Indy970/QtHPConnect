@@ -4,21 +4,20 @@
 //
 // Note hpusb opens an interface but can have multiple usb ports
 // open. Hence handle information is stored else where
+//
+// Norm:
+// return 0 = success
+// return <> 0 = error
 
+#include <QTextCodec>
 
-
+#include "global.h"
 #include "hpusb.h"
 #include "hpdata.h"
 #include <libusb.h>
 #include <signal.h>
 
-#include "global.h"
-#include <QTextCodec>
-
-//return 0 = success
-//return > err
-
-
+//Constructor
 hpusb::hpusb()
 {
     lb_init=0;
@@ -135,7 +134,8 @@ int hpusb::hp_open(hp_Handle * handle) {
     return ret;
 }
 
-//replace with libusb_open_device_with_vid_pid
+// check device handler for idVendor and idProduct
+// replace with libusb_open_device_with_vid_pid
 int hpusb::is_device(libusb_device * device) {
 
      libusb_device_descriptor desc = {0};
@@ -154,6 +154,7 @@ int hpusb::is_device(libusb_device * device) {
     return 0;
 }
 
+//print the device descriptor
 void hpusb::dumpDevice(libusb_device * device) {
 
     QString dump("Device Descriptor\n");
@@ -180,32 +181,205 @@ void hpusb::dumpDevice(libusb_device * device) {
     qDebug()<<dump;
 }
 
-int hpusb::submit_sync_transfer(hp_Handle * handle, hp_pkt_in * pktin, hp_pkt_out * pktout) {
 
-    log("In sync transfer");
+//Send a packet
+//Based on hplib - prime_send_data
+//credit to Lionel Debroux
+int hpusb::submit_sync_s_transfer(hp_Handle * handle, hp_pkt_out * pktout) {
 
-    if (!handle)
-        return -1;
-
-    libusb_device_handle * devh = handle->usbhandle;
-    qDebug()<<QString().sprintf("%s %p",__FUNCTION__,handle->usbhandle);
-
-    int ret;
+    int ret=-1;
     int trans=0;
 
-    if (!devh)
-        return -1;
-    //write
-    log("Send..");
-    ret = libusb_interrupt_transfer(devh, 0x02, pktin->buffer, pktin->size,
+    if (handle != NULL && pktout != NULL) {
+
+        prime_raw_hid_pkt raw;
+        uint32_t i, q, r;
+        uint32_t offset = 0;
+        uint8_t pkt_id = 0;
+        libusb_device_handle * devh = handle->usbhandle;
+        if (devh!=nullptr) {
+            memset((void *)&raw, 0, sizeof(raw));
+            q = (pktout->size) / (PRIME_RAW_DATA_SIZE);
+            r = (pktout->size) % (PRIME_RAW_DATA_SIZE);
+
+            qDebug()<<q;
+            qDebug()<<r;
+
+            for (i = 1; i <= q; i++) {
+                raw.size = PRIME_RAW_DATA_SIZE;
+                if(i>1) {
+                    raw.data[0]=  0x01;
+                    raw.data[1] = pkt_id;
+                    memcpy(raw.data + 2, pktout->data + offset, PRIME_RAW_DATA_SIZE-1);
+                    offset += PRIME_RAW_DATA_SIZE - 1;
+                  }
+                else {
+                    memcpy(raw.data, pktout->data + offset, PRIME_RAW_DATA_SIZE-1);
+                    offset += PRIME_RAW_DATA_SIZE - 1;
+                }
+
+                log("In sync send transfer");
+                qDebug()<<QString().sprintf("%s %p",__FUNCTION__,handle->usbhandle);
+
+                //write
+                log("Send..");
+                ret = libusb_interrupt_transfer(devh, ENDPOINT_OUT, raw.data, raw.size,
+                                             &trans,10000);
+                if (ret) {
+                    log(QString().sprintf("Write Error: %s\n", libusb_error_name(ret)));
+                    r = 0;
+                    break;
+                }
+                else {
+                    log(QString().sprintf("Write bytes: %d\n", trans));
+                }
+                // Increment packet ID, which seems to be necessary for computer -> calc packets
+                pkt_id++;
+                if (pkt_id == 0xFF) {
+                    pkt_id = 0; // Skip 0xFF, which is used for other purposes.
+                }
+              }
+
+            if (r || !pktout->size) {
+                if (i>1) {
+                    raw.size = r + 2;
+                    raw.data[0] = 0x01;
+                    raw.data[1] = pkt_id;
+                    memcpy(raw.data + 2, pktout->data + offset, PRIME_RAW_DATA_SIZE-1);
+                }
+                else
+                {
+                    raw.size = r;
+                    memcpy(raw.data, pktout->data + offset, PRIME_RAW_DATA_SIZE-1);
+                }
+                log("Send small packet..");
+
+                ret = libusb_interrupt_transfer(devh, ENDPOINT_OUT, raw.data, raw.size,
                                              &trans,10000);
 
-    log(QString().sprintf("Write Error: %s\n", libusb_error_name(ret)));
-    log(QString().sprintf("Write bytes: %d\n", trans));
+                if (ret) {
+                    log(QString().sprintf("Write Error: %s\n", libusb_error_name(ret)));
+               }
+                else {
+                    log(QString().sprintf("Write bytes: %d\n", trans));
+                }
+            }
 
-    //read
-    log("Recieve...");
-    ret = libusb_interrupt_transfer(devh,0x81,pktout->buffer,pktout->size-8,&trans,10000);
+        }
+    }
+    return ret;
+}
+
+//extracts the header from the pkt and returns it in the header structure
+int hpusb::extract_header(hp_pkt_in * pktin, int start, usb_header * uh) {
+
+    int b_0;
+    int b_1;
+    int b_2;
+    int b_3;
+    int b_4;
+    int b_5;
+    int b_6;
+    int b_7;
+
+    b_0=pktin->data[0];
+    b_1=pktin->data[1];
+    b_2=pktin->data[2];
+    b_3=pktin->data[3];
+    b_4=pktin->data[4];
+    b_5=pktin->data[5];
+    b_6=pktin->data[6];
+    b_7=pktin->data[7];
+
+
+    qDebug()<<QString("Extract Header Start is %1").arg(start);
+    b_0=pktin->data[start];
+
+    if(b_0==0x01) {
+        uh->type=HP_HDR_CHUNK;
+        uh->typecode=0;
+        uh->chunk=pktin->data[start+1];
+        QString msg = QString("Chunk %1").arg(uh->chunk);
+         msg += QString("\n 00 %0x1").arg(pktin->data[0]);
+         msg += QString("\n 01 %0x1").arg(pktin->data[1]);
+         msg += QString("\n 02 %0x1").arg(pktin->data[2]);
+        qDebug()<<msg;
+    }
+    else
+    {
+        if((b_0==0x00)&&(b_2==0x03)&&(b_3==0x00)&&(b_4==0x00)&&(b_4==0x00)) {
+            uh->type=HP_HDR_STD;
+            uh->cmd=b_1;
+            uh->items=0;
+            uh->chunk=0;
+            uh->size=1024;
+        }
+        else
+        {
+
+            uh->typecode=pktin->data[start+4];
+            if(uh->typecode==0XF7)
+            {
+                uh->type=HP_HDR_FIRST;
+                uh->items=pktin->data[start+5];
+                QString msg = QString("Size: %1").arg(pktin->data[start+4]);
+                qDebug()<<msg;
+                uh->size=(uint32_t)(pktin->data[start+5]);
+                uh->chunk=0;
+                msg = QString("First Header item: %1 size: %2").arg(uh->items).arg(uh->size);
+                qDebug()<<msg;
+            }
+        }
+    }
+    return 1;
+
+}
+
+//read a synchronuous
+int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
+
+   usb_firstchunk fc;
+   usb_chunk uc;
+   usb_header uh1;
+   usb_header uh2;
+   int ret;
+   int trans=0;
+   int trans_c=0;
+   int chunks;
+
+   log("Recieve...");
+
+   if (!handle) {
+       log("Null handle");
+       return -1;
+   }
+
+   libusb_device_handle * devh = handle->usbhandle;
+
+   qDebug()<<QString().sprintf("%s %p",__FUNCTION__,handle->usbhandle);
+
+   if (!devh)
+       return -1;
+
+    ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,pktin->data,1024,&trans,5000);
+
+    extract_header(pktin,0,&uh1);
+
+    qDebug()<<QString("Looking for %1 items").arg(uh1.items);
+
+    if ((uh1.type==HP_HDR_FIRST)&&(uh1.items>0x00)) {
+        qDebug()<<QString("First chunk detected %1").arg(uh1.items);
+
+        for (chunks=0; chunks<uh1.items; chunks++) {
+
+            //read additional chuncks
+             ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,&pktin->data[trans],1024,&trans_c,5000);
+             extract_header(pktin,trans, &uh2);
+             qDebug()<<trans;
+             qDebug()<<QString("another chunk read %1 %2").arg(chunks).arg(uh2.chunk);
+             trans+=trans_c;
+        }
+    }
 
     log(QString().sprintf("read: %d\n", trans));
 
@@ -216,10 +390,426 @@ int hpusb::submit_sync_transfer(hp_Handle * handle, hp_pkt_in * pktin, hp_pkt_ou
         //printf("%d receive %d bytes from device: %s\n");
 
         log(QString().sprintf("%d bytes received",trans));
-        main_err-> dump(pktout->buffer,trans);
+        main_err-> dump(pktin->data,trans);
     }
     return ret;
 }
+
+//request to recieve a file transfer
+int sync_s_recv_file(hp_Handle *) {
+
+    return 0;
+}
+
+//recieve the file transfer
+int sync_r_recv_file(hp_Handle *) {
+
+    return 0;
+}
+
+//Get a screen shot. HP replies with image starting on byte 14
+//ToDo - make robust
+int hpusb::get_screen_shot(hp_Handle * handle, QByteArray * imageData) {
+
+    int res;
+    if (handle != NULL) {
+
+        uint8_t transferbuffer[LEN_IN_BUFFER*8 ];
+        uint8_t in_buffer[LEN_IN_BUFFER+8];
+        hp_pkt_in pktin;
+        hp_pkt_out pktout;
+
+        transferbuffer[0]=0x00;
+        transferbuffer[1]=CMD_PRIME_RECV_SCREEN;
+        transferbuffer[2]=(uint8_t) CALC_SCREENSHOT_FORMAT_PRIME_PNG_320x240x16;
+
+        pktout.cmd = CMD_PRIME_RECV_SCREEN;
+        pktout.data = transferbuffer;
+        pktout.size=1024;
+
+        if (!(res=submit_sync_s_transfer(handle,&pktout))){
+
+            pktin.cmd= CMD_PRIME_RECV_SCREEN;
+            pktin.data=in_buffer;
+            pktin.size=1024*8;
+            log(QString("%1: Waiting for a reply").arg(__FUNCTION__));
+
+            if (!submit_sync_r_transfer(handle,&pktin)){
+                log(QString("%1: Recieved a reply").arg(__FUNCTION__));
+                //Trying to understand reply
+
+                QByteArray rd= QByteArray(reinterpret_cast<const char*>(pktin.data), pktin.size);
+                *imageData = QByteArray(reinterpret_cast<const char*>(&pktin.data[14]), pktin.size-14);
+
+                log(QString().sprintf("%d bytes received",pktin.size));
+                main_err-> dump(pktin.data,pktin.size);
+ //               lookfordouble(rd,64);
+            }
+        }
+
+    }
+
+    qDebug()<<QString("In %1").arg(__FUNCTION__);
+}
+
+int hpusb::hp_func() {
+    return 0;
+}
+
+int hpusb::is_ready(hp_Handle * handle) {
+
+    int res;
+    if (handle != NULL) {
+
+        uint8_t transferbuffer[LEN_IN_BUFFER*8 ];
+        uint8_t in_buffer[LEN_IN_BUFFER+8];
+
+        hp_pkt_in pktin;
+        hp_pkt_out pktout;
+
+//    transferbuffer[0]=((cmd>>8)&0xFF);
+//    transferbuffer[1]=((cmd>>0)&0xFF);
+
+        transferbuffer[0]=0x00;
+        transferbuffer[1]=CMD_PRIME_CHECK_READY;
+
+        pktout.cmd = CMD_PRIME_CHECK_READY;
+        pktout.data = transferbuffer;
+        pktout.size=2;
+
+        if (!(res=submit_sync_s_transfer(handle,&pktout))){
+
+            pktin.cmd= CMD_PRIME_CHECK_READY;
+            pktin.data=in_buffer;
+            pktin.size=1024;
+            log(QString("%1: Waiting for a reply").arg(__FUNCTION__));
+
+            if (!submit_sync_r_transfer(handle,&pktin)){
+                log(QString("%1: Recieved a reply").arg(__FUNCTION__));
+                //Trying to understand reply
+                QByteArray rd= QByteArray(reinterpret_cast<const char*>(pktin.data), pktin.size);
+ //               lookfordouble(rd,64);
+            }
+        }
+        else {
+            log(QString("%1: Could not send ready request ").arg(__FUNCTION__));
+            return res;
+        }
+    }
+    return res;
+ }
+
+int hpusb::load_info(hp_Handle * handle, hp_Information * hpinfo) {
+
+    uint8_t transferbuffer[LEN_IN_BUFFER+8];
+    uint8_t in_buffer[LEN_IN_BUFFER+8];
+
+    hp_pkt_in pktin;
+    hp_pkt_out pktout;
+
+    memset((void *)&transferbuffer, 0, sizeof(transferbuffer));
+
+    qDebug()<<QString("%1").arg(__FUNCTION__);
+
+    transferbuffer[0]=0x0;
+    transferbuffer[1]=CMD_PRIME_GET_INFOS;
+
+    /*
+    transferbuffer[0]=0xFF;
+    transferbuffer[1]=0xEC;
+    transferbuffer[2]=0x00;
+    transferbuffer[3]=0x00;
+    transferbuffer[4]=0x00;
+    transferbuffer[5]=0x00;
+    transferbuffer[6]=0x00;
+    transferbuffer[7]=0x00;
+    transferbuffer[8]=0x00;
+    transferbuffer[9]=0x00;
+*/
+
+    pktout.cmd=CMD_PRIME_GET_INFOS;
+    pktout.data=transferbuffer;
+    pktout.size=2;
+
+    if (submit_sync_s_transfer(handle,&pktout)){
+        qDebug()<<"error sending";
+    }
+    else
+    {
+        //recieve response
+        pktin.data=in_buffer;
+        pktin.size=sizeof(in_buffer);
+    //    pktout.size=PRIME_RAW_HID_DATA_SIZE+16;
+
+        if(!submit_sync_r_transfer(handle,&pktin)) {
+
+        //unpack data
+        log("unpacking data");
+
+        int ind=0;
+        QTextCodec * codec = QTextCodec::codecForName("UTF-8");
+        QByteArray rd= QByteArray(reinterpret_cast<const char*>(pktin.data), pktin.size);
+
+        //find name
+        ind=rd.indexOf(QChar(0x6c),0)+1;
+        QByteArray str1 =rd.mid(ind,64);
+
+        QString name;
+        name = codec->toUnicode(str1);
+        hpinfo->name=name;
+
+        //find OS Version
+        unsigned char searchstr[] = {0x80,0x20,0x80,0x01,0x62,0x01};
+        ind+=rd.indexOf((char *) searchstr,ind+64)+4;
+        qDebug()<<ind;
+        //ind+=;
+        str1 =rd.mid(ind,16);
+        QString osv;
+        osv = codec->toUnicode(str1);
+        hpinfo->osver=osv;
+        qDebug()<<osv;
+        log(osv);
+
+        //find Serial Number
+        ind+=16;
+        str1 =rd.mid(ind,16);
+        QString serial;
+        serial = codec->toUnicode(str1);
+        hpinfo->serialnum=serial;
+        log(serial);
+
+        //find Application Version
+        ind+=16;
+        str1 =rd.mid(ind,16);
+
+//       QByteArray db= QByteArray(reinterpret_cast<const double*>(&pktout.buffer[ind]), pktout.size-ind);
+
+        return 0;
+        }
+        else {
+        log("failed to read info from device");
+        return 1;
+        }
+    }
+    return 0;
+}
+
+int hpusb::lookfordouble (QByteArray rd, int start) {
+    long double num=0;
+    QString app;
+    QByteArray str1;
+    QTextCodec * codec = QTextCodec::codecForName("UTF-8");
+    app = codec->toUnicode(str1);
+    log(app);
+
+    int i,ind;
+    ind=start;
+
+    for (i=0;  i<300; i++) {
+        ind+=1;
+        str1 =rd.mid(ind,sizeof(num));
+        num= *(long double*)(str1.constData());
+        app = codec->toUnicode(str1);
+       // qDebug()<<num;
+        qDebug()<<QString().sprintf("%e",num);
+        qDebug()<<app;
+    }
+}
+
+int hpusb::get_info(/*calc_infos * infos*/) {
+    return 0;
+}
+
+int hpusb::get_settings(hp_Handle * handle, hp_Settings * set) {
+    hp_Settings inset;
+
+    uint8_t transferbuffer[LEN_IN_BUFFER+8];
+    uint8_t in_buffer[LEN_IN_BUFFER+8];
+
+    hp_pkt_in pktin;
+    hp_pkt_out pktout;
+
+    transferbuffer[0]=0x0;
+    transferbuffer[1]=CMD_PRIME_GET_SETTINGS;
+
+    pktout.data=transferbuffer;
+    pktout.size=1024;
+
+    pktin.data=in_buffer;
+    pktin.size=sizeof(in_buffer);
+//    pktout.size=PRIME_RAW_HID_DATA_SIZE+16;
+    if(!handle) {
+        err(L3,0,"Passed 0 handle");
+        return -1;
+    }
+
+    if (!submit_sync_s_transfer(handle,&pktout)){
+    }
+
+    if (!submit_sync_r_transfer(handle,&pktin)){
+    }
+
+    inset.entry=1;
+
+    if(set)
+        *set=inset;
+
+    return 0;
+}
+
+int hpusb::set_settings(hp_Handle * handle, hp_Settings set) {
+
+
+    return 0;
+}
+
+
+int hpusb::vpkt_send_experiments(hp_Handle * handle, int cmd) {
+
+    uint8_t transferbuffer[LEN_IN_BUFFER*8 ];
+    uint8_t in_buffer[LEN_IN_BUFFER+8];
+
+    hp_pkt_in pktin;
+    hp_pkt_out pktout;
+
+    qDebug()<<QString("%1").arg(__FUNCTION__);
+
+    transferbuffer[0]=((cmd>>8)&0xFF);
+    transferbuffer[1]=((cmd>>0)&0xFF);
+
+/*    transferbuffer[0]=0xFF;
+    transferbuffer[1]=0xEC;
+    transferbuffer[2]=0x00;
+    transferbuffer[3]=0x00;
+    transferbuffer[4]=0x00;
+    transferbuffer[5]=0x00;
+    transferbuffer[6]=0x00;
+    transferbuffer[7]=0x00;
+    transferbuffer[8]=0x00;
+    transferbuffer[9]=0x00;
+    transferbuffer[10]=0x00;
+*/
+    //CRC
+    quint16 crcBytes = qChecksum((char *)&transferbuffer[2],9);
+
+    qDebug()<<crcBytes;
+
+    transferbuffer[11]=(crcBytes>>8)&0xFF;
+    transferbuffer[12]=(crcBytes>>0)&0xFF;
+
+    transferbuffer[11]=0x1c;
+    transferbuffer[12]=0xf5;
+
+    transferbuffer[13]=0x97;
+    transferbuffer[14]=0x01;
+    transferbuffer[15]=0x33;
+    transferbuffer[16]=0x45;
+    transferbuffer[17]=0xe6;
+    transferbuffer[18]=0x76;
+    transferbuffer[19]=0x00;
+    transferbuffer[20]=0x00;
+    transferbuffer[21]=0x00;
+    transferbuffer[22]=0x00;
+    transferbuffer[23]=0x48;
+
+
+    transferbuffer[1024]=0x00;
+    transferbuffer[1025]=0x00;
+    transferbuffer[1026]=0x07;
+    transferbuffer[1027]=0x00;
+    transferbuffer[1028]=0x00;
+    transferbuffer[1029]=0x00;
+    transferbuffer[1030]=0xfd;
+    transferbuffer[1031]=0x01;
+
+/*
+    transferbuffer[0]=0x01;
+    transferbuffer[1]=0x01;
+
+    transferbuffer[2]=0x00;
+    transferbuffer[3]=0x00;
+    transferbuffer[4]=0x07;
+    transferbuffer[5]=0x00;
+    transferbuffer[6]=0x00;
+    transferbuffer[7]=0x00;
+    transferbuffer[8]=0xfd;
+    transferbuffer[9]=0x01;
+*/
+
+
+
+    pktout.data=transferbuffer;
+    pktout.size=1024;
+
+    pktin.data=in_buffer;
+    pktin.size=sizeof(in_buffer);
+//    pktout.size=PRIME_RAW_HID_DATA_SIZE+16;
+
+     submit_sync_s_transfer(handle,&pktout);
+
+     submit_sync_r_transfer(handle,&pktin);
+    {
+
+        transferbuffer[0]=0x01;
+        transferbuffer[1]=0x01;
+        transferbuffer[2]=0x00;
+        transferbuffer[3]=0x00;
+        transferbuffer[4]=0x00;
+        transferbuffer[5]=0x07;
+        transferbuffer[6]=0x00;
+        transferbuffer[7]=0x00;
+        transferbuffer[8]=0x00;
+        transferbuffer[9]=0x00;
+
+        pktout.data=transferbuffer;
+        pktout.size=1024*2;
+
+ //       submit_sync_s_transfer(handle,&pktout);
+ //       submit_sync_r_transfer(handle,&pktin);
+
+        return 0;
+    }
+
+    return 1;
+}
+
+int hpusb::hp_close(hp_Handle * handle)
+{
+    if (handle) {
+        if (handle->dev_open) {
+            libusb_release_interface(handle->usbhandle, 0);
+            libusb_close(handle->usbhandle);
+            handle->dev_open =0;
+         }
+    }
+    return 0;
+}
+
+
+// debugging function to display libusb_transfer
+void hpusb::print_libusb_transfer(struct libusb_transfer *p_t)
+{	int i;
+    if ( NULL == p_t){
+        log("No libusb_transfer...\n");
+    }
+    else {
+        log("libusb_transfer structure:\n");
+        log(QString().sprintf("flags   =%x \n", p_t->flags));
+        log(QString().sprintf("endpoint=%x \n", p_t->endpoint));
+        log(QString().sprintf("type    =%x \n", p_t->type));
+        log(QString().sprintf("timeout =%d \n", p_t->timeout));
+        // length, and buffer are commands sent to the device
+        log(QString().sprintf("length        =%d \n", p_t->length));
+        log(QString().sprintf("actual_length =%d \n", p_t->actual_length));
+        log(QString().sprintf("buffer    =%p \n", p_t->buffer));
+
+        for (i=0; i < p_t->length; i++){
+            log(QString().sprintf(" %x", i, p_t->buffer[i]));
+        }
+    }
+    return;
+}
+
 
 //send a submission
 int hpusb::submit_async_transfer(hp_Handle * handle, hp_pkt_in * pktin, hp_pkt_out *pktout) {
@@ -245,7 +835,7 @@ int hpusb::submit_async_transfer(hp_Handle * handle, hp_pkt_in * pktin, hp_pkt_o
     //Filling
     //libusb_fill_interrupt_setup(in_buffer,LIBUSB_RECIPIENT_DEVICE ,LIBUSB_REQUEST_TYPE_STANDARD,0,0,16);
     libusb_fill_control_transfer( transfer_in, devh,
-        pktin->buffer,   // Note: in_buffer is where input data written.
+        pktin->data,   // Note: in_buffer is where input data written.
         cb_in, nullptr, 1000); // no user data
 
     //take the initial time measurement
@@ -393,208 +983,6 @@ void cb_in(struct libusb_transfer *transfer)
         benchPackets=0;
         benchBytes=0;
     }
-}
-
-int hpusb::hp_func() {
-    return 0;
-}
-
-int hpusb::is_ready() {
-
-    return 0;
-}
-
-int hpusb::load_info(hp_Handle * handle, hp_Information * hpinfo) {
-
-    uint8_t transferbuffer[PRIME_RAW_HID_DATA_SIZE ];
-    uint8_t out_buffer[LEN_IN_BUFFER+8];
-
-    hp_pkt_in pktin;
-    hp_pkt_out pktout;
-
-    transferbuffer[0]=0x0;
-    transferbuffer[1]=CMD_PRIME_GET_INFOS;
-
-    pktin.buffer=transferbuffer;
-    pktin.size=2;
-
-    pktout.buffer=out_buffer;
-    pktout.size=sizeof(out_buffer);
-//    pktout.size=PRIME_RAW_HID_DATA_SIZE+16;
-
-    if (!submit_sync_transfer(handle,&pktin,&pktout)){
-    //unpack data
-        log("unpacking data");
-
-        int ind=0;
-        QTextCodec * codec = QTextCodec::codecForName("UTF-8");
-        QByteArray rd= QByteArray(reinterpret_cast<const char*>(pktout.buffer), pktout.size);
-
-        //find name
-        ind=rd.indexOf(QChar(0x6c),0)+1;
-        QByteArray str1 =rd.mid(ind,64);
-
-        QString name;
-        name = codec->toUnicode(str1);
-        hpinfo->name=name;
-
-        //find OS Version
-        unsigned char searchstr[] = {0x80,0x20,0x80,0x01,0x62,0x01};
-        ind+=rd.indexOf((char *) searchstr,ind+64)+4;
-        qDebug()<<ind;
-        //ind+=;
-        str1 =rd.mid(ind,16);
-        QString osv;
-        osv = codec->toUnicode(str1);
-        hpinfo->osver=osv;
-        qDebug()<<osv;
-        log(osv);
-
-        //find Serial Number
-        ind+=16;
-        str1 =rd.mid(ind,16);
-        QString serial;
-        serial = codec->toUnicode(str1);
-        hpinfo->serialnum=serial;
-        log(serial);
-
-        //find Application Version
-        ind+=16;
-        str1 =rd.mid(ind,16);
-        QString app;
-        app = codec->toUnicode(str1);
-        //hpinfo->appver=app;
-        log(app);
-
-//       QByteArray db= QByteArray(reinterpret_cast<const double*>(&pktout.buffer[ind]), pktout.size-ind);
-
-        long double num=0;
-        int i;
-        ind+=16;
-        for (i=0;  i<300; i++) {
-            ind+=1;
-            str1 =rd.mid(ind,sizeof(num));
-            num= *(long double*)(str1.constData());
-            app = codec->toUnicode(str1);
-           // qDebug()<<num;
-            qDebug()<<QString().sprintf("%e",num);
-            qDebug()<<app;
-        }
-        return 0;
-    }
-    else {
-        log("failed to read info from device");
-        return 1;
-    }
-
-    return 0;
-}
-
-int hpusb::get_info(/*calc_infos * infos*/) {
-    return 0;
-}
-
-int hpusb::get_settings(hp_Handle * handle, hp_Settings * set) {
-    hp_Settings inset;
-
-    uint8_t transferbuffer[PRIME_RAW_HID_DATA_SIZE ];
-    uint8_t out_buffer[LEN_IN_BUFFER+8];
-
-    hp_pkt_in pktin;
-    hp_pkt_out pktout;
-
-    transferbuffer[0]=0x0;
-    transferbuffer[1]=CMD_PRIME_GET_SETTINGS;
-
-    pktin.buffer=transferbuffer;
-    pktin.size=2;
-
-    pktout.buffer=out_buffer;
-    pktout.size=sizeof(out_buffer);
-//    pktout.size=PRIME_RAW_HID_DATA_SIZE+16;
-    if(!handle) {
-        err(L3,0,"Passed 0 handle");
-        return -1;
-    }
-
-    if (!submit_sync_transfer(handle,&pktin,&pktout)){
-    }
-
-    inset.entry=1;
-
-    if(set)
-        *set=inset;
-
-    return 0;
-}
-
-int hpusb::set_settings(hp_Handle * handle, hp_Settings set) {
-
-
-    return 0;
-}
-
-
-int hpusb::vpkt_send_experiments(hp_Handle * handle, int cmd) {
-
-    uint8_t transferbuffer[PRIME_RAW_HID_DATA_SIZE ];
-    uint8_t out_buffer[LEN_IN_BUFFER+8];
-
-    hp_pkt_in pktin;
-    hp_pkt_out pktout;
-
-    transferbuffer[0]=0x0;
-    transferbuffer[1]=cmd;
-
-    pktin.buffer=transferbuffer;
-    pktin.size=2;
-
-    pktout.buffer=out_buffer;
-    pktout.size=sizeof(out_buffer);
-//    pktout.size=PRIME_RAW_HID_DATA_SIZE+16;
-
-    if (!submit_sync_transfer(handle,&pktin,&pktout)) {
-        return 0;
-    }
-
-    return 1;
-}
-
-int hpusb::hp_close(hp_Handle * handle)
-{
-    if (handle) {
-        if (handle->dev_open) {
-            libusb_release_interface(handle->usbhandle, 0);
-            libusb_close(handle->usbhandle);
-            handle->dev_open =0;
-         }
-    }
-    return 0;
-}
-
-
-// debugging function to display libusb_transfer
-void hpusb::print_libusb_transfer(struct libusb_transfer *p_t)
-{	int i;
-    if ( NULL == p_t){
-        log("No libusb_transfer...\n");
-    }
-    else {
-        log("libusb_transfer structure:\n");
-        log(QString().sprintf("flags   =%x \n", p_t->flags));
-        log(QString().sprintf("endpoint=%x \n", p_t->endpoint));
-        log(QString().sprintf("type    =%x \n", p_t->type));
-        log(QString().sprintf("timeout =%d \n", p_t->timeout));
-        // length, and buffer are commands sent to the device
-        log(QString().sprintf("length        =%d \n", p_t->length));
-        log(QString().sprintf("actual_length =%d \n", p_t->actual_length));
-        log(QString().sprintf("buffer    =%p \n", p_t->buffer));
-
-        for (i=0; i < p_t->length; i++){
-            log(QString().sprintf(" %x", i, p_t->buffer[i]));
-        }
-    }
-    return;
 }
 
 hpusb::~hpusb() {

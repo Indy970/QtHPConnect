@@ -40,12 +40,14 @@ public:
 private slots:
     void onOpen();
     void onTestSettings();
+    void onTestScreen();
     void selectionChangedSlot(const QItemSelection & /*newSelection*/, const QItemSelection & /*oldSelection*/);
     void about();
     void showContent();
     void showCalculator();
     void showMessage();
     void showMonitor();
+    void dataChange(hp_Change);
     void clickedCalculator(QModelIndex);
     void exit();
     void createLogWindow();
@@ -69,6 +71,9 @@ private:
     void loadTextFile();
     void createTextWindow();
     QMdiArea * getMdi();
+    void monitorAddImage(hp_ScreenShot scrnshot);
+
+
 };
 
 #endif // MAINWINDOW_H

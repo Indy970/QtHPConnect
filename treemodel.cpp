@@ -6,6 +6,7 @@ treeModel::treeModel(QObject *parent)
 {
     setItemPrototype(new hpTreeItem());
     createRoot();
+    setParent(parent);
 }
 
 int treeModel::createRoot()
@@ -25,6 +26,8 @@ int treeModel::addCalculator(QString name, hpusb * handle){
     hpCalc->setIcon(QIcon(":/icons/monitor_32x32.png"));
     hpCalc->setToolTip(QString("Calculator contents"));
     QObject::connect(hpData, SIGNAL(dataChanged(hp_Change)),hpCalc, SLOT(dataChange(hp_Change)));
+    if (parent()!=nullptr)
+        QObject::connect(hpData, SIGNAL(dataChanged(hp_Change)),parent(), SLOT(dataChange(hp_Change)));
     setHpCalcData(name,hpData,hpCalc);
     rootNode->appendRow(hpCalc);
     hpData->readInfo();

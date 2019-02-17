@@ -186,6 +186,7 @@
    <addaction name="separator"/>
    <addaction name="actionTest"/>
    <addaction name="actionTestSettings"/>
+   <addaction name="actionTestScreen"/>
   </widget>
   <widget class="QDockWidget" name="dwContent_2">
    <property name="sizePolicy">
@@ -278,7 +279,7 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_4">
      <item>
-      <widget class="QTextEdit" name="teMonitor"/>
+      <layout class="QGridLayout" name="wMonitorGrid" rowstretch="0" columnstretch="0" rowminimumheight="0"/>
      </item>
     </layout>
    </widget>
@@ -488,6 +489,18 @@
    </property>
    <property name="text">
     <string>TestSettings</string>
+   </property>
+  </action>
+  <action name="actionTestScreen">
+   <property name="icon">
+    <iconset resource="qthpconnect.qrc">
+     <normaloff>:/icons/add_background_32x32.png</normaloff>:/icons/add_background_32x32.png</iconset>
+   </property>
+   <property name="text">
+    <string>TestScreen</string>
+   </property>
+   <property name="toolTip">
+    <string>Test get Screen Function</string>
    </property>
   </action>
  </widget>

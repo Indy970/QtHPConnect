@@ -242,6 +242,7 @@ QString hpTreeItem::getName() {
     return func_list[dt2int()][0];
  }
 
+//Slot to respond to data changes
 void hpTreeItem::dataChange(hp_Change hpchange) {
 
     hpCalcData * ptr=nullptr;
@@ -254,5 +255,10 @@ void hpTreeItem::dataChange(hp_Change hpchange) {
                             setData(name,Qt::DisplayRole);
                         }
                 break;
+            case HP_SCREEN: {
+                    qDebug()<<"Screen Shot Changed";
+                    emit dataChanged(hpchange);
+                }
+        break;
     }
 }

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>347</width>
+    <width>427</width>
     <height>118</height>
    </rect>
   </property>
@@ -18,7 +18,7 @@
     <rect>
      <x>0</x>
      <y>70</y>
-     <width>321</width>
+     <width>411</width>
      <height>32</height>
     </rect>
    </property>
@@ -32,9 +32,9 @@
   <widget class="QLineEdit" name="lineEdit">
    <property name="geometry">
     <rect>
-     <x>60</x>
+     <x>30</x>
      <y>20</y>
-     <width>261</width>
+     <width>381</width>
      <height>32</height>
     </rect>
    </property>
