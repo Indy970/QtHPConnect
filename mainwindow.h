@@ -7,6 +7,7 @@
 #include <QMdiArea>
 #include <QMdiSubWindow>
 #include <QSettings>
+#include <QFileSystemModel>
 
 #include "global.h"
 #include "errorhandler.h"
@@ -53,7 +54,7 @@ private slots:
     void createLogWindow();
     void testFunction();
     treeModel * getTreeModel();
-    void setTreeMenu();
+
     void treeMenuAction(bool);
     void on_tvCalculators_customContextMenuRequested(const QPoint &pos);
 
@@ -66,11 +67,14 @@ private:
     hpusb * hpapi;
     QMdiSubWindow * msgWindow=0;
     hp_MdiWindow * logWindow=0;
+    QFileSystemModel contentModel;
     QTextEdit * logEdit=0;
     Ui::MainWindow *ui;
     void loadTextFile();
     void createTextWindow();
     QMdiArea * getMdi();
+    void setContentWindow();
+    void setTreeMenu();
     void monitorAddImage(hp_ScreenShot scrnshot);
 
 

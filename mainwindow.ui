@@ -111,8 +111,8 @@
    </property>
    <property name="maximumSize">
     <size>
-     <width>272</width>
-     <height>524287</height>
+     <width>524287</width>
+     <height>524290</height>
     </size>
    </property>
    <property name="baseSize">
@@ -188,12 +188,18 @@
    <addaction name="actionTestSettings"/>
    <addaction name="actionTestScreen"/>
   </widget>
-  <widget class="QDockWidget" name="dwContent_2">
+  <widget class="QDockWidget" name="dwContent">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>200</width>
+     <height>130</height>
+    </size>
    </property>
    <property name="maximumSize">
     <size>
@@ -204,7 +210,7 @@
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="QWidget" name="wContent_2">
+   <widget class="QWidget" name="wContent">
     <property name="sizePolicy">
      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
       <horstretch>0</horstretch>
@@ -213,19 +219,7 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QTreeWidget" name="twContent">
-       <property name="columnCount">
-        <number>1</number>
-       </property>
-       <attribute name="headerVisible">
-        <bool>false</bool>
-       </attribute>
-       <column>
-        <property name="text">
-         <string>1</string>
-        </property>
-       </column>
-      </widget>
+      <widget class="QTreeView" name="tvContent"/>
      </item>
     </layout>
    </widget>

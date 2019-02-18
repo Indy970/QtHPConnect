@@ -109,7 +109,7 @@ void hpCalcData::readScreen() {
     hp_Settings hpset;
 
     log("Reading Screen");
-    qDebug()<<"Reading Screen";
+
     api=getAPI();
     handle=getHandle();
 
@@ -123,11 +123,9 @@ void hpCalcData::readScreen() {
             if (screenShot!=nullptr) {
                     delete screenShot;
             }
-            qDebug()<<"New ScreenShot";
+
             screenShot = new QPixmap();
 
-            qDebug()<<"Loading data";
-            qDebug()<<imageData[1];
             screenShot->loadFromData(imageData);
         }
       }

@@ -81,13 +81,14 @@ struct hp_cmd {
 };
 
 struct hp_pkt_in {
-    uint8_t * data;
+    QByteArray array;
     uint32_t size;
     uint8_t cmd;
 };
 
 struct hp_pkt_out {
     uint8_t * data;
+    QByteArray array= QByteArray(1024,0);
     uint32_t size;
     uint8_t cmd;
 };

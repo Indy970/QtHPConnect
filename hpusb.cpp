@@ -298,7 +298,6 @@ int hpusb::extract_header(uint8_t * raw, usb_header * uh) {
     b_9=raw[9];
     b_10=raw[10];
 
-
     qDebug()<<QString("Extract Header");
     b_0=raw[0];
 
@@ -362,7 +361,7 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
    int trans_c=0;
    int chunks;
    uint8_t raw[1024];
-
+   QByteArray in_buffer(1024,0);
 
    log("Recieve...");
 
@@ -377,11 +376,14 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
 
    if (!devh)
        return -1;
-    memset((void *)pktin->data, 0, sizeof(pktin->size));
+
     ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,1024,&trans,5000);
 
     extract_header(raw,&uh1);
-    memcpy(pktin->data,raw,trans);
+
+    in_buffer.insert(0,(const char *)raw,trans);
+    in_buffer.resize(trans);
+
     qDebug()<<QString("Looking for %1 items: %2 bytes read").arg(uh1.items).arg(trans);
 
     if ((uh1.type==HP_HDR_FIRST)&&(uh1.items>0x00)) {
@@ -392,11 +394,31 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
             //read additional chuncks
              ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,1024,&trans_c,5000);
              extract_header(raw, &uh2);
-             qDebug()<<QString("Copying %1 bytes").arg(trans_c);
-             memcpy(&pktin->data[trans],raw,trans_c);
+             //check for empty packet
+             if (trans_c>0) {
+                qDebug()<<QString("Copying %1 bytes").arg(trans_c);
+                in_buffer.append((const char *)raw,trans_c);
+                qDebug()<<QString("another chunk read %1/%2").arg(chunks).arg(uh2.chunk);
+                trans+=trans_c;
+             }
+        }
+    }
 
-             qDebug()<<QString("another chunk read %1/%2").arg(chunks).arg(uh2.chunk);
-             trans+=trans_c;
+    if ((uh1.type==HP_HDR_STD)&&(uh1.items>0x00)) {
+        qDebug()<<QString("First std chunk detected %1").arg(uh1.items);
+
+        for (chunks=1; chunks<uh1.items; chunks++) {
+            trans_c=0;
+            //read additional chuncks
+             ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,1024,&trans_c,5000);
+             extract_header(raw, &uh2);
+             //check for empty packet
+             if (trans_c>0) {
+                qDebug()<<QString("Copying %1 bytes").arg(trans_c);
+                in_buffer.append((const char *)raw,trans_c);
+                qDebug()<<QString("another chunk read %1/%2").arg(chunks).arg(uh2.chunk);
+                trans+=trans_c;
+             }
         }
     }
 
@@ -411,12 +433,12 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
             //read additional chuncks
              ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,1024,&trans_c,5000);
              extract_header(raw, &uh2);
-             if (trans_c>2) {
+             //check for empty packet
+             if (trans_c>0) {
                 qDebug()<<QString("PNG: Copying %1 bytes").arg(trans_c);
                 //Assume first byte a chunck count
-                memcpy(&pktin->data[trans],&raw[headerlen],trans_c-headerlen);
+                in_buffer.append((const char *)&raw[headerlen],trans_c-headerlen);
                 trans+=trans_c-headerlen;
-                pktin->size=trans;
              }
              else
              {
@@ -427,17 +449,15 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
         }
     }
 
-    qDebug()<<QString("%1: Recieved ").arg(__FUNCTION__)<<trans<<" bytes";
-    log(QString().sprintf("read: %d\n", trans));
+    pktin->array=in_buffer;
 
     if (ret){
         log(QString().sprintf("ERROR in interrupt read: %s\n",  libusb_error_name(ret)));
     }
     else{
-        //printf("%d receive %d bytes from device: %s\n");
         qDebug()<<QString("Exiting %1 ret %2").arg(__FUNCTION__).arg(ret);
         log(QString().sprintf("%d bytes received",trans));
-        main_err-> dump(pktin->data,trans);
+        main_err-> dump((uint8_t *)pktin->array.constData(),trans);
     }
     return ret;
 }
@@ -462,7 +482,6 @@ int hpusb::get_screen_shot(hp_Handle * handle, QByteArray * imageData) {
     if (handle != NULL) {
 
         uint8_t transferbuffer[LEN_IN_BUFFER+8];
-        uint8_t in_buffer[LEN_IN_BUFFER*16];
         hp_pkt_in pktin;
         hp_pkt_out pktout;
 
@@ -477,22 +496,19 @@ int hpusb::get_screen_shot(hp_Handle * handle, QByteArray * imageData) {
         if (!(res=submit_sync_s_transfer(handle,&pktout))){
 
             pktin.cmd= CMD_PRIME_RECV_SCREEN;
-            pktin.data=in_buffer;
 
-            pktin.size=sizeof(in_buffer);
             log(QString("%1: Waiting for a reply").arg(__FUNCTION__));
 
             if (!submit_sync_r_transfer(handle,&pktin)){
                 log(QString("%1: Recieved a reply").arg(__FUNCTION__));
                 //Trying to understand reply
                 int endpos;
-                QByteArray rd= QByteArray(reinterpret_cast<const char*>(pktin.data), pktin.size);
+                QByteArray rd = pktin.array;
                 endpos = rd.indexOf("IEND");
                 qDebug()<<"End pos:"<<endpos;
                 *imageData = QByteArray(rd.mid(14,endpos+4-14));
 //                qDebug()<<*imageData;
-                log(QString().sprintf("%d bytes received",pktin.size));
-                main_err-> dump((uint8_t *)imageData->data(),imageData->size());;
+                log(QString().sprintf("%d bytes received",pktin.array.size()));
             }
         }
 
@@ -529,14 +545,14 @@ int hpusb::is_ready(hp_Handle * handle) {
         if (!(res=submit_sync_s_transfer(handle,&pktout))){
 
             pktin.cmd= CMD_PRIME_CHECK_READY;
-            pktin.data=in_buffer;
-            pktin.size=1024;
+//            pktin.data=in_buffer;
+//            pktin.size=1024;
             log(QString("%1: Waiting for a reply").arg(__FUNCTION__));
 
             if (!submit_sync_r_transfer(handle,&pktin)){
                 log(QString("%1: Recieved a reply").arg(__FUNCTION__));
                 //Trying to understand reply
-                QByteArray rd= QByteArray(reinterpret_cast<const char*>(pktin.data), pktin.size);
+ //               QByteArray rd= QByteArray(reinterpret_cast<const char*>(pktin.data), pktin.size);
  //               lookfordouble(rd,64);
             }
         }
@@ -551,7 +567,7 @@ int hpusb::is_ready(hp_Handle * handle) {
 int hpusb::load_info(hp_Handle * handle, hp_Information * hpinfo) {
 
     uint8_t transferbuffer[LEN_IN_BUFFER+8];
-    uint8_t in_buffer[LEN_IN_BUFFER+8];
+//    uint8_t in_buffer[LEN_IN_BUFFER+8];
 
     hp_pkt_in pktin;
     hp_pkt_out pktout;
@@ -586,26 +602,22 @@ int hpusb::load_info(hp_Handle * handle, hp_Information * hpinfo) {
     else
     {
         //recieve response
-        pktin.data=in_buffer;
-        pktin.size=sizeof(in_buffer);
-    //    pktout.size=PRIME_RAW_HID_DATA_SIZE+16;
-
         if(!submit_sync_r_transfer(handle,&pktin)) {
 
-        //unpack data
-        log("unpacking data");
+            //unpack data
+            log("unpacking data");
 
-        int ind=0;
-        QTextCodec * codec = QTextCodec::codecForName("UTF-8");
-        QByteArray rd= QByteArray(reinterpret_cast<const char*>(pktin.data), pktin.size);
+            int ind=0;
+            QTextCodec * codec = QTextCodec::codecForName("UTF-8");
+            QByteArray rd= pktin.array;
 
-        //find name
-        ind=rd.indexOf(QChar(0x6c),0)+1;
-        QByteArray str1 =rd.mid(ind,64);
+            //find name
+            ind=rd.indexOf(QChar(0x6c),0)+1;
+            QByteArray str1 =rd.mid(ind,64);
 
-        QString name;
-        name = codec->toUnicode(str1);
-        hpinfo->name=name;
+            QString name;
+            name = codec->toUnicode(str1);
+            hpinfo->name=name;
 
         //find OS Version
         unsigned char searchstr[] = {0x80,0x20,0x80,0x01,0x62,0x01};
@@ -631,13 +643,11 @@ int hpusb::load_info(hp_Handle * handle, hp_Information * hpinfo) {
         ind+=16;
         str1 =rd.mid(ind,16);
 
-//       QByteArray db= QByteArray(reinterpret_cast<const double*>(&pktout.buffer[ind]), pktout.size-ind);
-
-        return 0;
+            return 0;
         }
         else {
-        log("failed to read info from device");
-        return 1;
+            log("failed to read info from device");
+            return 1;
         }
     }
     return 0;
@@ -673,7 +683,6 @@ int hpusb::get_settings(hp_Handle * handle, hp_Settings * set) {
     hp_Settings inset;
 
     uint8_t transferbuffer[LEN_IN_BUFFER+8];
-    uint8_t in_buffer[LEN_IN_BUFFER+8];
 
     hp_pkt_in pktin;
     hp_pkt_out pktout;
@@ -684,9 +693,6 @@ int hpusb::get_settings(hp_Handle * handle, hp_Settings * set) {
     pktout.data=transferbuffer;
     pktout.size=1024;
 
-    pktin.data=in_buffer;
-    pktin.size=sizeof(in_buffer);
-//    pktout.size=PRIME_RAW_HID_DATA_SIZE+16;
     if(!handle) {
         err(L3,0,"Passed 0 handle");
         return -1;
@@ -716,7 +722,6 @@ int hpusb::set_settings(hp_Handle * handle, hp_Settings set) {
 int hpusb::vpkt_send_experiments(hp_Handle * handle, int cmd) {
 
     uint8_t transferbuffer[LEN_IN_BUFFER*8 ];
-    uint8_t in_buffer[LEN_IN_BUFFER+8];
 
     hp_pkt_in pktin;
     hp_pkt_out pktout;
@@ -789,10 +794,6 @@ int hpusb::vpkt_send_experiments(hp_Handle * handle, int cmd) {
 
     pktout.data=transferbuffer;
     pktout.size=1024;
-
-    pktin.data=in_buffer;
-    pktin.size=sizeof(in_buffer);
-//    pktout.size=PRIME_RAW_HID_DATA_SIZE+16;
 
      submit_sync_s_transfer(handle,&pktout);
 
@@ -883,9 +884,9 @@ int hpusb::submit_async_transfer(hp_Handle * handle, hp_pkt_in * pktin, hp_pkt_o
 
     //Filling
     //libusb_fill_interrupt_setup(in_buffer,LIBUSB_RECIPIENT_DEVICE ,LIBUSB_REQUEST_TYPE_STANDARD,0,0,16);
-    libusb_fill_control_transfer( transfer_in, devh,
-        pktin->data,   // Note: in_buffer is where input data written.
-        cb_in, nullptr, 1000); // no user data
+//    libusb_fill_control_transfer( transfer_in, devh,
+//        pktin->data,   // Note: in_buffer is where input data written.
+//        cb_in, nullptr, 1000); // no user data
 
     //take the initial time measurement
     clock_gettime(CLOCK_REALTIME, &t1);

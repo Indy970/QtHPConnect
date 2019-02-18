@@ -22,16 +22,17 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QTableView>
 #include <QMessageBox>
 #include <QTreeView>
 #include <QLabel>
-
+#include <QInputDialog>
 #include <QFile>
 #include <QTextStream>
+#include <QFileIconProvider>
 
+#include "global.h"
 #include "hpusb.h"
 #include "datamodel.h"
 #include "treemodel.h"
@@ -42,7 +43,6 @@
 #include "hpdata.h"
 #include "hp_mdivariableedit.h"
 #include "hp_mditexteditor.h"
-#include <QInputDialog>
 
 errorHandler *main_err;
 #define log(a) main_err->error(L7,0,QString(a),QString());
@@ -52,10 +52,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     //setup
-    QCoreApplication::setOrganizationName("Private");
+    QCoreApplication::setOrganizationName("IRGP");
     QCoreApplication::setOrganizationDomain("");
-    QCoreApplication::setApplicationName("Linux HP Prime Interface");
-    QSettings appSettings;
+    QCoreApplication::setApplicationName("Linux QtHPConnect");
+    QSettings appSettings("IRGP","QtHPconnect");
+
+    //Set config file location (default used)
+    //   appSettings->setPath(QSettings::NativeFormat,QSettings::UserScope,"");
+
+    appSettings.setValue("contentPath",QDir::homePath()+"/.local/share/qthpconnect/contents/");
 
     //error handler
     main_err = new errorHandler(this);
@@ -77,6 +82,7 @@ MainWindow::MainWindow(QWidget *parent) :
     createActions();
     createLogWindow();
     setTreeMenu();
+    setContentWindow();
 
     //setup trees
     ui->tvCalculators->setModel(hpTreeModel);
@@ -302,10 +308,9 @@ void MainWindow::clickedCalculator(QModelIndex index) {
 
 void MainWindow::about()
 {
-   QMessageBox::about(this, tr("About Application"),
-            tr("The <b>Application</b> example demonstrates how to "
-               "write modern GUI applications using Qt, with a menu bar, "
-               "toolbars, and a status bar."));
+   QMessageBox::about(this, tr("About QtHP Connect"),
+                      QString("Version: ")+HP_VERSION_STRING);
+
 }
 
 //Dummy from examples -- edit
@@ -321,12 +326,33 @@ void MainWindow::createActions()
 //show or hide content window
 void MainWindow::showContent() {
 
-    if (ui->dwContent_2->isVisible()) {
-        ui->dwContent_2->hide();
+    if (ui->dwContent->isVisible()) {
+        ui->dwContent->hide();
     }
     else
     {
-        ui->dwContent_2->show();
+        ui->dwContent->show();
+    }
+}
+
+//Setup the content window to show saved content
+void MainWindow::setContentWindow() {
+
+    QSettings appSettings("IRGP","QtHPconnect");
+    QString path;
+
+    path=appSettings.value("contentPath").toString();
+    qDebug()<<"Content Path:"<<path;
+
+    contentModel.setRootPath(path);
+    contentModel.iconProvider()->setOptions(QFileIconProvider::DontUseCustomDirectoryIcons);
+
+    ui->tvContent->setModel(&contentModel);
+    if (!path.isEmpty()) {
+        const QModelIndex rootIndex = contentModel.index(QDir::cleanPath(path));
+        if (rootIndex.isValid()) {
+            ui->tvContent->setRootIndex(rootIndex);
+        }
     }
 }
 
@@ -376,7 +402,6 @@ void MainWindow::dataChange(hp_Change hpchange) {
 
                 break;
             case HP_SCREEN: {
-                 qDebug()<<"Reciebed screenshot changed";
                  if (hpchange.calc!=nullptr) {
                     hp_ScreenShot scrn;
                     scrn = hpchange.calc->getScreenShot();
@@ -390,9 +415,7 @@ void MainWindow::dataChange(hp_Change hpchange) {
 //Add screen shots to the message window
 void MainWindow::monitorAddImage(hp_ScreenShot  scrnshot) {
 
-     qDebug()<<"In Monitor Add Screen Shot";
-
-     QPixmap * pic;
+      QPixmap * pic;
       int col;
       int row;
       int count;
@@ -413,8 +436,8 @@ void MainWindow::monitorAddImage(hp_ScreenShot  scrnshot) {
          col=count%maxcol;
          row=count/maxcol;
 
-         qDebug()<<"Row set"<<row;
-         qDebug()<<"Column set"<<col;
+//         qDebug()<<"Row set"<<row;
+//         qDebug()<<"Column set"<<col;
          ui->wMonitorGrid->addWidget(label,row,col,Qt::AlignTop);
      }
      else

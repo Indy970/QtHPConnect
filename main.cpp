@@ -9,16 +9,16 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
 
-    QCoreApplication::setOrganizationName("QtProject");
-    QCoreApplication::setApplicationName("Linux HP Connect");
-    QCoreApplication::setApplicationVersion(QT_VERSION_STR);
+    QCoreApplication::setOrganizationName("");
+    QCoreApplication::setApplicationName("Linux QtHP Connect");
+    QCoreApplication::setApplicationVersion(HP_VERSION_STRING);
     QCommandLineParser parser;
-    parser.setApplicationDescription(QCoreApplication::applicationName());
 
+    parser.setApplicationDescription(QCoreApplication::applicationName());
     //REWORK
     parser.addHelpOption();
     parser.addVersionOption();
-    parser.addPositionalArgument("file", "The file to open.");
+//    parser.addPositionalArgument("file", "The file to open.");
     parser.process(a);
 
     MainWindow w;

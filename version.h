@@ -1,0 +1,11 @@
+#ifndef VERSION_H
+#define VERSION_H
+
+#define HP_VERSION_MAJOR 0
+#define HP_VERSION_MINOR 1
+#define HP_VERSION_PATCH 0
+#define HP_VERSION_BUILD ""
+#define HP_VERSION_STRING QString("%1.%2.%3%4").arg(HP_VERSION_MAJOR).arg(HP_VERSION_MINOR).arg(HP_VERSION_PATCH).arg(HP_VERSION_BUILD)
+
+
+#endif // VERSION_H

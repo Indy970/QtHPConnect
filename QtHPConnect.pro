@@ -17,7 +17,18 @@ TEMPLATE = app
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
-DEFINES += "VERSION=0"
+VERSION_MAJOR = HP_MAJOR_VERSION
+VERSION_MINOR = HP_MINOR_VERSION
+VERSION_PATCH = HP_MINOR_PATCH
+VERSION_BUILD = HP_MINOR_BUILD
+
+DEFINES += "VERSION_MAJOR=$$VERSION_MAJOR"\
+       "VERSION_MINOR=$$VERSION_MINOR"\
+       "VERSION_PATCH=$$VERSION_PATCH"\
+       "VERSION_BUILD=$$VERSION_BUILD"
+
+#Target version
+VERSION = $${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_PATCH}$${VERSION_BUILD}
 
 #QMAKE_CFLAGS += -Wno-unused-parameter -Werror=shadow -Werror=write-strings -Werror=redundant-decls -Werror=format -Werror=format-nonliteral -Werror=date-time -Werror=missing-prototypes -Werror=pointer-arith -Wunreachable-code -Werror=format-security -Werror=declaration-after-statement -Werror=implicit-function-declaration -Werror=return-type -D_FORTIFY_SOURCE=2 -D__LINUX__ -fvisibility=hidden
 #QMAKE_CXXFLAGS += -include cctype -include cstdlib
@@ -102,8 +113,8 @@ HEADERS += \
     hp_infodialog.h \
     getnumber.h \
     hpusb.h \
-    hp_settingsdlg.h
-
+    hp_settingsdlg.h \
+    version.h
 
 FORMS += \
     mainwindow.ui \
