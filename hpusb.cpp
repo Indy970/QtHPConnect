@@ -138,7 +138,7 @@ int hpusb::hp_open(hp_Handle * handle) {
 // replace with libusb_open_device_with_vid_pid
 int hpusb::is_device(libusb_device * device) {
 
-     libusb_device_descriptor desc = {0};
+     libusb_device_descriptor desc;
      int rc=0;
      rc = libusb_get_device_descriptor(device, &desc);
      if (rc!=0) {
@@ -158,10 +158,11 @@ int hpusb::is_device(libusb_device * device) {
 void hpusb::dumpDevice(libusb_device * device) {
 
     QString dump("Device Descriptor\n");
-    libusb_device_descriptor desc = {0};
-    int rc=0;
+    libusb_device_descriptor desc;
+    int rc;
     if (device) {
         rc = libusb_get_device_descriptor(device, &desc);
+        if (!rc) {
         dump+=QString().sprintf("bLength: %d\n",(int)desc.bLength);
         dump+=QString().sprintf("bDescriptor Type: %d\n",(int)desc.bDescriptorType);
         dump+=QString().sprintf("bcdUSB: %d\n",(int)desc.bcdUSB);
@@ -176,6 +177,7 @@ void hpusb::dumpDevice(libusb_device * device) {
         dump+=QString().sprintf("iProduct: %i\n",desc.iProduct);
         dump+=QString().sprintf("iSerialNumber: %i\n",desc.iSerialNumber);
         dump+=QString().sprintf("bNumConfigurations: %d\n",desc.bNumConfigurations);
+        }
     }
     log(dump);
     qDebug()<<dump;
@@ -299,30 +301,34 @@ int hpusb::extract_header(uint8_t * raw, usb_header * uh) {
     b_10=raw[10];
 
     qDebug()<<QString("Extract Header");
-    b_0=raw[0];
 
-    if(b_0==0x01) {
+    if(b_0>0x00) {
+        qDebug()<<"Header Chunck";
         uh->type=HP_HDR_CHUNK;
         uh->typecode=0;
-        uh->chunk=raw[1];
+        uh->chunk=b_0;
         QString msg = QString("Chunk %1").arg(uh->chunk);
-         msg += QString("\n 00 %0x1").arg(raw[0]);
-         msg += QString("\n 01 %0x1").arg(raw[1]);
-         msg += QString("\n 02 %0x1").arg(raw[2]);
+         msg += QString("00 %0x1 ").arg(raw[0]);
+         msg += QString("01 %0x1 ").arg(raw[1]);
+         msg += QString("02 %0x1 ").arg(raw[2]);
         qDebug()<<msg;
     }
     else
     {
-        if((b_0==0x00)&&(b_2==0x03)&&(b_3==0x00)&&(b_4==0x00)&&(b_4==0x00)) {
+        if((b_0==0x00)&&(b_1==0xfa)) {
+            qDebug()<<"Header Std";
             uh->type=HP_HDR_STD;
             uh->cmd=b_1;
-            uh->items=0;
+            uh->items=0xFFFF;  //assume third byte is header length
             uh->chunk=0;
             uh->size=1024;
         }
         else
         {   //recieve image
+
             if((b_0==0x00)&&(b_1==0xfc)) {
+                //This works - leave
+                qDebug()<<"Header PNG";
                 uh->type=HP_HDR_PNG;
                 uh->cmd=b_1;
                 uh->items=b_9;
@@ -330,17 +336,18 @@ int hpusb::extract_header(uint8_t * raw, usb_header * uh) {
                 uh->size=1024;
             }
             else  {
-            uh->typecode=raw[4];
-            if(uh->typecode==0XF7)
-            {
-                uh->type=HP_HDR_FIRST;
-                uh->items=raw[5];
-                QString msg = QString("Size: %1").arg(raw[4]);
-                qDebug()<<msg;
-                uh->size=(uint32_t)(raw[5]);
-                uh->chunk=0;
-                msg = QString("First Header item: %1 size: %2").arg(uh->items).arg(uh->size);
-                qDebug()<<msg;
+                uh->typecode=b_1;
+                if(uh->typecode==0XF7)
+                {
+                    qDebug()<<"Header First";
+                    uh->type=HP_HDR_FIRST;
+                    uh->items=0xFFFF;
+                    QString msg = QString("Size: %1").arg(b_5);
+                    qDebug()<<msg;
+                    uh->size=(uint32_t)(b_5);
+                    uh->chunk=0;
+                    msg = QString("First Header item: %1 size: %2").arg(uh->items).arg(uh->size);
+                    qDebug()<<msg;
             }
           }
         }
@@ -352,14 +359,13 @@ int hpusb::extract_header(uint8_t * raw, usb_header * uh) {
 //read a synchronuous
 int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
 
-   usb_firstchunk fc;
-   usb_chunk uc;
    usb_header uh1;
    usb_header uh2;
    int ret;
    int trans=0;
    int trans_c=0;
    int chunks;
+   int count=0;
    uint8_t raw[1024];
    QByteArray in_buffer(1024,0);
 
@@ -383,23 +389,34 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
 
     in_buffer.insert(0,(const char *)raw,trans);
     in_buffer.resize(trans);
-
+   uh1.items=1000;
     qDebug()<<QString("Looking for %1 items: %2 bytes read").arg(uh1.items).arg(trans);
 
     if ((uh1.type==HP_HDR_FIRST)&&(uh1.items>0x00)) {
-        qDebug()<<QString("First chunk detected %1").arg(uh1.items);
+        qDebug()<<QString("1 First chunk detected %1").arg(uh1.items);
 
         for (chunks=1; chunks<uh1.items; chunks++) {
             trans_c=0;
+            count++;
             //read additional chuncks
+
              ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,1024,&trans_c,5000);
-             extract_header(raw, &uh2);
+             qDebug()<<QString("x Reading Chuncks size:%1 count:%2").arg(trans_c).arg(count);
+
+//             extract_header(raw, &uh2);
              //check for empty packet
-             if (trans_c>0) {
+             if (trans_c>0) {           
                 qDebug()<<QString("Copying %1 bytes").arg(trans_c);
                 in_buffer.append((const char *)raw,trans_c);
-                qDebug()<<QString("another chunk read %1/%2").arg(chunks).arg(uh2.chunk);
+                qDebug()<<QString("another chunk read %1/%2").arg(chunks).arg(raw[0]);
+                qDebug()<<QString("uh.item=%1 Chunks=%2").arg(uh1.items).arg(chunks);
                 trans+=trans_c;
+             }
+             else
+             {
+                         qDebug()<<QString("End detected %1").arg(chunks);
+                         chunks=uh1.items;
+                         ret=0;
              }
         }
     }
@@ -407,17 +424,28 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
     if ((uh1.type==HP_HDR_STD)&&(uh1.items>0x00)) {
         qDebug()<<QString("First std chunk detected %1").arg(uh1.items);
 
+
         for (chunks=1; chunks<uh1.items; chunks++) {
+            qDebug()<<QString("Reading std chunk detected %1").arg(chunks);
             trans_c=0;
+            count++;
+
             //read additional chuncks
              ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,1024,&trans_c,5000);
-             extract_header(raw, &uh2);
+ //            extract_header(raw, &uh2);
+
              //check for empty packet
              if (trans_c>0) {
                 qDebug()<<QString("Copying %1 bytes").arg(trans_c);
                 in_buffer.append((const char *)raw,trans_c);
-                qDebug()<<QString("another chunk read %1/%2").arg(chunks).arg(uh2.chunk);
+                qDebug()<<QString("another chunk read %1/%2").arg(chunks).arg(raw[0]);
                 trans+=trans_c;
+             }
+             else
+             {
+                         qDebug()<<QString("End detected %1").arg(chunks);
+                         chunks=uh1.items;
+                         ret=0;
              }
         }
     }
@@ -435,7 +463,7 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
              extract_header(raw, &uh2);
              //check for empty packet
              if (trans_c>0) {
-                qDebug()<<QString("PNG: Copying %1 bytes").arg(trans_c);
+//                qDebug()<<QString("PNG: Copying %1 bytes").arg(trans_c);
                 //Assume first byte a chunck count
                 in_buffer.append((const char *)&raw[headerlen],trans_c-headerlen);
                 trans+=trans_c-headerlen;
@@ -457,7 +485,8 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
     else{
         qDebug()<<QString("Exiting %1 ret %2").arg(__FUNCTION__).arg(ret);
         log(QString().sprintf("%d bytes received",trans));
-        main_err-> dump((uint8_t *)pktin->array.constData(),trans);
+ //       main_err-> dump((uint8_t *)pktin->array.constData(),trans);
+        qDebug()<<pktin->array;
     }
     return ret;
 }
@@ -515,6 +544,7 @@ int hpusb::get_screen_shot(hp_Handle * handle, QByteArray * imageData) {
     }
 
     qDebug()<<QString("In %1").arg(__FUNCTION__);
+    return 0;
 }
 
 int hpusb::hp_func() {
@@ -527,7 +557,6 @@ int hpusb::is_ready(hp_Handle * handle) {
     if (handle != NULL) {
 
         uint8_t transferbuffer[LEN_IN_BUFFER*8 ];
-        uint8_t in_buffer[LEN_IN_BUFFER+8];
 
         hp_pkt_in pktin;
         hp_pkt_out pktout;
@@ -552,8 +581,10 @@ int hpusb::is_ready(hp_Handle * handle) {
             if (!submit_sync_r_transfer(handle,&pktin)){
                 log(QString("%1: Recieved a reply").arg(__FUNCTION__));
                 //Trying to understand reply
- //               QByteArray rd= QByteArray(reinterpret_cast<const char*>(pktin.data), pktin.size);
- //               lookfordouble(rd,64);
+                qDebug()<<pktin.array;
+                main_err-> dump((uint8_t *)pktin.array.constData(),pktin.array.size());
+                QByteArray rd= QByteArray(pktin.array, pktin.array.size());
+  //              lookfordouble(rd,64);
             }
         }
         else {
@@ -673,6 +704,7 @@ int hpusb::lookfordouble (QByteArray rd, int start) {
         qDebug()<<QString().sprintf("%e",num);
         qDebug()<<app;
     }
+    return 0;
 }
 
 int hpusb::get_info(/*calc_infos * infos*/) {
@@ -690,8 +722,9 @@ int hpusb::get_settings(hp_Handle * handle, hp_Settings * set) {
     transferbuffer[0]=0x0;
     transferbuffer[1]=CMD_PRIME_GET_SETTINGS;
 
+
     pktout.data=transferbuffer;
-    pktout.size=1024;
+    pktout.size=2;
 
     if(!handle) {
         err(L3,0,"Passed 0 handle");
@@ -728,11 +761,11 @@ int hpusb::vpkt_send_experiments(hp_Handle * handle, int cmd) {
 
     qDebug()<<QString("%1").arg(__FUNCTION__);
 
-    transferbuffer[0]=((cmd>>8)&0xFF);
-    transferbuffer[1]=((cmd>>0)&0xFF);
+//    transferbuffer[0]=((cmd>>8)&0xFF);
+//    transferbuffer[1]=((cmd>>0)&0xFF);
 
-/*    transferbuffer[0]=0xFF;
-    transferbuffer[1]=0xEC;
+    transferbuffer[0]=0x00;
+    transferbuffer[1]=0xF9;
     transferbuffer[2]=0x00;
     transferbuffer[3]=0x00;
     transferbuffer[4]=0x00;
@@ -742,7 +775,7 @@ int hpusb::vpkt_send_experiments(hp_Handle * handle, int cmd) {
     transferbuffer[8]=0x00;
     transferbuffer[9]=0x00;
     transferbuffer[10]=0x00;
-*/
+
     //CRC
     quint16 crcBytes = qChecksum((char *)&transferbuffer[2],9);
 
@@ -793,7 +826,7 @@ int hpusb::vpkt_send_experiments(hp_Handle * handle, int cmd) {
 
 
     pktout.data=transferbuffer;
-    pktout.size=1024;
+    pktout.size=2;
 
      submit_sync_s_transfer(handle,&pktout);
 
@@ -854,7 +887,7 @@ void hpusb::print_libusb_transfer(struct libusb_transfer *p_t)
         log(QString().sprintf("buffer    =%p \n", p_t->buffer));
 
         for (i=0; i < p_t->length; i++){
-            log(QString().sprintf(" %x", i, p_t->buffer[i]));
+            log(QString().sprintf("%d %x", i, p_t->buffer[i]));
         }
     }
     return;
@@ -872,7 +905,7 @@ int hpusb::submit_async_transfer(hp_Handle * handle, hp_pkt_in * pktin, hp_pkt_o
     struct sigaction sigact;
 
     int r = 1;  // result
-    int i;
+
     do_exit = 0;
 
     libusb_device_handle * devh = handle->usbhandle;
@@ -982,9 +1015,12 @@ int hpusb::submit_async_transfer(hp_Handle * handle, hp_pkt_in * pktin, hp_pkt_o
             printf("at out_deinit\n");
             libusb_free_transfer(transfer_out);
             libusb_free_transfer(transfer_in);
+        break;
         case out_release:
             libusb_release_interface(devh, 0);
+        break;
         }
+    return 0;
 }
 
 // This will catch user initiated CTRL+C type events and allow the program to exit

@@ -10,4 +10,11 @@
     Add options - set default paths
 2 Comms
     Understand what the calc is doing!
+
+    CAN READ ALL DATA!
+    ------------------
+    Tidy hpusb and start decoding
+
+    Sections are group by function starting 00 F7
+
 3 Backup to disk

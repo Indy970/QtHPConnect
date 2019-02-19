@@ -17,6 +17,7 @@
 #include "texteditor.h"
 #include "hp_mdiwindow.h"
 #include "hp_mdivariableedit.h"
+#include "cntfilesystemmodel.h"
 
 class treeModel;
 class errorHandler;
@@ -67,7 +68,7 @@ private:
     hpusb * hpapi;
     QMdiSubWindow * msgWindow=0;
     hp_MdiWindow * logWindow=0;
-    QFileSystemModel contentModel;
+    contentFileSystemModel contentModel;
     QTextEdit * logEdit=0;
     Ui::MainWindow *ui;
     void loadTextFile();

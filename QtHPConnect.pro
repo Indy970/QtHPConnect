@@ -68,7 +68,6 @@ SOURCES += \
     texteditor.cpp \
     variableview.cpp \
     hptreeitem.cpp \
-    data.cpp \
     hp_mdiwindow.cpp \
     hp_mditexteditor.cpp \
     hp_mdivariableedit.cpp \
@@ -76,7 +75,8 @@ SOURCES += \
     hp_infodialog.cpp \
     getnumber.cpp \
     hpusb.cpp \
-    hp_settingsdlg.cpp
+    hp_settingsdlg.cpp \
+    cntfilesystemmodel.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -105,7 +105,6 @@ HEADERS += \
     texteditor.h \
     variableview.h \
     hptreeitem.h \
-    data.h \
     hp_mdiwindow.h \
     hp_mditexteditor.h \
     hp_mdivariableedit.h \
@@ -114,7 +113,8 @@ HEADERS += \
     getnumber.h \
     hpusb.h \
     hp_settingsdlg.h \
-    version.h
+    version.h \
+    cntfilesystemmodel.h
 
 FORMS += \
     mainwindow.ui \
@@ -143,7 +143,6 @@ RESOURCES += \
     qthpconnect.qrc
 
 DISTFILES += \
-    ../build-QtHPConnect-Desktop-Debug/hpinterface.log \
     model.qmodel \
     README.md \
     LICENSE \

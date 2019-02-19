@@ -49,7 +49,7 @@ struct usb_firstchunk {
     uint8_t start1;
     uint8_t start2;
     uint8_t type;
-    uint8_t items;
+    int items;
     int size;
 };
 
@@ -70,7 +70,7 @@ struct usb_header {
     usb_header_type type;
     uint8_t cmd;
     uint8_t typecode;
-    uint8_t items;
+    int items;
     int chunk;
     int name_length;
     uint32_t size;

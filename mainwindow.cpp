@@ -69,12 +69,9 @@ MainWindow::MainWindow(QWidget *parent) :
     myModel= new dataModel(this);
     hpTreeModel = new treeModel(this);
 
-    qDebug()<<"1";
-
     //usbapi
     hpapi = new hpusb();
 
-    qDebug()<<"2";
     //Interface
     ui->setupUi(this);
     setWindowIcon(QIcon::fromTheme("accessories-calculator",
@@ -121,7 +118,7 @@ void MainWindow::testFunction() {
     hpCalcData * pH;
 
     int cmd;
-
+    qDebug()<<"In Test Function";
     pH=getTreeModel()->getCalculator("IAN");
     if (pH) {
 
@@ -309,7 +306,7 @@ void MainWindow::clickedCalculator(QModelIndex index) {
 void MainWindow::about()
 {
    QMessageBox::about(this, tr("About QtHP Connect"),
-                      QString("Version: ")+HP_VERSION_STRING);
+                      QString("QtHp Connect is an interface for the HP Prime G2 Calculator\n\n")+QString("Version: ")+HP_VERSION_STRING);
 
 }
 
@@ -345,7 +342,7 @@ void MainWindow::setContentWindow() {
     qDebug()<<"Content Path:"<<path;
 
     contentModel.setRootPath(path);
-    contentModel.iconProvider()->setOptions(QFileIconProvider::DontUseCustomDirectoryIcons);
+  //  contentModel.iconProvider()->setOptions(QFileIconProvider::DontUseCustomDirectoryIcons);
 
     ui->tvContent->setModel(&contentModel);
     if (!path.isEmpty()) {
