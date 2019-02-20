@@ -20,6 +20,12 @@ Get Image return header
   Subsequent chucnks, byte 1 = chunk number
 
 
+Chunk header
+   xx  chunk no
+
+   data
+
+
 
 Header format
 
@@ -27,9 +33,25 @@ Header format
 
     Type
 
-    Num Packets
+    01
+
+    Num Packets 00 00 00 00
+
+    CRC??
 
     00 00 00 6c String Marker
+
+
+Read procedure
+
+  1. Get message
+  2. Get header
+  3, Exract data from header
+  3. If chuncks get chunks
+  4. Combine chunks to data
+  5. issue complete message to parser
+  6. look for next message
+  7. stop when return length 0;
 
 
 Set GetInfo, IsReady

@@ -5,6 +5,8 @@
 #include <QByteArray>
 
 struct hp_Settings;
+class hpCalcData;
+
 
 //! USB Vendor ID of Hewlett-Packard.
 #define USB_VID_HP (0x03F0)
@@ -38,10 +40,12 @@ struct hp_Settings;
 #define ENDPOINT_OUT (0x02)
 #define ENDPOINT_IN  (0x81)
 #define HEADER_LEN (0xFD)
+#define TIME_OUT (5000)
 
 struct hp_Handle {
       libusb_device_handle *usbhandle = nullptr;
       libusb_device *usbdevice = nullptr;
+      hpCalcData * calc;
       int dev_open=0;
 };
 
@@ -59,9 +63,9 @@ struct usb_chunk {
 };
 
 enum usb_header_type {
-    HP_HDR_FIRST,
+    HP_HDR_FILE,
     HP_HDR_CHUNK,
-    HP_HDR_STD,
+    HP_HDR_INFO,
     HP_HDR_PNG
 
 };
@@ -71,9 +75,13 @@ struct usb_header {
     uint8_t cmd;
     uint8_t typecode;
     int items;
-    int chunk;
+    int pkt_size; //bytes in packet
+    int num_chunks;
     int name_length;
-    uint32_t size;
+    uint8_t CRC_H;
+    uint8_t CRC_L;
+    int chunk;
+    int headerlen;
 };
 
 struct hp_cmd {
@@ -84,6 +92,8 @@ struct hp_pkt_in {
     QByteArray array;
     uint32_t size;
     uint8_t cmd;
+    hpCalcData * calc;
+    usb_header_type type;
 };
 
 struct hp_pkt_out {
@@ -165,12 +175,15 @@ class hpusb
         int hp_close(hp_Handle * );
         int hp_func();
         int is_ready(hp_Handle *);
-        int load_info(hp_Handle *, hp_Information *);
+        int load_info(hp_Handle *);
         int lookfordouble (QByteArray , int );
         int get_info( /*calc_infos * infos*/);
-        int get_settings(hp_Handle * , hp_Settings * );
+        int get_settings(hp_Handle *);
         int set_settings(hp_Handle * , hp_Settings set);
-        int get_screen_shot(hp_Handle *, QByteArray *);
+        int get_screen_shot(hp_Handle *);
+        int send_screen_shot(hp_pkt_in *);
+        int send_info(hp_pkt_in *);
+        int data_dispatch(hp_pkt_in *);
 
         int vpkt_send_experiments(hp_Handle * handle, int cmd);
         // Function Prototypes:

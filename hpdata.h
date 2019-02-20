@@ -84,6 +84,11 @@ public:
     void readInfo();
     void readSettings();
     void readScreen();
+    void recvScreen(hp_ScreenShot);
+    void recvSettings(hp_Settings);
+    void recvInfo(hp_Information);
+    void recvData();
+
     hp_ScreenShot getScreenShot();
     hp_Information getInfo();
     QString getName();

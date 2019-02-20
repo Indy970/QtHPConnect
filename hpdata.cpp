@@ -41,13 +41,14 @@ hpCalcData::hpCalcData(hpusb * handle)
 
     //open usb port and store the handle
     if (hp_api) {
+        hp_handle.calc=this;
         hp_api->hp_open(getHandle());
     }
-
 }
 
 //return the interface class
 hp_Handle * hpCalcData::getHandle() {
+    hp_handle.calc=this;
     return &hp_handle;
 }
 
@@ -90,15 +91,15 @@ void hpCalcData::readSettings() {
       if(handle) {
         qDebug()<<QString().sprintf("%s %p",__FUNCTION__,handle->usbhandle);
         if (api) {
-            api->get_settings(handle,&hpset);
+            api->get_settings(handle);
         }
       }
     }
-    hp_homesettings=hpset;
+ //   hp_homesettings=hpset;
 
-    hp_Change change;
-    change.dataChange=HP_MAIN;
-    emit dataChanged(change);
+ //   hp_Change change;
+ //   change.dataChange=HP_MAIN;
+ //   emit dataChanged(change);
 }
 
 //read Settings via usb
@@ -119,20 +120,43 @@ void hpCalcData::readScreen() {
       if(handle) {
         qDebug()<<QString().sprintf("%s %p",__FUNCTION__,handle->usbhandle);
         if (api) {
-            api->get_screen_shot(handle,&imageData);
-            if (screenShot!=nullptr) {
-                    delete screenShot;
-            }
-
-            screenShot = new QPixmap();
-
-            screenShot->loadFromData(imageData);
+            api->get_screen_shot(handle);
+ //           if (screenShot!=nullptr) {
+ //                   delete screenShot;
+ //           }
+//
+//            screenShot = new QPixmap();
+//            screenShot->loadFromData(imageData);
         }
       }
     }
+//    emit emitChange(HP_SCREEN);
+}
+
+//recieve Screenshot
+void hpCalcData::recvScreen(hp_ScreenShot shot) {
+
+    log("Recieving Screen");
+
+    QByteArray imageData;
+    if (screenShot!=nullptr) {
+                    delete screenShot;
+            }
+
+     screenShot = shot.image;
 
     emit emitChange(HP_SCREEN);
 }
+
+//recieve Setting
+void hpCalcData::recvSettings(hp_Settings settings) {
+
+    log("Recieving Setting");
+
+    emit emitChange(HP_SCREEN);
+}
+
+
 
 void hpCalcData::emitChange(DataType type) {
 
@@ -179,13 +203,17 @@ void hpCalcData::readInfo() {
       if(handle) {
         qDebug()<<QString().sprintf("%s %p",__FUNCTION__,handle->usbhandle);
         if (api)
-            api->load_info(handle,&hpinfo);
+            api->load_info(handle);
       }
     }
-    hp_info=hpinfo;
-
-    emit emitChange(HP_MAIN);
 }
+
+void hpCalcData::recvInfo(hp_Information hpinfo) {
+
+       hp_info=hpinfo;
+       emit emitChange(HP_MAIN);
+}
+
 
 void hpCalcData::vpkt_send_experiments(int cmd) {
 

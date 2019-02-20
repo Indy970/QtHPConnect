@@ -276,84 +276,91 @@ int hpusb::submit_sync_s_transfer(hp_Handle * handle, hp_pkt_out * pktout) {
 // very exprimental
 int hpusb::extract_header(uint8_t * raw, usb_header * uh) {
 
-    int b_0;
-    int b_1;
-    int b_2;
-    int b_3;
-    int b_4;
-    int b_5;
-    int b_6;
-    int b_7;
-    int b_8;
-    int b_9;
-    int b_10;
+    qDebug()<<QString("Extracting Header");
+    int Int32=0;
 
-    b_0=raw[0];
-    b_1=raw[1];
-    b_2=raw[2];
-    b_3=raw[3];
-    b_4=raw[4];
-    b_5=raw[5];
-    b_6=raw[6];
-    b_7=raw[7];
-    b_8=raw[8];
-    b_9=raw[9];
-    b_10=raw[10];
-
-    qDebug()<<QString("Extract Header");
-
-    if(b_0>0x00) {
-        qDebug()<<"Header Chunck";
+    //Chunck Header
+    if(raw[0]>0x00) {
+        qDebug()<<"Chunck Header";
         uh->type=HP_HDR_CHUNK;
         uh->typecode=0;
-        uh->chunk=b_0;
-        QString msg = QString("Chunk %1").arg(uh->chunk);
-         msg += QString("00 %0x1 ").arg(raw[0]);
-         msg += QString("01 %0x1 ").arg(raw[1]);
-         msg += QString("02 %0x1 ").arg(raw[2]);
+        uh->chunk=raw[0];
+        uh->headerlen=1;
+        QString msg = QString("Chunk Number: %1").arg(uh->chunk);
         qDebug()<<msg;
+        return 0;
     }
-    else
-    {
-        if((b_0==0x00)&&(b_1==0xfa)) {
-            qDebug()<<"Header Std";
-            uh->type=HP_HDR_STD;
-            uh->cmd=b_1;
-            uh->items=0xFFFF;  //assume third byte is header length
-            uh->chunk=0;
-            uh->size=1024;
-        }
-        else
-        {   //recieve image
 
-            if((b_0==0x00)&&(b_1==0xfc)) {
+    //Info Header
+    if((raw[0]==0x00)&&(raw[1]==0xfa)) {
+            uh->type=HP_HDR_INFO;
+            uh->typecode=raw[1];
+            uh->items =raw[2];
+            Int32=(Int32<<8)+raw[3];
+            Int32=(Int32<<8)+raw[4];
+            Int32=(Int32<<8)+raw[5];
+            Int32=(Int32<<8)+raw[6];
+            uh->pkt_size=PRIME_RAW_DATA_SIZE;  //assume third byte is header length
+            uh->num_chunks=(uh->pkt_size-1)/PRIME_RAW_DATA_SIZE;
+            uh->name_length=raw[7];
+            uh->headerlen=6;
+            uh->CRC_H = raw[9];
+            uh->CRC_L = raw[10];
+            QString msg = QString("Info Header chunks: %1 size: %2 items: %3")
+                    .arg(uh->num_chunks).arg(uh->pkt_size).arg(uh->items);
+            qDebug()<<msg;
+            return 0;
+     }
+
+    //PNG Header
+     if((raw[0]==0x00)&&(raw[1]==0xfc)) {
                 //This works - leave
-                qDebug()<<"Header PNG";
-                uh->type=HP_HDR_PNG;
-                uh->cmd=b_1;
-                uh->items=b_9;
-                uh->chunk=b_0;
-                uh->size=1024;
-            }
-            else  {
-                uh->typecode=b_1;
-                if(uh->typecode==0XF7)
-                {
-                    qDebug()<<"Header First";
-                    uh->type=HP_HDR_FIRST;
-                    uh->items=0xFFFF;
-                    QString msg = QString("Size: %1").arg(b_5);
-                    qDebug()<<msg;
-                    uh->size=(uint32_t)(b_5);
-                    uh->chunk=0;
-                    msg = QString("First Header item: %1 size: %2").arg(uh->items).arg(uh->size);
-                    qDebug()<<msg;
-            }
-          }
-        }
-    }
-    return 1;
+                qDebug()<<"PNG Header";
+                uh->type=HP_HDR_PNG;              
+                uh->typecode=raw[1];
+                uh->items=raw[2];
+                Int32=0;
+                Int32=(Int32<<8)+raw[3];
+                Int32=(Int32<<8)+raw[4];
+                Int32=(Int32<<8)+raw[5];
+                Int32=(Int32<<8)+raw[6];
+                uh->pkt_size=Int32;  //assume third byte is header length
+                uh->num_chunks=uh->pkt_size/PRIME_RAW_DATA_SIZE;
+                uh->name_length=0;
+                uh->CRC_H = raw[9];
+                uh->CRC_L = raw[10];
+                uh->headerlen=14;
+                QString msg = QString("PNG Header chunks: %1 size: %2 Items: %3")
+                        .arg(uh->num_chunks).arg(uh->pkt_size).arg(uh->items);
+                qDebug()<<msg;
 
+                return 0;
+      }
+
+    //Filed Header
+    if((raw[0]==0x00)&&(raw[1]==0xf7)) {
+
+                qDebug()<<"File Header";
+                uh->type=HP_HDR_FILE;
+                uh->typecode=raw[1];
+                uh->items =raw[2];
+                Int32=0;
+                Int32=(Int32<<8)+raw[3];
+                Int32=(Int32<<8)+raw[4];
+                Int32=(Int32<<8)+raw[5];
+                Int32=(Int32<<8)+raw[6];
+                uh->pkt_size=Int32;  //assume third byte is header length
+                uh->num_chunks=uh->pkt_size/PRIME_RAW_DATA_SIZE;
+                uh->name_length=raw[7];
+                uh->headerlen=11;
+                uh->CRC_H = raw[9];
+                uh->CRC_L = raw[10];
+                QString msg = QString("File Header chunks: %1 size: %2 items: %3")
+                        .arg(uh->num_chunks).arg(uh->pkt_size).arg(uh->items);
+                qDebug()<<msg;
+                return 0;
+     }
+     return 1;
 }
 
 //read a synchronuous
@@ -361,151 +368,219 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
 
    usb_header uh1;
    usb_header uh2;
+   hp_pkt_in pkt;
    int ret;
    int trans=0;
-   int trans_c=0;
+   int trans_c=1024;
    int chunks;
+   int q,r;
    int count=0;
-   uint8_t raw[1024];
-   QByteArray in_buffer(1024,0);
+   int bytes_to_read;
+   int exitflag=1;
 
-   log("Recieve...");
+   uint8_t raw[PRIME_RAW_DATA_SIZE];
+   QByteArray in_buffer(PRIME_RAW_DATA_SIZE,0);
+   libusb_device_handle * devh = handle->usbhandle;
+
+   log("Receive...");
+   qDebug()<<QString().sprintf("%s %p",__FUNCTION__,handle->usbhandle);
 
    if (!handle) {
        log("Null handle");
        return -1;
    }
 
-   libusb_device_handle * devh = handle->usbhandle;
-
-   qDebug()<<QString().sprintf("%s %p",__FUNCTION__,handle->usbhandle);
-
    if (!devh)
        return -1;
 
-    ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,1024,&trans,5000);
+   pkt.cmd=pktin->cmd;
+   pkt.calc=handle->calc;
 
+   while(exitflag) {
+    trans_c=0;
+    //read
+
+    if ((ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,PRIME_RAW_DATA_SIZE,&trans_c,TIME_OUT))!=0) {
+        qDebug()<<QString("Read Error %1").arg(libusb_error_name(ret));
+        log(QString("Read Error: %1\n").arg( libusb_error_name(ret)));
+        exitflag=0;
+        return ret;
+    }
     extract_header(raw,&uh1);
 
-    in_buffer.insert(0,(const char *)raw,trans);
-    in_buffer.resize(trans);
-   uh1.items=1000;
-    qDebug()<<QString("Looking for %1 items: %2 bytes read").arg(uh1.items).arg(trans);
+    q = (uh1.pkt_size-1)/ (PRIME_RAW_DATA_SIZE);
+    r = uh1.pkt_size % (PRIME_RAW_DATA_SIZE);
 
-    if ((uh1.type==HP_HDR_FIRST)&&(uh1.items>0x00)) {
-        qDebug()<<QString("1 First chunk detected %1").arg(uh1.items);
+    //CORRECT - REMOVED HEADER
+    in_buffer.insert(0,(const char *)&raw[uh1.headerlen],trans_c-uh1.headerlen);
+    in_buffer.resize(trans_c-uh1.headerlen);
+    trans=trans_c-uh1.headerlen;
 
-        for (chunks=1; chunks<uh1.items; chunks++) {
-            trans_c=0;
-            count++;
-            //read additional chuncks
+     qDebug()<<QString("Looking for %1 chunks and %2 bytes read").arg(q).arg(r);
 
-             ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,1024,&trans_c,5000);
-             qDebug()<<QString("x Reading Chuncks size:%1 count:%2").arg(trans_c).arg(count);
+     //read additional chunks if they exist
+     for (chunks=1; chunks<=q; chunks++) {
+         trans_c=0;
+         qDebug()<<"More Chunks to be read";
+         if(chunks<q) {
+             bytes_to_read = PRIME_RAW_DATA_SIZE;
+         }
+             else {
 
-//             extract_header(raw, &uh2);
-             //check for empty packet
-             if (trans_c>0) {           
-                qDebug()<<QString("Copying %1 bytes").arg(trans_c);
-                in_buffer.append((const char *)raw,trans_c);
-                qDebug()<<QString("another chunk read %1/%2").arg(chunks).arg(raw[0]);
-                qDebug()<<QString("uh.item=%1 Chunks=%2").arg(uh1.items).arg(chunks);
-                trans+=trans_c;
-             }
-             else
-             {
-                         qDebug()<<QString("End detected %1").arg(chunks);
-                         chunks=uh1.items;
-                         ret=0;
-             }
-        }
-    }
+          //   bytes_to_read=r;
+                     bytes_to_read = PRIME_RAW_DATA_SIZE;
+         }
+         qDebug()<<"Bytes to read "<<bytes_to_read;
 
-    if ((uh1.type==HP_HDR_STD)&&(uh1.items>0x00)) {
-        qDebug()<<QString("First std chunk detected %1").arg(uh1.items);
+         ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,bytes_to_read,&trans_c,TIME_OUT);
+         extract_header(raw, &uh2);
+         qDebug()<<QString("x Reading Chuncks size:%1 count:%2").arg(trans_c).arg(bytes_to_read);
+         if (trans_c>0) {
+            qDebug()<<QString("Copying %1 bytes").arg(trans_c);
+            in_buffer.append((const char *)&raw[uh2.headerlen],trans_c-uh2.headerlen);
+            qDebug()<<QString("another chunk read %1/%2").arg(chunks).arg(raw[0]);
+            trans+=trans_c-uh2.headerlen;
+         }
+         else
+         {
+                     qDebug()<<QString("End detected %1").arg(chunks);
+                     chunks=q;
+                     exitflag=0;
+                     ret=0;
+         }
+     }
+
+     qDebug()<<QString("Checking for exit trans%1 pkt_size%2").arg(trans).arg(uh1.pkt_size);
+     if (trans+uh1.headerlen>=uh1.pkt_size) {
+         qDebug()<<QString("Exit flag set %1 %2").arg(trans).arg(uh1.pkt_size);
+         exitflag=0;
+     }
+
+     //CRC CHECK HERE
 
 
-        for (chunks=1; chunks<uh1.items; chunks++) {
-            qDebug()<<QString("Reading std chunk detected %1").arg(chunks);
-            trans_c=0;
-            count++;
+     qDebug()<<"Dispatching pkt";
+     pkt.array=in_buffer;
+     pkt.type=uh1.type;
+     data_dispatch(&pkt);
+   }
 
-            //read additional chuncks
-             ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,1024,&trans_c,5000);
- //            extract_header(raw, &uh2);
-
-             //check for empty packet
-             if (trans_c>0) {
-                qDebug()<<QString("Copying %1 bytes").arg(trans_c);
-                in_buffer.append((const char *)raw,trans_c);
-                qDebug()<<QString("another chunk read %1/%2").arg(chunks).arg(raw[0]);
-                trans+=trans_c;
-             }
-             else
-             {
-                         qDebug()<<QString("End detected %1").arg(chunks);
-                         chunks=uh1.items;
-                         ret=0;
-             }
-        }
-    }
-
-    if ((uh1.type==HP_HDR_PNG)&&(uh1.items>0x00)) {
-        qDebug()<<QString("First png chunk detected %1").arg(uh1.items);
-
-        //first byte used as chunk counter
-        int headerlen=1;
-        //first message has already been read
-        for (chunks=1; chunks<uh1.items; chunks++) {
-
-            //read additional chuncks
-             ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,1024,&trans_c,5000);
-             extract_header(raw, &uh2);
-             //check for empty packet
-             if (trans_c>0) {
-//                qDebug()<<QString("PNG: Copying %1 bytes").arg(trans_c);
-                //Assume first byte a chunck count
-                in_buffer.append((const char *)&raw[headerlen],trans_c-headerlen);
-                trans+=trans_c-headerlen;
-             }
-             else
-             {
-                         qDebug()<<QString("End detected %1").arg(chunks);
-                         chunks=uh1.items;
-                         ret=0;
-             }
-        }
-    }
-
-    pktin->array=in_buffer;
-
-    if (ret){
-        log(QString().sprintf("ERROR in interrupt read: %s\n",  libusb_error_name(ret)));
-    }
-    else{
-        qDebug()<<QString("Exiting %1 ret %2").arg(__FUNCTION__).arg(ret);
-        log(QString().sprintf("%d bytes received",trans));
- //       main_err-> dump((uint8_t *)pktin->array.constData(),trans);
-        qDebug()<<pktin->array;
-    }
     return ret;
 }
 
 //request to recieve a file transfer
-int sync_s_recv_file(hp_Handle *) {
+int hpusb::data_dispatch(hp_pkt_in * pktin) {
+
+    qDebug()<<"In data dispatch";
+
+    switch(pktin->type) {
+        case HP_HDR_PNG:
+            send_screen_shot(pktin);
+        break;
+        case HP_HDR_INFO:
+            send_info(pktin);
+        break;
+    }
+    main_err-> dump((uint8_t *)pktin->array.constData(),pktin->array.size());
+
+    return 0;
+}
+
+//request to recieve a file transfer
+int hpusb::sync_s_recv_file(hp_Handle *) {
 
     return 0;
 }
 
 //recieve the file transfer
-int sync_r_recv_file(hp_Handle *) {
+int hpusb::sync_r_recv_file(hp_Handle *) {
 
     return 0;
 }
 
+int hpusb::send_info(hp_pkt_in * pkt) {
+
+    hp_Information hpinfo;
+
+    qDebug()<<"In send info";
+    if( pkt->calc!=nullptr) {
+
+       log("unpacking data");
+       int ind=0;
+       QTextCodec * codec = QTextCodec::codecForName("UTF-8");
+       QByteArray rd= pkt->array;
+
+            //find name
+            ind=rd.indexOf(QChar(0x6c),0)+1;
+            QByteArray str1 =rd.mid(ind,64);
+
+            QString name;
+            name = codec->toUnicode(str1);
+            hpinfo.name=name;
+
+        //find OS Version
+        unsigned char searchstr[] = {0x80,0x20,0x80,0x01,0x62,0x01};
+        ind+=rd.indexOf((char *) searchstr,ind+64)+4;
+        qDebug()<<ind;
+        //ind+=;
+        str1 =rd.mid(ind,16);
+        QString osv;
+        osv = codec->toUnicode(str1);
+        hpinfo.osver=osv;
+        qDebug()<<osv;
+        log(osv);
+
+        //find Serial Number
+        ind+=16;
+        str1 =rd.mid(ind,16);
+        QString serial;
+        serial = codec->toUnicode(str1);
+        hpinfo.serialnum=serial;
+        log(serial);
+
+        //find Application Version
+        ind+=16;
+        str1 =rd.mid(ind,16);
+
+        pkt->calc->recvInfo(hpinfo);
+        return 0;
+
+        }
+    else {
+            log("Passed a null pointer");
+            qDebug()<<"send_info - null calc pointer";
+            return 1;
+        }
+    //Error
+    return 1;
+}
+
+int hpusb::send_screen_shot(hp_pkt_in * pkt) {
+
+    int endpos;
+    QByteArray imageData;
+    QPixmap * screenShot;
+    hp_ScreenShot shot;
+
+    if( pkt->calc!=nullptr) {
+
+        endpos = pkt->array.indexOf("IEND");
+        qDebug()<<"End pos:"<<endpos;
+        imageData = QByteArray(pkt->array.mid(0,endpos+4));
+        screenShot = new QPixmap();
+        screenShot->loadFromData(imageData);
+        shot.image=screenShot;
+//        shot.format=0;
+        pkt->calc->recvScreen(shot);
+        return 0;
+    }
+    //Error
+    return 1;
+}
+
 //Get a screen shot. HP replies with image starting on byte 14
 //ToDo - make robust
-int hpusb::get_screen_shot(hp_Handle * handle, QByteArray * imageData) {
+int hpusb::get_screen_shot(hp_Handle * handle) {
 
     int res;
     if (handle != NULL) {
@@ -529,15 +604,16 @@ int hpusb::get_screen_shot(hp_Handle * handle, QByteArray * imageData) {
             log(QString("%1: Waiting for a reply").arg(__FUNCTION__));
 
             if (!submit_sync_r_transfer(handle,&pktin)){
+
                 log(QString("%1: Recieved a reply").arg(__FUNCTION__));
                 //Trying to understand reply
-                int endpos;
+/*                int endpos;
                 QByteArray rd = pktin.array;
                 endpos = rd.indexOf("IEND");
                 qDebug()<<"End pos:"<<endpos;
                 *imageData = QByteArray(rd.mid(14,endpos+4-14));
 //                qDebug()<<*imageData;
-                log(QString().sprintf("%d bytes received",pktin.array.size()));
+                log(QString().sprintf("%d bytes received",pktin.array.size()));*/
             }
         }
 
@@ -595,7 +671,7 @@ int hpusb::is_ready(hp_Handle * handle) {
     return res;
  }
 
-int hpusb::load_info(hp_Handle * handle, hp_Information * hpinfo) {
+int hpusb::load_info(hp_Handle * handle) {
 
     uint8_t transferbuffer[LEN_IN_BUFFER+8];
 //    uint8_t in_buffer[LEN_IN_BUFFER+8];
@@ -633,53 +709,12 @@ int hpusb::load_info(hp_Handle * handle, hp_Information * hpinfo) {
     else
     {
         //recieve response
-        if(!submit_sync_r_transfer(handle,&pktin)) {
-
-            //unpack data
-            log("unpacking data");
-
-            int ind=0;
-            QTextCodec * codec = QTextCodec::codecForName("UTF-8");
-            QByteArray rd= pktin.array;
-
-            //find name
-            ind=rd.indexOf(QChar(0x6c),0)+1;
-            QByteArray str1 =rd.mid(ind,64);
-
-            QString name;
-            name = codec->toUnicode(str1);
-            hpinfo->name=name;
-
-        //find OS Version
-        unsigned char searchstr[] = {0x80,0x20,0x80,0x01,0x62,0x01};
-        ind+=rd.indexOf((char *) searchstr,ind+64)+4;
-        qDebug()<<ind;
-        //ind+=;
-        str1 =rd.mid(ind,16);
-        QString osv;
-        osv = codec->toUnicode(str1);
-        hpinfo->osver=osv;
-        qDebug()<<osv;
-        log(osv);
-
-        //find Serial Number
-        ind+=16;
-        str1 =rd.mid(ind,16);
-        QString serial;
-        serial = codec->toUnicode(str1);
-        hpinfo->serialnum=serial;
-        log(serial);
-
-        //find Application Version
-        ind+=16;
-        str1 =rd.mid(ind,16);
-
-            return 0;
-        }
-        else {
+        if(submit_sync_r_transfer(handle,&pktin)) {
             log("failed to read info from device");
             return 1;
         }
+
+
     }
     return 0;
 }
@@ -711,7 +746,7 @@ int hpusb::get_info(/*calc_infos * infos*/) {
     return 0;
 }
 
-int hpusb::get_settings(hp_Handle * handle, hp_Settings * set) {
+int hpusb::get_settings(hp_Handle * handle) {
     hp_Settings inset;
 
     uint8_t transferbuffer[LEN_IN_BUFFER+8];
@@ -736,11 +771,6 @@ int hpusb::get_settings(hp_Handle * handle, hp_Settings * set) {
 
     if (!submit_sync_r_transfer(handle,&pktin)){
     }
-
-    inset.entry=1;
-
-    if(set)
-        *set=inset;
 
     return 0;
 }
