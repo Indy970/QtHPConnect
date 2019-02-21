@@ -66,9 +66,19 @@ enum usb_header_type {
     HP_HDR_FILE,
     HP_HDR_CHUNK,
     HP_HDR_INFO,
-    HP_HDR_PNG
+    HP_HDR_PNG,
+    HP_HDR_UNKNOWN
 
 };
+
+enum hp_pkt_type {
+    HP_TP_SETTINGS=0,
+    HP_TP_FUNCTIONS=02,
+    HP_TP_LIST=03,
+    HP_TP_MATRIX=04,
+    HP_TP_PROG=06,
+    HP_TP_CUSTOM=11
+ };
 
 struct usb_header {
     usb_header_type type;
@@ -78,9 +88,10 @@ struct usb_header {
     int pkt_size; //bytes in packet
     int num_chunks;
     int name_length;
-    uint8_t CRC_H;
-    uint8_t CRC_L;
+    uint16_t embedded_crc;
+    int pkt_type;
     int chunk;
+    uint8_t header[HEADER_LEN];
     int headerlen;
 };
 
@@ -94,6 +105,7 @@ struct hp_pkt_in {
     uint8_t cmd;
     hpCalcData * calc;
     usb_header_type type;
+    int pkt_type;
 };
 
 struct hp_pkt_out {
@@ -183,6 +195,7 @@ class hpusb
         int get_screen_shot(hp_Handle *);
         int send_screen_shot(hp_pkt_in *);
         int send_info(hp_pkt_in *);
+        int send_file(hp_pkt_in *);
         int data_dispatch(hp_pkt_in *);
 
         int vpkt_send_experiments(hp_Handle * handle, int cmd);

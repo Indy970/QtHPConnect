@@ -61,6 +61,11 @@ struct hp_Change {
     hpCalcData * calc;
 };
 
+struct hp_Prog {
+    QString filename;
+    QString prog;
+};
+
 class hpCalcData: public QObject
 {
     Q_OBJECT
@@ -88,6 +93,7 @@ public:
     void recvSettings(hp_Settings);
     void recvInfo(hp_Information);
     void recvData();
+    void recvProg(hp_Prog);
 
     hp_ScreenShot getScreenShot();
     hp_Information getInfo();

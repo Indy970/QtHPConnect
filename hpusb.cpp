@@ -17,6 +17,49 @@
 #include <libusb.h>
 #include <signal.h>
 
+static inline uint16_t crc16_block(const uint8_t * buffer, uint32_t len) {
+    static const uint16_t ccitt_crc16_table[256] = {
+        0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
+        0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
+        0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6,
+        0x9339, 0x8318, 0xb37b, 0xa35a, 0xd3bd, 0xc39c, 0xf3ff, 0xe3de,
+        0x2462, 0x3443, 0x0420, 0x1401, 0x64e6, 0x74c7, 0x44a4, 0x5485,
+        0xa56a, 0xb54b, 0x8528, 0x9509, 0xe5ee, 0xf5cf, 0xc5ac, 0xd58d,
+        0x3653, 0x2672, 0x1611, 0x0630, 0x76d7, 0x66f6, 0x5695, 0x46b4,
+        0xb75b, 0xa77a, 0x9719, 0x8738, 0xf7df, 0xe7fe, 0xd79d, 0xc7bc,
+        0x48c4, 0x58e5, 0x6886, 0x78a7, 0x0840, 0x1861, 0x2802, 0x3823,
+        0xc9cc, 0xd9ed, 0xe98e, 0xf9af, 0x8948, 0x9969, 0xa90a, 0xb92b,
+        0x5af5, 0x4ad4, 0x7ab7, 0x6a96, 0x1a71, 0x0a50, 0x3a33, 0x2a12,
+        0xdbfd, 0xcbdc, 0xfbbf, 0xeb9e, 0x9b79, 0x8b58, 0xbb3b, 0xab1a,
+        0x6ca6, 0x7c87, 0x4ce4, 0x5cc5, 0x2c22, 0x3c03, 0x0c60, 0x1c41,
+        0xedae, 0xfd8f, 0xcdec, 0xddcd, 0xad2a, 0xbd0b, 0x8d68, 0x9d49,
+        0x7e97, 0x6eb6, 0x5ed5, 0x4ef4, 0x3e13, 0x2e32, 0x1e51, 0x0e70,
+        0xff9f, 0xefbe, 0xdfdd, 0xcffc, 0xbf1b, 0xaf3a, 0x9f59, 0x8f78,
+        0x9188, 0x81a9, 0xb1ca, 0xa1eb, 0xd10c, 0xc12d, 0xf14e, 0xe16f,
+        0x1080, 0x00a1, 0x30c2, 0x20e3, 0x5004, 0x4025, 0x7046, 0x6067,
+        0x83b9, 0x9398, 0xa3fb, 0xb3da, 0xc33d, 0xd31c, 0xe37f, 0xf35e,
+        0x02b1, 0x1290, 0x22f3, 0x32d2, 0x4235, 0x5214, 0x6277, 0x7256,
+        0xb5ea, 0xa5cb, 0x95a8, 0x8589, 0xf56e, 0xe54f, 0xd52c, 0xc50d,
+        0x34e2, 0x24c3, 0x14a0, 0x0481, 0x7466, 0x6447, 0x5424, 0x4405,
+        0xa7db, 0xb7fa, 0x8799, 0x97b8, 0xe75f, 0xf77e, 0xc71d, 0xd73c,
+        0x26d3, 0x36f2, 0x0691, 0x16b0, 0x6657, 0x7676, 0x4615, 0x5634,
+        0xd94c, 0xc96d, 0xf90e, 0xe92f, 0x99c8, 0x89e9, 0xb98a, 0xa9ab,
+        0x5844, 0x4865, 0x7806, 0x6827, 0x18c0, 0x08e1, 0x3882, 0x28a3,
+        0xcb7d, 0xdb5c, 0xeb3f, 0xfb1e, 0x8bf9, 0x9bd8, 0xabbb, 0xbb9a,
+        0x4a75, 0x5a54, 0x6a37, 0x7a16, 0x0af1, 0x1ad0, 0x2ab3, 0x3a92,
+        0xfd2e, 0xed0f, 0xdd6c, 0xcd4d, 0xbdaa, 0xad8b, 0x9de8, 0x8dc9,
+        0x7c26, 0x6c07, 0x5c64, 0x4c45, 0x3ca2, 0x2c83, 0x1ce0, 0x0cc1,
+        0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8,
+        0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
+    };
+    uint16_t crc = 0;
+
+    while (len--) {
+       crc = ccitt_crc16_table[(crc >> 8) ^ *buffer++] ^ (crc << 8);
+    }
+    return crc;
+}
+
 //Constructor
 hpusb::hpusb()
 {
@@ -296,16 +339,12 @@ int hpusb::extract_header(uint8_t * raw, usb_header * uh) {
             uh->type=HP_HDR_INFO;
             uh->typecode=raw[1];
             uh->items =raw[2];
-            Int32=(Int32<<8)+raw[3];
-            Int32=(Int32<<8)+raw[4];
-            Int32=(Int32<<8)+raw[5];
-            Int32=(Int32<<8)+raw[6];
             uh->pkt_size=PRIME_RAW_DATA_SIZE;  //assume third byte is header length
             uh->num_chunks=(uh->pkt_size-1)/PRIME_RAW_DATA_SIZE;
-            uh->name_length=raw[7];
+            uh->name_length=0;
             uh->headerlen=6;
-            uh->CRC_H = raw[9];
-            uh->CRC_L = raw[10];
+            uh->embedded_crc = 0;
+             memcpy(uh->header,raw,6);
             QString msg = QString("Info Header chunks: %1 size: %2 items: %3")
                     .arg(uh->num_chunks).arg(uh->pkt_size).arg(uh->items);
             qDebug()<<msg;
@@ -327,9 +366,9 @@ int hpusb::extract_header(uint8_t * raw, usb_header * uh) {
                 uh->pkt_size=Int32;  //assume third byte is header length
                 uh->num_chunks=uh->pkt_size/PRIME_RAW_DATA_SIZE;
                 uh->name_length=0;
-                uh->CRC_H = raw[9];
-                uh->CRC_L = raw[10];
+                uh->embedded_crc = (((uint16_t)(raw[7])) << 8) | ((uint16_t)(raw[8]));
                 uh->headerlen=14;
+                memcpy(uh->header,raw,HEADER_LEN);
                 QString msg = QString("PNG Header chunks: %1 size: %2 Items: %3")
                         .arg(uh->num_chunks).arg(uh->pkt_size).arg(uh->items);
                 qDebug()<<msg;
@@ -349,17 +388,45 @@ int hpusb::extract_header(uint8_t * raw, usb_header * uh) {
                 Int32=(Int32<<8)+raw[4];
                 Int32=(Int32<<8)+raw[5];
                 Int32=(Int32<<8)+raw[6];
+                uh->pkt_type=raw[7]; //File type being read
                 uh->pkt_size=Int32;  //assume third byte is header length
                 uh->num_chunks=uh->pkt_size/PRIME_RAW_DATA_SIZE;
-                uh->name_length=raw[7];
-                uh->headerlen=11;
-                uh->CRC_H = raw[9];
-                uh->CRC_L = raw[10];
+                uh->name_length=0;
+                uh->headerlen=8;
+                // For whatever reason the CRC seems to be encoded the other way around compared to receiving files
+                uh->embedded_crc = 0;
+                        //(((uint16_t)(raw[7])) << 8) | ((uint16_t)(raw[8]));
+                memcpy(uh->header,raw,HEADER_LEN);
                 QString msg = QString("File Header chunks: %1 size: %2 items: %3")
                         .arg(uh->num_chunks).arg(uh->pkt_size).arg(uh->items);
                 qDebug()<<msg;
                 return 0;
      }
+
+    //Unknown Header
+     if((raw[0]==0x00)) {
+
+                qDebug()<<"Unknown Header";
+                uh->type=HP_HDR_UNKNOWN;
+                uh->typecode=raw[1];
+                uh->items =raw[2];
+                Int32=0;
+                Int32=(Int32<<8)+raw[3];
+                Int32=(Int32<<8)+raw[4];
+                Int32=(Int32<<8)+raw[5];
+                Int32=(Int32<<8)+raw[6];
+                uh->pkt_size=Int32;  //assume third byte is header length
+                uh->num_chunks=uh->pkt_size/PRIME_RAW_DATA_SIZE;
+                uh->name_length=raw[7];
+                uh->headerlen=11;
+                uh->embedded_crc = (((uint16_t)(raw[7])) << 8) | ((uint16_t)(raw[8]));
+                memcpy(uh->header,raw,HEADER_LEN);
+                QString msg = QString("File Header chunks: %1 size: %2 items: %3")
+                        .arg(uh->num_chunks).arg(uh->pkt_size).arg(uh->items);
+                qDebug()<<msg;
+        }
+
+            qDebug()<<"Unknown Header Found";
      return 1;
 }
 
@@ -374,9 +441,10 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
    int trans_c=1024;
    int chunks;
    int q,r;
-   int count=0;
+   int extra=0;
    int bytes_to_read;
    int exitflag=1;
+   quint16 crc;
 
    uint8_t raw[PRIME_RAW_DATA_SIZE];
    QByteArray in_buffer(PRIME_RAW_DATA_SIZE,0);
@@ -399,69 +467,92 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
    while(exitflag) {
     trans_c=0;
     //read
-
+    memset(raw,0,PRIME_RAW_DATA_SIZE);
     if ((ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,PRIME_RAW_DATA_SIZE,&trans_c,TIME_OUT))!=0) {
         qDebug()<<QString("Read Error %1").arg(libusb_error_name(ret));
         log(QString("Read Error: %1\n").arg( libusb_error_name(ret)));
         exitflag=0;
         return ret;
     }
-    extract_header(raw,&uh1);
 
-    q = (uh1.pkt_size-1)/ (PRIME_RAW_DATA_SIZE);
-    r = uh1.pkt_size % (PRIME_RAW_DATA_SIZE);
+    if ((trans_c==0)) {
+        qDebug()<<"End Found";
+        exitflag=0;
+    }
+    else
+    {
+        extract_header(raw,&uh1);
 
-    //CORRECT - REMOVED HEADER
-    in_buffer.insert(0,(const char *)&raw[uh1.headerlen],trans_c-uh1.headerlen);
-    in_buffer.resize(trans_c-uh1.headerlen);
-    trans=trans_c-uh1.headerlen;
+        if ((uh1.type!=HP_HDR_FILE)) {
+            qDebug()<<"Not a file header exit loop";
+            exitflag=0;
+        }
 
-     qDebug()<<QString("Looking for %1 chunks and %2 bytes read").arg(q).arg(r);
+        in_buffer.insert(0,(const char *)&raw[uh1.headerlen],trans_c-uh1.headerlen);
+        in_buffer.resize(trans_c-uh1.headerlen);
+        trans=trans_c-uh1.headerlen;
 
-     //read additional chunks if they exist
-     for (chunks=1; chunks<=q; chunks++) {
-         trans_c=0;
-         qDebug()<<"More Chunks to be read";
-         if(chunks<q) {
-             bytes_to_read = PRIME_RAW_DATA_SIZE;
-         }
-             else {
+        q = (uh1.pkt_size-1)/ (PRIME_RAW_DATA_SIZE);
+        r = uh1.pkt_size % (PRIME_RAW_DATA_SIZE);
 
-          //   bytes_to_read=r;
-                     bytes_to_read = PRIME_RAW_DATA_SIZE;
-         }
-         qDebug()<<"Bytes to read "<<bytes_to_read;
+         qDebug()<<QString("Looking for %1 chunks and %2 bytes read").arg(q).arg(r);
 
-         ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,bytes_to_read,&trans_c,TIME_OUT);
-         extract_header(raw, &uh2);
-         qDebug()<<QString("x Reading Chuncks size:%1 count:%2").arg(trans_c).arg(bytes_to_read);
-         if (trans_c>0) {
-            qDebug()<<QString("Copying %1 bytes").arg(trans_c);
-            in_buffer.append((const char *)&raw[uh2.headerlen],trans_c-uh2.headerlen);
-            qDebug()<<QString("another chunk read %1/%2").arg(chunks).arg(raw[0]);
-            trans+=trans_c-uh2.headerlen;
-         }
-         else
-         {
+         //read additional chunks if they exist
+         for (chunks=1; chunks<=q; chunks++) {
+            extra++;
+            trans_c=0;
+            qDebug()<<"More Chunks to be read";
+            if(chunks<q) {
+                bytes_to_read = PRIME_RAW_DATA_SIZE;
+            }
+            else {
+                    //bytes_to_read=uh1.pkt_size-trans+uh1.headerlen;
+                    bytes_to_read = PRIME_RAW_DATA_SIZE;
+            }
+            qDebug()<<"Bytes to read "<<bytes_to_read;
+
+            memset(raw,0,PRIME_RAW_DATA_SIZE);
+            ret = libusb_interrupt_transfer(devh,ENDPOINT_IN,raw,PRIME_RAW_DATA_SIZE,&trans_c,TIME_OUT);
+            extract_header(raw, &uh2);
+            qDebug()<<QString("x Reading Chuncks read:%1 should have read:%2").arg(trans_c).arg(bytes_to_read);
+            if (trans_c>0) {
+                qDebug()<<QString("Copying %1 bytes").arg(trans_c);
+                in_buffer.append((const char *)&raw[uh2.headerlen],trans_c-uh2.headerlen);
+                qDebug()<<QString("another chunk read %1/%2").arg(chunks).arg(raw[0]);
+                trans+=trans_c-uh2.headerlen;
+            }
+            else
+            {
                      qDebug()<<QString("End detected %1").arg(chunks);
                      chunks=q;
                      exitflag=0;
                      ret=0;
-         }
+            }
+        }
      }
 
-     qDebug()<<QString("Checking for exit trans%1 pkt_size%2").arg(trans).arg(uh1.pkt_size);
+     qDebug()<<QString("Checking for exit trans:%1 pkt_size:%2").arg(trans).arg(uh1.pkt_size);
      if (trans+uh1.headerlen>=uh1.pkt_size) {
-         qDebug()<<QString("Exit flag set %1 %2").arg(trans).arg(uh1.pkt_size);
-         exitflag=0;
+         //qDebug()<<QString("Exit flag set %1 %2").arg(trans).arg(uh1.pkt_size);
+         //exitflag=0;
      }
 
      //CRC CHECK HERE
 
+     pkt.array=in_buffer.mid(0,uh1.pkt_size-uh1.headerlen+3);
+     QByteArray temp((const char *)&(uh1.header[0]),14);
+     temp[7]=0x00;
+     temp[8]=0x00;
+//     qDebug()<<temp;
+     temp.append(pkt.array);
+     crc=crc16_block((uint8_t *)temp.constData(),temp.size());
 
+     //crc= qChecksum(pkt.array,pkt.array.size());
+     qDebug()<<QString("CRC calc: x%1").arg(crc,0,16)<<
+               QString("CRC Expected x%1").arg(uh1.embedded_crc,0,16);
      qDebug()<<"Dispatching pkt";
-     pkt.array=in_buffer;
      pkt.type=uh1.type;
+     pkt.pkt_type=uh1.pkt_type;
      data_dispatch(&pkt);
    }
 
@@ -479,6 +570,9 @@ int hpusb::data_dispatch(hp_pkt_in * pktin) {
         break;
         case HP_HDR_INFO:
             send_info(pktin);
+        break;
+        case HP_HDR_FILE:
+            send_file(pktin);
         break;
     }
     main_err-> dump((uint8_t *)pktin->array.constData(),pktin->array.size());
@@ -576,6 +670,57 @@ int hpusb::send_screen_shot(hp_pkt_in * pkt) {
     }
     //Error
     return 1;
+}
+
+//File Processor
+int hpusb::send_file(hp_pkt_in * pkt) {
+    qDebug()<<"In File Processor";
+
+    QString filename;
+    int ind,ind2;
+
+    QTextCodec * codec = QTextCodec::codecForName("UTF-8");
+    QByteArray rd= pkt->array;
+
+    QByteArray start = QByteArrayLiteral("\x02");
+
+    int len;
+    len = rd[0];
+
+    //find file name
+    QByteArray str1 =rd.mid(3,len);
+    filename = codec->toUnicode(str1);
+    log(QString("File: %1 Type: %2").arg(filename).arg(pkt->pkt_type));
+
+    //handle each file type
+    switch (pkt->pkt_type) {
+
+        case HP_TP_SETTINGS:
+
+        break;
+        case HP_TP_FUNCTIONS:
+        break;
+        case HP_TP_LIST:
+        break;
+        case HP_TP_MATRIX:
+
+        break;
+        case HP_TP_PROG: {
+
+            //get a grogram
+             hp_Prog prog;
+             prog.filename=filename;
+             QByteArray str1 =rd.mid(len,rd.size()-len);
+             prog.prog = codec->toUnicode(str1);
+             pkt->calc->recvProg(prog);
+        }
+        break;
+        case HP_TP_CUSTOM:
+
+        break;
+    }
+
+    return 0;
 }
 
 //Get a screen shot. HP replies with image starting on byte 14

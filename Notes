@@ -12,6 +12,7 @@ Read is_ready
     get 00 fa 01 00 00 00 6c string
 
 Get Image return header
+  00  CMD 01 [ SIZE         ][CRC   ][                  ]
   00  fc  01  00  00  1d  73  5a  2d  08  ff  ff  ff  ff  || 89  [ 50 4E 47 ] (PNG)
      P N G
 
@@ -70,6 +71,10 @@ Near full dump, reading over 213 chuncks and still not enough
 
 00  f7  01  00  00  18  46  00  1e  d6  4a  63  00  61  00  6c
 
+File header
+         [ int }    TYPE    {Data ...
+00 F7 01 00 00 00 00 00  00 ?? ?? ?? Name Start ...
+                      Name len
 
 
 

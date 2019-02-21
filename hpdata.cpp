@@ -157,6 +157,16 @@ void hpCalcData::recvSettings(hp_Settings settings) {
 }
 
 
+//recieve Program
+void hpCalcData::recvProg(hp_Prog program) {
+
+    log("Recieving Program");
+
+    qDebug()<<program.filename;
+    qDebug()<<program.prog;
+    emit emitChange(HP_PROG);
+}
+
 
 void hpCalcData::emitChange(DataType type) {
 
