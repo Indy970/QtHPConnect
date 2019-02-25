@@ -8,9 +8,11 @@
 #include <QMessageBox>
 #include <QString>
 
-#define FUNC_NUM 9
+#define FUNC_NUM 10
 
-const QString hpTreeItem::func_list[FUNC_NUM][2]={{"Application Library",":/icons/apps_32x32.png"},
+const QString hpTreeItem::func_list[FUNC_NUM][2]={
+                                           {"Main",":/icons/apps_32x32.png"},
+                                           {"Application Library",":/icons/apps_32x32.png"},
                                            {"CAS Vars",":/icons/casFolder_32x32.png"},
                                            {"Complex",":/icons/complex_32x32.png"},
                                            {"Lists",":/icons/list_32x32.png"},
@@ -21,7 +23,9 @@ const QString hpTreeItem::func_list[FUNC_NUM][2]={{"Application Library",":/icon
                                            {"Variables",":/icons/varFolder_32x32.png"}
                                            };
 
-const hp_DataType hpTreeItem::func_type[FUNC_NUM]={HP_APP,
+const hp_DataType hpTreeItem::func_type[FUNC_NUM]={
+                                           HP_MAIN,
+                                           HP_APP,
                                            HP_CAS,
                                            HP_COMPLEX,
                                            HP_LIST,
@@ -48,6 +52,8 @@ hpTreeItem::hpTreeItem(const QString & name,hpCalcData * hpDataStore,int flag)
     setEditable(0);
     setDataStore(hpDataStore);
 
+    filename=name;
+
     if (flag==0)
         setGraphicTree();
 }
@@ -63,7 +69,7 @@ void hpTreeItem::setGraphicTree() {
 
     int i,j;
 
-    for (i=0; i<func_num; i++)
+    for (i=1; i<func_num; i++)
     {
         newChild= new hpTreeItem(func_list[i][0],getDataStore(),1);
         newChild->setType(func_type[i]);
@@ -209,8 +215,13 @@ int hpTreeItem::dt2int() {
     return 0;
 }
 
-QString hpTreeItem::getName() {
+QString hpTreeItem::getGroupName() {
     return func_list[dt2int()][0];
+ }
+
+QString hpTreeItem::getFileName() {
+
+    return filename;
  }
 
 //Slot to respond to data changes
@@ -230,8 +241,17 @@ void hpTreeItem::dataChange(hp_Change hpchange) {
                     emit dataChanged(hpchange);
                 }
             break;
-            case HP_MATRIX:
+            case HP_APP: {
+                refresh();
+            }
+            case HP_MATRIX: {
+                refresh();
+            }
+            break;
             case HP_LIST: {
+                refresh();
+            }
+            case HP_PROG: {
                 refresh();
             }
             break;
@@ -242,22 +262,38 @@ void hpTreeItem::addChild(AbstractData *obj) {
     hpTreeItem * subItem;
     hp_DataType type;
 
-    qDebug()<<"Adding Child";
+    qDebug()<<"hpTreeItem:Adding Child";
 
-    if (obj) {
+    if (obj!=nullptr) {
         QString name;
         //create fixed variable list
+
+        qDebug()<<"hpTreeItem:getting object data";
 
         type= obj->getType();
         name=obj->getName();
 
+        qDebug()<<"hpTreeItem:Object not null "<<name<<"type:"<<type;
+
+        qDebug()<<"hpTreeItem:this is "<<getFileName()<<" of type:"<<getType()
+               <<"Column:"<<columnCount();
+
+
         //check if this is the same type
-        if (getType()==type)
+        if ((getType()==type)&&(columnCount()<3))
         {
+
+            qDebug()<<"hpTreeItem: Creating hpTreeItem:"<<type;
+
             subItem= new hpTreeItem(name,getDataStore(),1);
             subItem->setType(type);
 
+            qDebug()<<"Column Count:"<<columnCount();
             switch (type) {
+                case HP_APP: {
+                    subItem->setIcon(QIcon(func_list[HP_APP][1]));
+                }
+                break;
                 case HP_MATRIX: {
                     subItem->setIcon(QIcon(func_list[HP_MATRIX][1]));
                 }
@@ -266,9 +302,19 @@ void hpTreeItem::addChild(AbstractData *obj) {
                     subItem->setIcon(QIcon(func_list[HP_LIST][1]));
                 }
                 break;
+                case HP_PROG: {
+                    subItem->setIcon(QIcon(func_list[HP_PROG][1]));
+                }
+                break;
             }
+
+            qDebug()<<"Append Row";
+            appendRow(subItem);
         }
-        appendRow(subItem);
+        else {
+                   qDebug()<<"hpTreeItem:No Object added";
+        }
+
     }
 }
 
@@ -286,58 +332,135 @@ void hpTreeItem::refresh() {
     hpCalcData * calc;
 
     calc=getDataStore();
+
+    qDebug()<<"hpTreeItem: In refresh";
+
     if (calc) {
+        if (columnCount()==1) {
+            AbstractData * obj;
+            datalen=calc->dataCount();
+            //get object at from calc
+            //get number of list items
 
-        AbstractData * obj;
-        datalen=calc->dataCount();
-        //get object at from calc
-        //get number of list items
+            //for all data items in list
+            for (j=0; j<datalen; j++ ) {
+             //compare with data
+             obj= calc->dataAt(j);
 
-        //for all data items in list
-        for (j=0; j<datalen; j++ ) {
+             if (obj) {
+                 for (i=0; i<rows; i++) {
+                        ti_child=(hpTreeItem *)child(i);
+                        name=ti_child->getFileName();
+                        type=ti_child->getType();
 
-            for (i=0; i<rows; i++) {
-                ti_child=(hpTreeItem *)child(i);
-                name=ti_child->getName();
-                type=ti_child->getType();
-
-            //compare with data
-                obj= calc->dataAt(j);
-
-                if(obj->equivalent(name,type)) {
-                    flag =1; //obj found
-                }
-
-            }
-
-            //If data and no row add row
-            if (flag==0) {
-                addChild(obj);
+                        if(obj->getType()==type) {
+                            ti_child->addFile(obj);
+                        }
+                  }
+             }
+             else
+             {
+                qDebug()<<"hpTreeItem:obj is null!";
+             }
             }
         }
 
-        //delete excess
+        /*
+      //delete excess
+      qDebug()<<"hpTreeItem: Checking for deletes";
+      if (columnCount()==1) {
+        AbstractData * obj;
+        int ret;
         rows=rowCount();
         flag =0;
-        //for all rows
+        //for all rows check data exists
         for (i=0; i<rows; i++) {
-            for (j=0; j<datalen; j++ ) {
-                ti_child=(hpTreeItem *)child(i);
-                name=ti_child->getName();
+            ti_child=(hpTreeItem *)child(i);
+            if (ti_child) {
+                name=ti_child->getFileName();
                 type=ti_child->getType();
-
-            //compare with data
-                obj= calc->dataAt(j);
-                if(obj->equivalent(name,type)) {
-                    flag =1; //obj found
+                for (j=0; j<datalen; j++ ) {
+                    //compare with all data
+                    obj= calc->dataAt(j);
+                    if (obj) {
+                        qDebug()<<"hpTreeItem::refresh - calling object";
+                        if(obj->getType()==type) {
+                            ret=ti_child->findFile(obj->getName());
+                        }
+                        if(ret!=0) {
+                            flag =1; //obj found
+                        }
+                    }
                 }
             }
             //If data and no row add row
             if (flag==0) {
+                qDebug()<<"hpTreeItem::refresh - deleting ";
                 removeRow(i);
             }
-
         }
-
+      }
+      */
     }
+
 }
+
+//check if file is in the list and add it if not
+void hpTreeItem::addFile(AbstractData * obj) {
+
+      int i;
+      int rows;
+      int flag;
+
+      hpTreeItem * ti_child;
+      QString name;
+      hp_DataType type;
+
+      qDebug()<<"hpTreeItem::addFile";
+
+      rows=rowCount();
+      flag=0;
+
+      if (obj) {
+//          qDebug()<<"hpTreeItem::addFile - File Not null";
+          for (i=0; i<rows; i++) {
+            ti_child=(hpTreeItem *)child(i);
+            name=ti_child->getFileName();
+            type=ti_child->getType();
+            if(obj->equivalent(name,type)) {
+               flag =1; //obj found
+            }
+         }
+         //If data and no row add row
+         if (flag==0) {
+             qDebug()<<"hpTreeItem::addFile - Adding a child";
+             addChild(obj);
+         }
+      }
+      else
+     {
+        qDebug()<<"hpTreeItem:obj is null!";
+      }
+}
+
+//check if file is in the list of children and add it if not return 0 else return row;
+int hpTreeItem::findFile(QString dataname) {
+
+      int i;
+      int rows;
+      int flag;
+
+      rows=rowCount();
+      hpTreeItem * ti_child;
+      QString name;
+
+      for (i=0; i<rows; i++) {
+            ti_child=(hpTreeItem *)child(i);
+            dataname=ti_child->getFileName();
+            if(name==dataname) {
+               return i;
+            }
+      }
+      return 0;
+}
+

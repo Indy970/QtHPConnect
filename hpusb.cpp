@@ -323,12 +323,12 @@ int hpusb::extract_header(uint8_t * raw, usb_header * uh) {
 
     //Chunck Header
     if(raw[0]>0x00) {
-        qDebug()<<"Chunck Header";
+        qDebug()<<"hpusb:Chunck Header";
         uh->type=HP_HDR_CHUNK;
         uh->typecode=0;
         uh->chunk=raw[0];
         uh->headerlen=1;
-        QString msg = QString("Chunk Number: %1").arg(uh->chunk);
+        QString msg = QString("hpusb:Chunk Number: %1").arg(uh->chunk);
         qDebug()<<msg;
         return 0;
     }
@@ -353,7 +353,7 @@ int hpusb::extract_header(uint8_t * raw, usb_header * uh) {
     //PNG Header
      if((raw[0]==0x00)&&(raw[1]==0xfc)) {
                 //This works - leave
-                qDebug()<<"PNG Header";
+                qDebug()<<"hpusb:PNG Header";
                 uh->type=HP_HDR_PNG;              
                 uh->typecode=raw[1];
                 uh->items=raw[2];
@@ -378,7 +378,7 @@ int hpusb::extract_header(uint8_t * raw, usb_header * uh) {
     //Filed Header
     if((raw[0]==0x00)&&(raw[1]==0xf7)) {
 
-                qDebug()<<"File Header";
+                qDebug()<<"hpusb:File Header";
                 uh->type=HP_HDR_FILE;
                 uh->typecode=raw[1];
                 uh->items =raw[2];
@@ -595,7 +595,7 @@ int hpusb::send_info(hp_pkt_in * pkt) {
 
     hp_Information hpinfo;
 
-    qDebug()<<"In send info";
+    qDebug()<<"hpusb:In send info";
     if( pkt->calc!=nullptr) {
 
        log("unpacking data");
@@ -673,7 +673,7 @@ int hpusb::send_screen_shot(hp_pkt_in * pkt) {
 
 //File Processor
 int hpusb::send_file(hp_pkt_in * pkt) {
-    qDebug()<<"In File Processor";
+    qDebug()<<"hpusb:In File Processor";
 
     QString filename;
     int ind,ind2;
@@ -691,15 +691,24 @@ int hpusb::send_file(hp_pkt_in * pkt) {
     filename = codec->toUnicode(str1);
     log(QString("File: %1 Type: %2").arg(filename).arg(pkt->pkt_type));
 
+    qDebug()<<"hpusb:Checking file type";
     //handle each file type
     switch (pkt->pkt_type) {
 
         case HP_TP_SETTINGS:
-
+               qDebug()<<"hpusb:File type settings";
         break;
-        case HP_TP_FUNCTIONS:
+        case HP_TP_FUNCTIONS: {
+               qDebug()<<"hpusb:File functions";
+               hp_Data sData;
+               sData.type=HP_APP;
+               sData.name=filename;
+               sData.data=rd.mid(len,-1);
+               pkt->calc->recvData(sData);
+        }
         break;
         case HP_TP_LIST: {
+            qDebug()<<"hpusb:File type list";
             hp_Data sData;
             sData.type=HP_LIST;
             sData.name=filename;
@@ -708,6 +717,7 @@ int hpusb::send_file(hp_pkt_in * pkt) {
         }
         break;
         case HP_TP_MATRIX: {
+            qDebug()<<"hpusb:File type matrix";
             hp_Data sData;
             sData.type=HP_MATRIX;
             sData.name=filename;
@@ -717,6 +727,7 @@ int hpusb::send_file(hp_pkt_in * pkt) {
         break;
         case HP_TP_PROG: {
             //get a grogram
+             qDebug()<<"hpusb:File type program";
              hp_Prog prog;
              prog.filename=filename;
              QByteArray str1 =rd.mid(len,rd.size()-len);
@@ -725,8 +736,10 @@ int hpusb::send_file(hp_pkt_in * pkt) {
         }
         break;
         case HP_TP_CUSTOM:
-
+             qDebug()<<"hpusb:File type custom";
         break;
+        default:
+             qDebug()<<"hpusb:Unknown file type";
     }
 
     return 0;

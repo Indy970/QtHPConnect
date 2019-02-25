@@ -10,7 +10,7 @@ hp_mdiVariableEdit::hp_mdiVariableEdit(QWidget *parent, hpTreeItem * treeItem)
     setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
     setup();
     hptreeitem=treeItem;
-    setWindowTitle(treeItem->getName());
+    setWindowTitle(treeItem->getFileName());
 }
 
 void hp_mdiVariableEdit::setup() {

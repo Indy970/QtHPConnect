@@ -33,9 +33,12 @@ public:
     void contextAction(QMdiArea * mdiwin, contextActionType cta );
     void setDataStore(hpCalcData *);
     hpCalcData *  getDataStore();
-    QString getName();
+    QString getGroupName();
+    QString getFileName();
     hp_DataType getType();
     void refresh();
+    int findFile(QString);
+    void addFile(AbstractData *);
     void addChild(AbstractData * obj);
 
 public slots:
@@ -44,6 +47,7 @@ public slots:
 private:
     const static QString func_list[][2];
     const static hp_DataType func_type[];
+    QString filename;
     hp_DataType type;
     hpCalcData * hp_data=nullptr;
     QMdiArea * mdiarea=nullptr;

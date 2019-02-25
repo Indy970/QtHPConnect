@@ -59,6 +59,16 @@ QByteArray AbstractData::getData() {
 
 //REAL
 //
+Application::Application(QString name_in, hp_DataType type_in):
+    AbstractData(name_in, type_in) {
+
+    setFileCode(HP_TP_FUNCTIONS);
+}
+
+
+
+//REAL
+//
 Real::Real(QString name_in, hp_DataType type_in):
     AbstractData(name_in, type_in) {
 

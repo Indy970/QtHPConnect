@@ -43,6 +43,12 @@ public:
 };
 
 
+class Application: public AbstractData
+{
+public:
+    Application(QString, hp_DataType);
+};
+
 class Real: public AbstractData
 {
 public:

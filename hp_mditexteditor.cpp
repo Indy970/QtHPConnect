@@ -9,7 +9,7 @@ hp_mdiTextEdit::hp_mdiTextEdit(QWidget * parent,hpTreeItem * treeItem)
     setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
     setup();
     hptreeitem=treeItem;
-    setWindowTitle(treeItem->getName());
+    setWindowTitle(treeItem->getFileName());
 }
 
 void hp_mdiTextEdit::setup() {

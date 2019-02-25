@@ -192,9 +192,10 @@ void hpCalcData::recvSettings(hp_Settings settings) {
 void hpCalcData::recvProg(hp_Prog program) {
 
     log("Recieving Program");
+    qDebug()<<"hpCalcData::recvProg";
 
     qDebug()<<program.filename;
-    qDebug()<<program.prog;
+    //qDebug()<<program.prog;
 
     Program * obj = new Program(program.filename,HP_PROG, program.prog);
     addData(obj);
@@ -208,19 +209,26 @@ void hpCalcData::recvData(hp_Data data) {
     log("Recieving Data");
 
     switch (data.type) {
-     case HP_TP_LIST: {
+        case HP_APP: {
+            qDebug()<<"hpCalcData::recvData - Application";
+            Application * obj = new Application(data.name,data.type);
+            addData(obj);
+            emit emitChange(HP_APP);
+        }
+        break;
+     case HP_LIST: {
             List * obj = new List(data.name,data.type);
             addData(obj);
             emit emitChange(HP_LIST);
         }
         break;
-    case HP_TP_MATRIX: {
+    case HP_MATRIX: {
+            qDebug()<<"hpCalcData::recvData - Matrix";
             Matrix * obj = new Matrix(data.name,data.type);
             addData(obj);
             emit emitChange(HP_MATRIX);
         }
         break;
-
     }
 
 }
