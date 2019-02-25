@@ -282,7 +282,7 @@ void MainWindow::clickedCalculator(QModelIndex index) {
 
     if(treeItem) {
 
-      DataType treetype;
+      hp_DataType treetype;
       treetype=treeItem->getType();
 
       switch (treetype) {
@@ -492,7 +492,7 @@ void MainWindow::treeMenuAction(bool clicked) {
     if (index.isValid()) {
         hpTreeItem * treeItem = dynamic_cast<hpTreeItem *>(hpTreeModel->itemFromIndex(index));
         if(treeItem) {
-          DataType treetype;
+          hp_DataType treetype;
           treetype=treeItem->getType();
           switch (treetype) {
            case HP_MAIN:
@@ -513,7 +513,7 @@ void MainWindow::on_tvCalculators_customContextMenuRequested(const QPoint &pos)
     if (index.isValid()) {
         hpTreeItem * treeItem = dynamic_cast<hpTreeItem *>(hpTreeModel->itemFromIndex(index));
         if(treeItem) {
-          DataType treetype;
+          hp_DataType treetype;
           treetype=treeItem->getType();
           switch (treetype) {
          //only show menu on main

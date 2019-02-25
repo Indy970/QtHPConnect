@@ -3,21 +3,11 @@
 
 #include <QObject>
 #include <QString>
+#include <QList>
 #include "hpusb.h"
+#include "abstractdata.h"
 
-enum DataType {
-                HP_MAIN=0,
-                HP_APP=1,
-                HP_CAS=2,
-                HP_COMPLEX=3,
-                HP_LIST=4,
-                HP_MATRIC=5,
-                HP_NOTE=6,
-                HP_PROG=7,
-                HP_REAL=8,
-                HP_VAR=9,
-                HP_SCREEN=10
-};
+class AbstractData;
 
 struct hp_Information {
                 QString name="---";
@@ -57,7 +47,7 @@ struct hp_ScreenShot {
 };
 
 struct hp_Change {
-    DataType dataChange=HP_MAIN;
+    hp_DataType dataChange=HP_MAIN;
     hpCalcData * calc;
 };
 
@@ -66,19 +56,26 @@ struct hp_Prog {
     QString prog;
 };
 
+struct hp_Data {
+    QString name;
+    hp_DataType type;
+    QByteArray data;
+};
+
 class hpCalcData: public QObject
 {
     Q_OBJECT
 
 private:
     const static QString func_list[][2];
-    const static DataType func_type[];
+    const static hp_DataType func_type[];
     QPixmap * screenShot=nullptr;
-    DataType type;
+    hp_DataType type;
     hpusb * hp_api;
     hp_Handle hp_handle;
     hp_Information hp_info;
     hp_Settings hp_homesettings;
+    QList<AbstractData *> lData;
 
 public:
     hpCalcData(hpusb * hpapi);
@@ -92,8 +89,14 @@ public:
     void recvScreen(hp_ScreenShot);
     void recvSettings(hp_Settings);
     void recvInfo(hp_Information);
-    void recvData();
+    void recvData(hp_Data);
     void recvProg(hp_Prog);
+
+    void addData(AbstractData *);
+    void deleteData(AbstractData *);
+    int findData(QString name, hp_DataType dataType);
+    AbstractData * dataAt(int i);
+    int dataCount();
 
     hp_ScreenShot getScreenShot();
     hp_Information getInfo();
@@ -101,7 +104,7 @@ public:
     hp_Settings getSettings();
     int setSettings(hp_Settings set);
     void vpkt_send_experiments(int );
-    void emitChange(DataType type);
+    void emitChange(hp_DataType type);
 
 //public slots:
 

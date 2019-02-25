@@ -21,11 +21,11 @@ const QString hpTreeItem::func_list[FUNC_NUM][2]={{"Application Library",":/icon
                                            {"Variables",":/icons/varFolder_32x32.png"}
                                            };
 
-const DataType hpTreeItem::func_type[FUNC_NUM]={HP_APP,
+const hp_DataType hpTreeItem::func_type[FUNC_NUM]={HP_APP,
                                            HP_CAS,
                                            HP_COMPLEX,
                                            HP_LIST,
-                                           HP_MATRIC,
+                                           HP_MATRIX,
                                            HP_NOTE,
                                            HP_PROG,
                                            HP_REAL,
@@ -60,7 +60,6 @@ void hpTreeItem::setGraphicTree() {
 
     int func_num=FUNC_NUM;
     hpTreeItem * newChild;
-    hpTreeItem * subItem;
 
     int i,j;
 
@@ -73,33 +72,6 @@ void hpTreeItem::setGraphicTree() {
         newChild->setToolTip(QString("Manage Applications"));
 //        newChild->getDataStore()->getInfo().serialnum="12-3456";
         appendRow(newChild);
-        switch (func_type[i]) {
-        case HP_MATRIC: {
-            QString name;
-            //create fixed variable list
-            for (j=0;j<10;j++) {
-                name="M"+QString().sprintf("%d",j);
-                subItem= new hpTreeItem(name,getDataStore(),1);
-                subItem->setIcon(QIcon(func_list[i][1]));
-                subItem->setType(func_type[i]);
-                newChild->appendRow(subItem);
-            }
-            }
-            break;
-        case HP_LIST: {
-            QString name;
-            //create fixed variable list
-            for (j=0;j<10;j++) {
-                name="L"+QString().sprintf("%d",j);
-
-                subItem= new hpTreeItem(name,getDataStore(),1);
-                subItem->setIcon(QIcon(func_list[i][1]));
-                subItem->setType(func_type[i]);
-                newChild->appendRow(subItem);
-            }
-            }
-            break;
-        }
     }
 }
 
@@ -141,7 +113,7 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
             if (hpvaredit!=nullptr)
                     hpvaredit ->show();
             break;
-        case HP_MATRIC:
+        case HP_MATRIX:
             if (hpvaredit==nullptr)
                 hpvaredit = new hp_mdiVariableEdit(mdiwin,this);
             if (hpvaredit!=nullptr)
@@ -199,12 +171,11 @@ void hpTreeItem::contextAction(QMdiArea * mdiwin, contextActionType cta) {
     }
 }
 
-
-DataType hpTreeItem::getType() {
+hp_DataType hpTreeItem::getType() {
     return type;
 }
 
-void hpTreeItem::setType(DataType dtype) {
+void hpTreeItem::setType(hp_DataType dtype) {
     type=dtype;
     return;
 }
@@ -229,7 +200,7 @@ int hpTreeItem::dt2int() {
        case HP_CAS:  return 1;
        case HP_COMPLEX: return 2;
        case HP_LIST: return 3;
-       case HP_MATRIC: return 4;
+       case HP_MATRIX: return 4;
        case HP_NOTE: return 5;
        case HP_PROG: return 6;
        case HP_REAL: return 7;
@@ -256,9 +227,117 @@ void hpTreeItem::dataChange(hp_Change hpchange) {
                         }
                 break;
             case HP_SCREEN: {
-                    qDebug()<<"Screen Shot Changed";
                     emit dataChanged(hpchange);
                 }
-        break;
+            break;
+            case HP_MATRIX:
+            case HP_LIST: {
+                refresh();
+            }
+            break;
+    }
+}
+
+void hpTreeItem::addChild(AbstractData *obj) {
+    hpTreeItem * subItem;
+    hp_DataType type;
+
+    qDebug()<<"Adding Child";
+
+    if (obj) {
+        QString name;
+        //create fixed variable list
+
+        type= obj->getType();
+        name=obj->getName();
+
+        //check if this is the same type
+        if (getType()==type)
+        {
+            subItem= new hpTreeItem(name,getDataStore(),1);
+            subItem->setType(type);
+
+            switch (type) {
+                case HP_MATRIX: {
+                    subItem->setIcon(QIcon(func_list[HP_MATRIX][1]));
+                }
+                break;
+                case HP_LIST: {
+                    subItem->setIcon(QIcon(func_list[HP_LIST][1]));
+                }
+                break;
+            }
+        }
+        appendRow(subItem);
+    }
+}
+
+//Up date the data
+void hpTreeItem::refresh() {
+    int rows,i,j;
+    int flag=0; //indicate 1 if data matches tree
+    int datalen;
+    hpTreeItem * ti_child;
+
+    QString name;
+    hp_DataType type;
+
+    rows=rowCount();
+    hpCalcData * calc;
+
+    calc=getDataStore();
+    if (calc) {
+
+        AbstractData * obj;
+        datalen=calc->dataCount();
+        //get object at from calc
+        //get number of list items
+
+        //for all data items in list
+        for (j=0; j<datalen; j++ ) {
+
+            for (i=0; i<rows; i++) {
+                ti_child=(hpTreeItem *)child(i);
+                name=ti_child->getName();
+                type=ti_child->getType();
+
+            //compare with data
+                obj= calc->dataAt(j);
+
+                if(obj->equivalent(name,type)) {
+                    flag =1; //obj found
+                }
+
+            }
+
+            //If data and no row add row
+            if (flag==0) {
+                addChild(obj);
+            }
+        }
+
+        //delete excess
+        rows=rowCount();
+        flag =0;
+        //for all rows
+        for (i=0; i<rows; i++) {
+            for (j=0; j<datalen; j++ ) {
+                ti_child=(hpTreeItem *)child(i);
+                name=ti_child->getName();
+                type=ti_child->getType();
+
+            //compare with data
+                obj= calc->dataAt(j);
+                if(obj->equivalent(name,type)) {
+                    flag =1; //obj found
+                }
+            }
+            //If data and no row add row
+            if (flag==0) {
+                removeRow(i);
+            }
+
+        }
+
     }
 }

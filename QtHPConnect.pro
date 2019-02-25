@@ -76,7 +76,8 @@ SOURCES += \
     getnumber.cpp \
     hpusb.cpp \
     hp_settingsdlg.cpp \
-    cntfilesystemmodel.cpp
+    cntfilesystemmodel.cpp \
+    abstractdata.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -114,7 +115,8 @@ HEADERS += \
     hpusb.h \
     hp_settingsdlg.h \
     version.h \
-    cntfilesystemmodel.h
+    cntfilesystemmodel.h \
+    abstractdata.h
 
 FORMS += \
     mainwindow.ui \

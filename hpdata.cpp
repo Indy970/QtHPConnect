@@ -7,8 +7,10 @@
 #include "hpdata.h"
 #include "global.h"
 #include "errorhandler.h"
+#include "abstractdata.h"
 
 #define FUNC_NUM 9
+
 
 const QString hpCalcData::func_list[FUNC_NUM][2]={{"Application Library",":/icons/apps_32x32.png"},
                                            {"CAS Vars",":/icons/casFolder_32x32.png"},
@@ -22,14 +24,14 @@ const QString hpCalcData::func_list[FUNC_NUM][2]={{"Application Library",":/icon
                                            };
 
 
-const DataType hpCalcData::func_type[FUNC_NUM]={HP_APP,
+const hp_DataType hpCalcData::func_type[FUNC_NUM]={HP_APP,
                                            HP_CAS,
+                                           HP_REAL,
                                            HP_COMPLEX,
                                            HP_LIST,
-                                           HP_MATRIC,
+                                           HP_MATRIX,
                                            HP_NOTE,
-                                           HP_PROG,
-                                           HP_REAL,
+                                           HP_PROG,                                           
                                            HP_VAR
                                            };
 
@@ -38,6 +40,7 @@ hpCalcData::hpCalcData(hpusb * handle)
         :QObject()
 {
     hp_api = handle;
+    lData.clear();
 
     //open usb port and store the handle
     if (hp_api) {
@@ -73,6 +76,34 @@ QString hpCalcData::getName() {
 hp_Settings hpCalcData::getSettings() {
 
     return hp_homesettings;
+}
+
+//Add a new object to the list
+void hpCalcData::addData(AbstractData * data) {
+    lData.append(data);
+}
+
+void hpCalcData::deleteData(AbstractData *) {
+ //   lData.erase();
+}
+
+//returns position of entry in list or returns 0;
+int hpCalcData::findData(QString name, hp_DataType dataType) {
+
+    for (int i = 0; i < lData.size(); ++i) {
+        if (lData.at(i)->equivalent(name,dataType))
+            return i;
+    }
+
+    return 0;
+}
+
+AbstractData * hpCalcData::dataAt(int i) {
+    return lData.at(i);
+}
+
+int hpCalcData::dataCount() {
+    return lData.size();
 }
 
 //read Settings via usb
@@ -164,11 +195,38 @@ void hpCalcData::recvProg(hp_Prog program) {
 
     qDebug()<<program.filename;
     qDebug()<<program.prog;
+
+    Program * obj = new Program(program.filename,HP_PROG, program.prog);
+    addData(obj);
+
     emit emitChange(HP_PROG);
 }
 
+//recieve Program
+void hpCalcData::recvData(hp_Data data) {
 
-void hpCalcData::emitChange(DataType type) {
+    log("Recieving Data");
+
+    switch (data.type) {
+     case HP_TP_LIST: {
+            List * obj = new List(data.name,data.type);
+            addData(obj);
+            emit emitChange(HP_LIST);
+        }
+        break;
+    case HP_TP_MATRIX: {
+            Matrix * obj = new Matrix(data.name,data.type);
+            addData(obj);
+            emit emitChange(HP_MATRIX);
+        }
+        break;
+
+    }
+
+}
+
+
+void hpCalcData::emitChange(hp_DataType type) {
 
     hp_Change change;
     change.dataChange=type;

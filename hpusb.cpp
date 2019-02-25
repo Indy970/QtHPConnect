@@ -226,7 +226,6 @@ void hpusb::dumpDevice(libusb_device * device) {
     qDebug()<<dump;
 }
 
-
 //Send a packet
 //Based on hplib - prime_send_data
 //credit to Lionel Debroux
@@ -700,13 +699,23 @@ int hpusb::send_file(hp_pkt_in * pkt) {
         break;
         case HP_TP_FUNCTIONS:
         break;
-        case HP_TP_LIST:
+        case HP_TP_LIST: {
+            hp_Data sData;
+            sData.type=HP_LIST;
+            sData.name=filename;
+            sData.data=rd.mid(len,-1);
+            pkt->calc->recvData(sData);
+        }
         break;
-        case HP_TP_MATRIX:
-
+        case HP_TP_MATRIX: {
+            hp_Data sData;
+            sData.type=HP_MATRIX;
+            sData.name=filename;
+            sData.data=rd.mid(len,-1);
+            pkt->calc->recvData(sData);
+        }
         break;
         case HP_TP_PROG: {
-
             //get a grogram
              hp_Prog prog;
              prog.filename=filename;

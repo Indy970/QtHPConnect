@@ -11,7 +11,7 @@
 class hp_mdiVariableEdit;
 class hp_mdiTextEdit;
 
-enum DataType;
+//enum hp_DataType;
 
 enum contextActionType {
             CT_PREFERENCE
@@ -27,21 +27,24 @@ public:
     hpTreeItem(const QString &,hpCalcData *, int);
     virtual QStandardItem *clone() const;
     void setGraphicTree();
-    void setType(DataType);
-    DataType getType();
+    void setType(hp_DataType);
+
     void clickAction(QMdiArea * mwin);
     void contextAction(QMdiArea * mdiwin, contextActionType cta );
     void setDataStore(hpCalcData *);
     hpCalcData *  getDataStore();
     QString getName();
+    hp_DataType getType();
+    void refresh();
+    void addChild(AbstractData * obj);
 
 public slots:
     void dataChange(hp_Change hpchange);
 
 private:
     const static QString func_list[][2];
-    const static DataType func_type[];
-    DataType type;
+    const static hp_DataType func_type[];
+    hp_DataType type;
     hpCalcData * hp_data=nullptr;
     QMdiArea * mdiarea=nullptr;
     hp_mdiVariableEdit * hpvaredit = nullptr;
