@@ -76,7 +76,7 @@ public:
 class Program: public AbstractData
 {
 private:
-    QString data;
+    QString text;
 public:
     Program(QString, hp_DataType, QString);
     void setProg(QString);
@@ -85,8 +85,13 @@ public:
 
 class Notes: public AbstractData
 {
+private:
+        QString text;
+
 public:
-    Notes(QString, hp_DataType);
+    Notes(QString, hp_DataType, QString);
+    void setNote(QString);
+    QString getNote();
 };
 
 

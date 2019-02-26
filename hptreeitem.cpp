@@ -85,6 +85,10 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
 
     hp_infoDialog * hpinfodlg;
     hp_Information hpinfo;
+    hpCalcData * calc;
+    calc=getDataStore();
+    AbstractData * data;
+
  //  QString test;
  //  test=data(Qt::DisplayRole).toString();
 
@@ -94,7 +98,6 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
                 dataStore = getDataStore();
                 hpinfo=dataStore->getInfo();
                 hpinfodlg = new hp_infoDialog(mdiwin,hpinfo);
-                //hpinfodlg->move(700,400);
                 hpinfodlg->show();
             }
             break;
@@ -114,8 +117,15 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
                 hpvaredit ->show();
             break;
         case HP_LIST:
-            if (hpvaredit==nullptr)
-                hpvaredit = new hp_mdiVariableEdit(mdiwin,this);
+            qDebug()<<column();
+            if (hpvaredit==nullptr) {
+                if (calc) {
+                    data=calc->getData(getFileName(),HP_LIST);
+                }
+                if (data) {
+                    hpvaredit = new hp_mdiVariableEdit(mdiwin,this);
+                }
+            }
             if (hpvaredit!=nullptr)
                     hpvaredit ->show();
             break;
@@ -125,13 +135,24 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
             if (hpvaredit!=nullptr)
                     hpvaredit ->show();
             break;
-        case HP_NOTE:
+        case HP_NOTE: {
+             hpCalcData * dataStore;
+             dataStore = getDataStore();
+
             if (hptextedit==nullptr)
-                hptextedit = new hp_mdiTextEdit(mdiwin,this);
+                hptextedit = new hp_mdiTextEdit(mdiwin,this, dataStore);
             if (hptextedit!=nullptr)
                     hptextedit ->show();
+            }
             break;
-        case HP_PROG:
+        case HP_PROG: {
+            hpCalcData * dataStore;
+            dataStore = getDataStore();
+            if (hptextedit==nullptr)
+                hptextedit = new hp_mdiTextEdit(mdiwin,this, dataStore);
+            if (hptextedit!=nullptr)
+                hptextedit ->show();
+            }
             break;
         case HP_REAL:
             if (hpvaredit==nullptr)
@@ -144,9 +165,6 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
          break;
         default: ;
     }
-
-   // log(test+getDataStore()->getInfo().serialnum);
-
 }
 
 void hpTreeItem::contextAction(QMdiArea * mdiwin, contextActionType cta) {
@@ -251,6 +269,9 @@ void hpTreeItem::dataChange(hp_Change hpchange) {
             case HP_LIST: {
                 refresh();
             }
+            case HP_NOTE: {
+                refresh();
+            }
             case HP_PROG: {
                 refresh();
             }
@@ -268,12 +289,12 @@ void hpTreeItem::addChild(AbstractData *obj) {
         QString name;
         //create fixed variable list
 
-        qDebug()<<"hpTreeItem:getting object data";
+ //       qDebug()<<"hpTreeItem:getting object data";
 
         type= obj->getType();
         name=obj->getName();
 
-        qDebug()<<"hpTreeItem:Object not null "<<name<<"type:"<<type;
+//        qDebug()<<"hpTreeItem:Object not null "<<name<<"type:"<<type;
 
         qDebug()<<"hpTreeItem:this is "<<getFileName()<<" of type:"<<getType()
                <<"Column:"<<columnCount();
@@ -300,6 +321,12 @@ void hpTreeItem::addChild(AbstractData *obj) {
                 break;
                 case HP_LIST: {
                     subItem->setIcon(QIcon(func_list[HP_LIST][1]));
+
+                }
+                break;
+                case HP_NOTE: {
+                    subItem->setIcon(QIcon(func_list[HP_NOTE][1]));
+                    qDebug()<<"hpTreeItem: Creating Note type:"<<type;
                 }
                 break;
                 case HP_PROG: {
@@ -307,12 +334,10 @@ void hpTreeItem::addChild(AbstractData *obj) {
                 }
                 break;
             }
-
-            qDebug()<<"Append Row";
             appendRow(subItem);
         }
         else {
-                   qDebug()<<"hpTreeItem:No Object added";
+            qDebug()<<"hpTreeItem:No Object added";
         }
 
     }
@@ -332,8 +357,6 @@ void hpTreeItem::refresh() {
     hpCalcData * calc;
 
     calc=getDataStore();
-
-    qDebug()<<"hpTreeItem: In refresh";
 
     if (calc) {
         if (columnCount()==1) {
@@ -416,7 +439,7 @@ void hpTreeItem::addFile(AbstractData * obj) {
       QString name;
       hp_DataType type;
 
-      qDebug()<<"hpTreeItem::addFile";
+//      qDebug()<<"hpTreeItem::addFile";
 
       rows=rowCount();
       flag=0;

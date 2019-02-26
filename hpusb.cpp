@@ -561,7 +561,7 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
 //request to recieve a file transfer
 int hpusb::data_dispatch(hp_pkt_in * pktin) {
 
-    qDebug()<<"In data dispatch";
+//    qDebug()<<"In data dispatch";
 
     switch(pktin->type) {
         case HP_HDR_PNG:
@@ -600,7 +600,8 @@ int hpusb::send_info(hp_pkt_in * pkt) {
 
        log("unpacking data");
        int ind=0;
-       QTextCodec * codec = QTextCodec::codecForName("UTF-8");
+       QTextCodec * codec = QTextCodec::codecForName("UTF-16 Little Endian");
+       QTextCodec * codec8 = QTextCodec::codecForName("UTF-8");
        QByteArray rd= pkt->array;
 
             //find name
@@ -611,30 +612,36 @@ int hpusb::send_info(hp_pkt_in * pkt) {
             name = codec->toUnicode(str1);
             hpinfo.name=name;
 
+
+        //unsigned char searchstr[] = {0x80,0x20,0x80,0x01,0x62};
+        //ind+=rd.indexOf((char *) searchstr,ind+64);
+        ind +=64;
+
+        //find Application Version
+        str1 =rd.mid(ind,10);
+        qDebug()<<str1;
+        QString app;
+        app = codec8->toUnicode(str1);
+        hpinfo.appver=app;
+        log(app);
+
         //find OS Version
-        unsigned char searchstr[] = {0x80,0x20,0x80,0x01,0x62,0x01};
-        ind+=rd.indexOf((char *) searchstr,ind+64)+4;
-        qDebug()<<ind;
-        //ind+=;
+        ind+=12;
         str1 =rd.mid(ind,16);
+//        qDebug()<<str1;
         QString osv;
-        osv = codec->toUnicode(str1);
+        osv = codec8->toUnicode(str1);
         hpinfo.osver=osv;
-        qDebug()<<osv;
+//        qDebug()<<osv;
         log(osv);
 
         //find Serial Number
         ind+=16;
         str1 =rd.mid(ind,16);
         QString serial;
-        serial = codec->toUnicode(str1);
+        serial = codec8->toUnicode(str1);
         hpinfo.serialnum=serial;
         log(serial);
-
-        //find Application Version
-        ind+=16;
-        str1 =rd.mid(ind,16);
-
         pkt->calc->recvInfo(hpinfo);
         return 0;
 
@@ -676,12 +683,9 @@ int hpusb::send_file(hp_pkt_in * pkt) {
     qDebug()<<"hpusb:In File Processor";
 
     QString filename;
-    int ind,ind2;
 
-    QTextCodec * codec = QTextCodec::codecForName("UTF-8");
+    QTextCodec * codec = QTextCodec::codecForName("UTF-16LE");
     QByteArray rd= pkt->array;
-
-    QByteArray start = QByteArrayLiteral("\x02");
 
     int len;
     len = rd[0];
@@ -692,11 +696,15 @@ int hpusb::send_file(hp_pkt_in * pkt) {
     log(QString("File: %1 Type: %2").arg(filename).arg(pkt->pkt_type));
 
     qDebug()<<"hpusb:Checking file type";
+    qDebug()<<QString("File: %1 Type: %2").arg(filename).arg(pkt->pkt_type);
+    qDebug()<<QString("%1 %2 %3").arg((uint8_t)rd[0],1,16).arg((uint8_t)rd[1],1,16).arg((uint8_t)rd[2],1,16);
+
     //handle each file type
     switch (pkt->pkt_type) {
 
         case HP_TP_SETTINGS:
                qDebug()<<"hpusb:File type settings";
+               qDebug()<<filename;
         break;
         case HP_TP_FUNCTIONS: {
                qDebug()<<"hpusb:File functions";
@@ -725,12 +733,30 @@ int hpusb::send_file(hp_pkt_in * pkt) {
             pkt->calc->recvData(sData);
         }
         break;
+        case HP_TP_NOTE: {
+            //get a note
+            int size;
+             qDebug()<<"hpusb:File type Note";
+            hp_Note note;
+            note.filename=filename;
+
+            qDebug()<<QString("%1 %2 %3").arg((uint8_t)rd[len],1,16).arg((uint8_t)rd[len+1],1,16).arg((uint8_t)rd[len+2],1,16);
+            size=rd[len+1]; //Is the byte a size?
+            QByteArray str1 =rd.mid(len+3,rd.size()-len-3);
+            note.text = codec->toUnicode(str1);
+            pkt->calc->recvNote(note);
+        }
+        break;
         case HP_TP_PROG: {
             //get a grogram
+             int size;
              qDebug()<<"hpusb:File type program";
              hp_Prog prog;
              prog.filename=filename;
-             QByteArray str1 =rd.mid(len,rd.size()-len);
+
+             qDebug()<<QString("%1 %2 %3").arg((uint8_t)rd[len],1,16).arg((uint8_t)rd[len+1],1,16).arg((uint8_t)rd[len+2],1,16);
+             size=rd[len+1];
+             QByteArray str1 =rd.mid(len+3,rd.size()-len-3);
              prog.prog = codec->toUnicode(str1);
              pkt->calc->recvProg(prog);
         }
@@ -890,7 +916,7 @@ int hpusb::lookfordouble (QByteArray rd, int start) {
     long double num=0;
     QString app;
     QByteArray str1;
-    QTextCodec * codec = QTextCodec::codecForName("UTF-8");
+    QTextCodec * codec = QTextCodec::codecForName("UTF-16");
     app = codec->toUnicode(str1);
     log(app);
 

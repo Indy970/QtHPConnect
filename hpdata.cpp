@@ -98,6 +98,18 @@ int hpCalcData::findData(QString name, hp_DataType dataType) {
     return 0;
 }
 
+//returns position of entry in list or returns 0;
+AbstractData * hpCalcData::getData(QString name, hp_DataType dataType) {
+
+    for (int i = 0; i < lData.size(); ++i) {
+        if (lData.at(i)->equivalent(name,dataType)) {
+            return lData.at(i);
+        }
+    }
+
+    return nullptr;
+}
+
 AbstractData * hpCalcData::dataAt(int i) {
     return lData.at(i);
 }
@@ -201,6 +213,20 @@ void hpCalcData::recvProg(hp_Prog program) {
     addData(obj);
 
     emit emitChange(HP_PROG);
+}
+
+//recieve Program
+void hpCalcData::recvNote(hp_Note note) {
+
+    log("Recieving Note");
+    qDebug()<<"hpCalcData::recvNote";
+
+    qDebug()<<note.filename;
+
+    Notes * obj = new Notes(note.filename,HP_NOTE, note.text);
+    addData(obj);
+
+    emit emitChange(HP_NOTE);
 }
 
 //recieve Program

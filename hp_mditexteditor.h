@@ -5,8 +5,10 @@
 #include <QWidget>
 #include <QMdiSubWindow>
 #include <QTreeView>
+#include "hpdata.h"
 
 class hpTreeItem;
+class hpCalcData;
 
 #include "texteditor.h"
 
@@ -16,11 +18,16 @@ class hp_mdiTextEdit: public QMdiSubWindow
 
 protected:
 
-    textEditor * textEdit;
-    hpTreeItem * hptreeitem;
+    textEditor * textEdit  =nullptr;
+    hpTreeItem * hptreeitem =nullptr;
+    hpCalcData * hpcalc =nullptr;
+    QString filename;
+    hp_DataType type;
+    AbstractData * data =nullptr;
 
 public:
-    hp_mdiTextEdit(QWidget * parent = nullptr, hpTreeItem * treeItem = nullptr);
+    hp_mdiTextEdit(QWidget * parent = nullptr, hpTreeItem * treeItem = nullptr,
+                   hpCalcData * dataStore =nullptr);
     void setup();
     void show();
     ~hp_mdiTextEdit();

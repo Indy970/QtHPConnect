@@ -76,6 +76,7 @@ enum hp_pkt_type {
     HP_TP_FUNCTIONS=02,
     HP_TP_LIST=03,
     HP_TP_MATRIX=04,
+    HP_TP_NOTE=05,
     HP_TP_PROG=06,
     HP_TP_CUSTOM=11
  };

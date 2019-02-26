@@ -56,6 +56,11 @@ struct hp_Prog {
     QString prog;
 };
 
+struct hp_Note {
+    QString filename;
+    QString text;
+};
+
 struct hp_Data {
     QString name;
     hp_DataType type;
@@ -91,10 +96,12 @@ public:
     void recvInfo(hp_Information);
     void recvData(hp_Data);
     void recvProg(hp_Prog);
+    void recvNote(hp_Note);
 
     void addData(AbstractData *);
     void deleteData(AbstractData *);
     int findData(QString name, hp_DataType dataType);
+    AbstractData * getData(QString name, hp_DataType dataType);
     AbstractData * dataAt(int i);
     int dataCount();
 

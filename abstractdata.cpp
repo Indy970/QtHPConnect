@@ -1,8 +1,13 @@
+#include <QDebug>
+
+#include "global.h"
 #include "abstractdata.h"
 #include "hpusb.h"
 
 AbstractData::AbstractData(QString name_in, hp_DataType type_in)
 {
+
+ //   qDebug()<<"base class called "<<name_in;
     setName(name_in);
     setType(type_in);
 }
@@ -108,16 +113,30 @@ Program::Program(QString name_in, hp_DataType type_in, QString data):
 }
 
 QString Program::getProg() {
-    return data;
+    return text;
 }
 
 void Program::setProg(QString data_in) {
-    data=data_in;
+    text=data_in;
 }
 
 //Notes
-Notes::Notes(QString name_in, hp_DataType type_in):
+Notes::Notes(QString name_in, hp_DataType type_in, QString data):
     AbstractData(name_in, type_in) {
 
-    setFileCode(HP_TP_SETTINGS);
+    setFileCode(HP_TP_NOTE);
+    setNote(data);
+    qDebug()<<"Taking Note";
+    qDebug()<<data;
+}
+
+QString Notes::getNote() {
+
+    qDebug()<<"Getting Note";
+    qDebug()<<text;
+    return text;
+}
+
+void Notes::setNote(QString data_in) {
+    text=data_in;
 }
