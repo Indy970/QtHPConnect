@@ -210,6 +210,7 @@ void hpCalcData::recvProg(hp_Prog program) {
     //qDebug()<<program.prog;
 
     Program * obj = new Program(program.filename,HP_PROG, program.prog);
+    obj->setData(program.data);
     addData(obj);
 
     emit emitChange(HP_PROG);
@@ -224,6 +225,7 @@ void hpCalcData::recvNote(hp_Note note) {
     qDebug()<<note.filename;
 
     Notes * obj = new Notes(note.filename,HP_NOTE, note.text);
+    obj->setData(note.data);
     addData(obj);
 
     emit emitChange(HP_NOTE);
@@ -238,12 +240,14 @@ void hpCalcData::recvData(hp_Data data) {
         case HP_APP: {
             qDebug()<<"hpCalcData::recvData - Application";
             Application * obj = new Application(data.name,data.type);
+            obj->setData(data.data);
             addData(obj);
             emit emitChange(HP_APP);
         }
         break;
      case HP_LIST: {
             List * obj = new List(data.name,data.type);
+            obj->setData(data.data);
             addData(obj);
             emit emitChange(HP_LIST);
         }
@@ -251,12 +255,12 @@ void hpCalcData::recvData(hp_Data data) {
     case HP_MATRIX: {
             qDebug()<<"hpCalcData::recvData - Matrix";
             Matrix * obj = new Matrix(data.name,data.type);
+            obj->setData(data.data);
             addData(obj);
             emit emitChange(HP_MATRIX);
         }
         break;
     }
-
 }
 
 

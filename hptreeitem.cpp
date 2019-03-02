@@ -117,21 +117,26 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
                 hpvaredit ->show();
             break;
         case HP_LIST:
-            qDebug()<<column();
             if (hpvaredit==nullptr) {
                 if (calc) {
                     data=calc->getData(getFileName(),HP_LIST);
                 }
                 if (data) {
-                    hpvaredit = new hp_mdiVariableEdit(mdiwin,this);
+                    hpvaredit = new hp_mdiVariableEdit(mdiwin,this,calc);
                 }
             }
             if (hpvaredit!=nullptr)
                     hpvaredit ->show();
             break;
         case HP_MATRIX:
-            if (hpvaredit==nullptr)
-                hpvaredit = new hp_mdiVariableEdit(mdiwin,this);
+            if (hpvaredit==nullptr) {
+                if (calc) {
+                    data=calc->getData(getFileName(),HP_MATRIX);
+                }
+                if (data) {
+                hpvaredit = new hp_mdiVariableEdit(mdiwin,this,calc);
+                }
+            }
             if (hpvaredit!=nullptr)
                     hpvaredit ->show();
             break;

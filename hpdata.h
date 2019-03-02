@@ -54,11 +54,13 @@ struct hp_Change {
 struct hp_Prog {
     QString filename;
     QString prog;
+    QByteArray data;
 };
 
 struct hp_Note {
     QString filename;
     QString text;
+    QByteArray data;
 };
 
 struct hp_Data {

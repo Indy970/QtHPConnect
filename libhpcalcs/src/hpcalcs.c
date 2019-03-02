@@ -128,7 +128,7 @@ HPEXPORT int HPCALL hpcalcs_exit(void) {
 
 
 HPEXPORT const char* HPCALL hpcalcs_version_get (void) {
-    return VERSION;
+    return "Test";
 }
 
 

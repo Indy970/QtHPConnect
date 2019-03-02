@@ -141,9 +141,7 @@ struct hp_Information;
 
 class hpusb
 {
-
     private:
-
 
         struct timespec t1, t2;
 

@@ -6,15 +6,21 @@
     Content - fix resizing
     Create storage path if it does not exist
     Load and read program files
-    Load Screen shot and display
     Add options - set default paths
+
+    Drag and drop from content window to calc
+
 2 Comms
-    Understand what the calc is doing!
 
-    CAN READ ALL DATA!
-    ------------------
-    Tidy hpusb and start decoding
+    Libusb hot swap
 
-    Sections are group by function starting 00 F7
+    Async transfer
+
+    CRC checks are not working - this will be a problem on sending data. Worried that a byte is being
+    gained or lost on transfer
+
+    Decoding data. Lists 90% complete
+
+    Extract vars file
 
 3 Backup to disk

@@ -27,16 +27,12 @@ void hp_mdiTextEdit::setup() {
     QString text;
     textEdit = new textEditor(this);
 
-    qDebug()<<"hp_mdiTextEdit::setup";
-
     if (data) {
 
-        qDebug()<<"hp_mdiTextEdit::setup - Data not null";
         qDebug()<<data->getName();
         qDebug()<<data->getType();
 
         if (data->getType()==HP_NOTE) {
-            qDebug()<<"hp_mdiTextEdit::setup - Its a Note";
             Notes *note;
             note=(Notes *)data;
             text=note->getNote();

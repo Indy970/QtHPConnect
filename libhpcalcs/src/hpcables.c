@@ -2,7 +2,7 @@
  * libhpcables: hand-helds support libraries.
  * Copyright (C) 2013 Lionel Debroux
  * Code patterns and snippets borrowed from libticables & libticalcs:
- * Copyright (C) 1999-2009 Romain Liévin
+ * Copyright (C) 1999-2009 Romain LiÃ©vin
  * Copyright (C) 2009-2013 Lionel Debroux
  * Copyright (C) 1999-2013 libti* contributors.
  *
@@ -144,7 +144,7 @@ HPEXPORT int HPCALL hpcables_exit(void) {
 
 
 HPEXPORT const char* HPCALL hpcables_version_get (void) {
-    return VERSION;
+    return "Test";
 }
 
 

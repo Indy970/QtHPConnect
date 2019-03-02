@@ -4,6 +4,7 @@
 #include <QString>
 #include <QByteArray>
 #include "hpusb.h"
+#include "matrixdata.h"
 
 enum hp_DataType{
                 HP_MAIN=0,
@@ -19,6 +20,11 @@ enum hp_DataType{
                 HP_SCREEN=10
 };
 
+struct m_Size {
+    int row;
+    int column;
+};
+
 class AbstractData
 {
 
@@ -26,6 +32,8 @@ private:
     QString name;
     hp_DataType type;
     hp_pkt_type file_code;
+
+protected:
     QByteArray data;
 
 public:
@@ -40,54 +48,85 @@ public:
     hp_pkt_type getFileCode();
     void setData(QByteArray);
     QByteArray getData();
+    virtual void parseData();
 };
 
 
 class Application: public AbstractData
 {
+private:
+    void parseData();
 public:
     Application(QString, hp_DataType);
 };
 
-class Real: public AbstractData
+class Real:  public AbstractData
 {
+private:
+    void parseData();
 public:
     Real(QString, hp_DataType);
 };
 
 class Complex: public AbstractData
 {
+private:
+    void parseData();
 public:
     Complex(QString, hp_DataType);
 };
 
-class List: public AbstractData
+
+class List:  public AbstractData
 {
+private:
+    QList <itemData>values;
+    void parseData();
 public:
     List(QString, hp_DataType);
+    QByteArray getData();
+    itemData getListItem(int);
+    void setListItem(int, itemData);
+    QString getItem(int);
+    void setItem(int, QString);
+    void setItem(int, QString, double);
+    int getListSize();
 };
 
-class Matrix: public AbstractData
+class Matrix:  public AbstractData
 {
+private:
+    MatrixData mdata;
+    void parseData();
 public:
     Matrix(QString, hp_DataType);
+    itemData getListItem(int row, int column);
+    void setListItem(int, int, itemData);
+    QString getItem(int row, int column);
+    void setItem(int, int, QString);
+    void setItem(int, int, QString, double);
+    m_Size getMatrixSize();
+    int getMatrixRows();
+    int getMatrixColumns();
 };
 
-class Program: public AbstractData
+class Program:  public AbstractData
 {
 private:
     QString text;
+    void parseData();
 public:
     Program(QString, hp_DataType, QString);
     void setProg(QString);
     QString getProg();
 };
 
-class Notes: public AbstractData
+class Notes:  public AbstractData
 {
 private:
         QString text;
-
+        QString format;
+        void parseData();
 public:
     Notes(QString, hp_DataType, QString);
     void setNote(QString);
