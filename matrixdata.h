@@ -20,8 +20,11 @@ public:
     void insert(int,int,itemData);
     void clear();
     int rows();
+    void addRow(int);
     int columns();
-    void resize();
+    void resize(int,int);
+    void upsize(int,int);
+    void matchsize();
     ~ MatrixData();
 };
 

@@ -39,18 +39,22 @@ hpCalcData * treeModel::getCalculator(QString name){
     hpDataLink hplink;
     hpCalcData * hpdata = nullptr;
 
-    QMap<QString, hpDataLink>::const_iterator i = hpCalcList.find(name);
+    if (!hpCalcList.isEmpty()) {
+        QMap<QString, hpDataLink>::const_iterator i = hpCalcList.find(name);
 
-    if (i!=hpCalcList.end()) {
-        hplink = i.value();
-        hpdata= hplink.dataItem;
+        if (i!=hpCalcList.end()) {
+            hplink = i.value();
+            hpdata= hplink.dataItem;
+        }
     }
-
     return hpdata;
 }
 
 QString treeModel::getLastDataKey() {
-    return hpCalcList.lastKey();
+    if (hpCalcList.isEmpty())
+        return QStringLiteral("");
+    else
+        return hpCalcList.lastKey();
 }
 
 //manage link between tree and data
@@ -59,15 +63,16 @@ QString treeModel::getLastDataKey() {
 hpCalcData * treeModel::getHpCalcData(QString name) {
 
     hpDataLink hplink;
-    hpCalcData * hpdata;
+    hpCalcData * hpdata=nullptr;
 
-    QMap<QString, hpDataLink>::const_iterator i = hpCalcList.find(name);
+    if (!hpCalcList.isEmpty()) {
+        QMap<QString, hpDataLink>::const_iterator i = hpCalcList.find(name);
 
-    if (i!=hpCalcList.end()) {
-        hplink = i.value();
-        hpdata= hplink.dataItem;
+        if (i!=hpCalcList.end()) {
+            hplink = i.value();
+            hpdata= hplink.dataItem;
+        }
     }
-
     return hpdata;
 }
 

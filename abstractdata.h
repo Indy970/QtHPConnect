@@ -17,7 +17,8 @@ enum hp_DataType{
                 HP_PROG=7,
                 HP_REAL=8,
                 HP_VAR=9,
-                HP_SCREEN=10
+                HP_SCREEN=10,
+                HP_SETTINGS=10
 };
 
 struct m_Size {
@@ -133,6 +134,34 @@ public:
     QString getNote();
 };
 
+class Variables:  public AbstractData
+{
+private:
+        QString text;
+        QString format;
+        void parseData();
+public:
+    Variables(QString, hp_DataType);
+};
 
+class CASVariables:  public AbstractData
+{
+private:
+        QString text;
+        QString format;
+        void parseData();
+public:
+    CASVariables(QString, hp_DataType);
+};
+
+class Settings:  public AbstractData
+{
+private:
+        QString text;
+        QString format;
+        void parseData();
+public:
+    Settings(QString, hp_DataType);
+};
 
 #endif // ABSTRACTDATA_H

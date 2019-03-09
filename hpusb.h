@@ -2,11 +2,11 @@
 #define HPUSB_H
 
 #include <libusb.h>
+#include <QObject>
 #include <QByteArray>
 
 struct hp_Settings;
 class hpCalcData;
-
 
 //! USB Vendor ID of Hewlett-Packard.
 #define USB_VID_HP (0x03F0)
@@ -45,6 +45,7 @@ class hpCalcData;
 struct hp_Handle {
       libusb_device_handle *usbhandle = nullptr;
       libusb_device *usbdevice = nullptr;
+
       hpCalcData * calc;
       int dev_open=0;
 };
@@ -68,7 +69,6 @@ enum usb_header_type {
     HP_HDR_INFO,
     HP_HDR_PNG,
     HP_HDR_UNKNOWN
-
 };
 
 enum hp_pkt_type {
@@ -133,15 +133,24 @@ typedef struct
     uint8_t data[PRIME_RAW_DATA_SIZE + 1];
 } prime_raw_hid_pkt;
 
+enum hp_hotplug {
+    HP_OPEN_DEVICE=1,
+    HP_CLOSE_DEVICE=2
+ };
+
+
+
 struct hp_Information;
 
-     void cb_out(struct libusb_transfer *transfer);
-     void cb_in(struct libusb_transfer *transfer);
-     void sighandler(int signum);
+void cb_out(struct libusb_transfer *transfer);
+void cb_in(struct libusb_transfer *transfer);
+void sighandler(int signum);
 
-class hpusb
+class hpusb: public QObject
 {
-    private:
+    Q_OBJECT
+
+private:
 
         struct timespec t1, t2;
 
@@ -151,15 +160,11 @@ class hpusb
             out
          } exitflag;
 
-         libusb_context * ctx;
+        libusb_context * ctx;
 
-  //      cable_model model1 = CABLE_NUL;
-  //      calc_model model2 = CALC_NONE;
-  //      cable_handle * cable;
-  //      static libusb_device_handle *usbhandle;
-  //      static libusb_device *usbdevice;
+        hp_Handle hp_handle;
+        libusb_hotplug_callback_handle hp_callback_handle;
 
-        static hp_Handle hp_handle;
         int lb_init=0;
 
         // OUT-going transfers (OUT from host PC to USB-device)
@@ -169,13 +174,14 @@ class hpusb
         struct libusb_transfer *transfer_in = NULL;
         int do_exit = 0;
 
-    public:
+public:
 
         hpusb();
         int hp_init();
         int is_device(libusb_device *);
         void dumpDevice(libusb_device * );
         int hp_open(hp_Handle *);
+        int hp_close();
         int submit_async_transfer(hp_Handle *, hp_pkt_in *, hp_pkt_out *);
         int submit_sync_s_transfer(hp_Handle *, hp_pkt_out *);
         int submit_sync_r_transfer(hp_Handle *, hp_pkt_in *);
@@ -205,8 +211,15 @@ class hpusb
         friend  void sighandler(int signum);
         friend    void cb_out(struct libusb_transfer *transfer);
         friend    void cb_in(struct libusb_transfer *transfer);
+        int hotplugcallback(struct libusb_context *ctx, struct libusb_device *dev,
+                             libusb_hotplug_event event);
 
+        int eventHandler();
         ~hpusb();
+
+signals:
+        void hotplug(int );
+
 };
 
 #endif // HPUSB_H

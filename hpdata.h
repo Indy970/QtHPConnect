@@ -94,12 +94,12 @@ public:
     void readSettings();
     void readScreen();
     void recvScreen(hp_ScreenShot);
-    void recvSettings(hp_Settings);
+    void recvSettings(hp_Data);
     void recvInfo(hp_Information);
     void recvData(hp_Data);
     void recvProg(hp_Prog);
     void recvNote(hp_Note);
-
+    void refresh();
     void addData(AbstractData *);
     void deleteData(AbstractData *);
     int findData(QString name, hp_DataType dataType);
@@ -115,10 +115,12 @@ public:
     void vpkt_send_experiments(int );
     void emitChange(hp_DataType type);
 
+
 //public slots:
 
 signals:
     void dataChanged(hp_Change datachange);
+    void hotplugDetected();
 };
 
 #endif // HPDATA_H

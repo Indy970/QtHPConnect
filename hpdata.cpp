@@ -118,6 +118,11 @@ int hpCalcData::dataCount() {
     return lData.size();
 }
 
+void hpCalcData::refresh() {
+    readInfo();
+    readSettings();
+}
+
 //read Settings via usb
 void hpCalcData::readSettings() {
 
@@ -125,7 +130,7 @@ void hpCalcData::readSettings() {
     hp_Handle * handle;
     hp_Settings hpset;
 
-    log("Reading Settings");
+    log("hpCalcData::readSettings: -Reading Settings");
     qDebug()<<"Reading Settings";
     api=getAPI();
     handle=getHandle();
@@ -137,6 +142,12 @@ void hpCalcData::readSettings() {
             api->get_settings(handle);
         }
       }
+      else {
+              log("hpCalcData::readSettings Handle null");
+      }
+    }
+    else {
+     log("hpCalcData::readSettings API null");
     }
  //   hp_homesettings=hpset;
 
@@ -183,20 +194,66 @@ void hpCalcData::recvScreen(hp_ScreenShot shot) {
 
     QByteArray imageData;
     if (screenShot!=nullptr) {
-                    delete screenShot;
+              delete screenShot;
             }
-
      screenShot = shot.image;
 
     emit emitChange(HP_SCREEN);
 }
 
 //recieve Setting
-void hpCalcData::recvSettings(hp_Settings settings) {
+void hpCalcData::recvSettings(hp_Data data) {
 
-    log("Recieving Setting");
+    QString filename;
+    log("hpCalcData::recvSettings: Recieving Setting");
+    filename = data.name;
+    qDebug()<<filename;
 
-    emit emitChange(HP_SCREEN);
+    if (filename==QStringLiteral("calc.hpsettings")) {
+        qDebug()<<"hpCalcData::recvSetting - Setting";
+
+        qDebug()<<"hpCalcData::recvSetting - Real";
+        Real * obj1 = new Real(data.name,HP_REAL);
+        obj1->setData(data.data);
+        addData(obj1);
+        emit emitChange(HP_REAL);
+
+        qDebug()<<"hpCalcData::recvSetting - Complex";
+        Complex * obj2 = new Complex(data.name,HP_COMPLEX);
+        obj2->setData(data.data);
+        addData(obj2);
+        emit emitChange(HP_COMPLEX);
+
+    }
+
+    if (filename== QStringLiteral("cas.hpsettings")) {
+        qDebug()<<"cas.chps";
+
+        qDebug()<<"hpCalcData::recvSetting - CAS";
+        CASVariables * obj2 = new CASVariables(data.name,HP_CAS);
+        obj2->setData(data.data);
+        addData(obj2);
+        emit emitChange(HP_CAS);
+    }
+
+    if (filename==QStringLiteral("calc.hpvars")) {
+
+        qDebug()<<"hpCalcData::recvSetting - Variables";
+        Variables * var = new Variables(data.name,HP_VAR);
+        var->setData(data.data);
+        addData(var);
+    }
+
+    if (filename==QStringLiteral("settings")) {
+        qDebug()<<"set-";
+
+        qDebug()<<"hpCalcData::recvSetting - Variables";
+        Settings * var = new Settings(data.name,HP_SETTINGS);
+        var->setData(data.data);
+        addData(var);
+    }
+
+    emit emitChange(HP_MAIN);
 }
 
 

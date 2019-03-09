@@ -38,6 +38,7 @@ int varTableModel::rowCount(const QModelIndex & /*parent*/) const
       Matrix * matrix;
       matrix = (Matrix *)dataobj;
       size= matrix->getMatrixRows();
+//      qDebug()<<matrix->getName()<<" row"<<size;
   }
 
    return size;
@@ -50,6 +51,8 @@ int varTableModel::columnCount(const QModelIndex & /*parent*/) const
         Matrix * matrix;
         matrix = (Matrix *)dataobj;
         size= matrix->getMatrixColumns();
+ //       qDebug()<<matrix->getName()<<" column"<<size;
+
     }
     return size;
 }
@@ -58,7 +61,7 @@ QVariant varTableModel::data(const QModelIndex &index, int role) const
 {
     if (role == Qt::DisplayRole) {
 
-      QString item;
+      QString item=QStringLiteral("-");
 
       if (type==HP_LIST) {
              List * list;

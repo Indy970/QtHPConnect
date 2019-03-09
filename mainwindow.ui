@@ -112,7 +112,7 @@
    <property name="maximumSize">
     <size>
      <width>524287</width>
-     <height>524290</height>
+     <height>524287</height>
     </size>
    </property>
    <property name="baseSize">
@@ -187,6 +187,7 @@
    <addaction name="actionTest"/>
    <addaction name="actionTestSettings"/>
    <addaction name="actionTestScreen"/>
+   <addaction name="actionRefresh"/>
   </widget>
   <widget class="QDockWidget" name="dwContent">
    <property name="sizePolicy">
@@ -495,6 +496,15 @@
    </property>
    <property name="toolTip">
     <string>Test get Screen Function</string>
+   </property>
+  </action>
+  <action name="actionRefresh">
+   <property name="icon">
+    <iconset resource="qthpconnect.qrc">
+     <normaloff>:/icons/refresh_32x32.png</normaloff>:/icons/refresh_32x32.png</iconset>
+   </property>
+   <property name="text">
+    <string>Refresh</string>
    </property>
   </action>
  </widget>

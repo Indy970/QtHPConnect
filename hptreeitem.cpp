@@ -106,13 +106,25 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
              }
              break;
         case HP_CAS:
-                if (hpvaredit==nullptr)
-                    hpvaredit = new hp_mdiVariableEdit(mdiwin,this);
+                if (hpvaredit==nullptr) {
+                    if (calc) {
+                        data=calc->getData(getFileName(),HP_COMPLEX);
+                    }
+                    if (data) {
+                        hpvaredit = new hp_mdiVariableEdit(mdiwin,this,calc);
+                    }
+                }
                 if (hpvaredit!=nullptr)
                         hpvaredit ->show();
         case HP_COMPLEX:
-            if (hpvaredit==nullptr)
-                hpvaredit = new hp_mdiVariableEdit(mdiwin,this);
+            if (hpvaredit==nullptr) {
+                if (calc) {
+                    data=calc->getData(getFileName(),HP_COMPLEX);
+                }
+                if (data) {
+                    hpvaredit = new hp_mdiVariableEdit(mdiwin,this,calc);
+                }
+            }
             if (hpvaredit!=nullptr)
                 hpvaredit ->show();
             break;
@@ -160,8 +172,14 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
             }
             break;
         case HP_REAL:
-            if (hpvaredit==nullptr)
-                hpvaredit = new hp_mdiVariableEdit(mdiwin,this);
+            if (hpvaredit==nullptr) {
+                if (calc) {
+                    data=calc->getData(getFileName(),HP_REAL);
+                }
+                if (data) {
+                     hpvaredit = new hp_mdiVariableEdit(mdiwin,this,calc);
+                }
+            }
             if (hpvaredit!=nullptr)
                     hpvaredit ->show();
             break;

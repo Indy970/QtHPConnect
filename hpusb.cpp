@@ -10,12 +10,13 @@
 // return <> 0 = error
 
 #include <QTextCodec>
+#include <QObject>
 
 #include "global.h"
-#include "hpusb.h"
 #include "hpdata.h"
 #include <libusb.h>
 #include <signal.h>
+#include "hpusb.h"
 
 uint16_t crc16_block(const uint8_t * buffer, uint32_t len) {
     static const uint16_t ccitt_crc16_table[256] = {
@@ -60,8 +61,21 @@ uint16_t crc16_block(const uint8_t * buffer, uint32_t len) {
     return crc;
 }
 
+//hot plug call back
+int hotplug_callback(struct libusb_context *ctx, struct libusb_device *dev,
+                     libusb_hotplug_event event, void *hp_usbptr) {
+
+    hpusb * usbptr;
+    usbptr=(hpusb*)hp_usbptr;
+    qDebug()<<"hotplug_callback: Hot plugin";
+    if (hp_usbptr) {
+        usbptr->hotplugcallback(ctx,dev,event);
+    }
+    return 0;
+}
+
 //Constructor
-hpusb::hpusb()
+hpusb::hpusb():QObject()
 {
     lb_init=0;
 }
@@ -71,6 +85,8 @@ hpusb::hpusb()
 int hpusb::hp_init()
 {
     int ret=0;
+    libusb_hotplug_callback_handle callback_handle;
+    int rc;
 
     if(!lb_init) {
         log("Initialising usb interface");
@@ -78,6 +94,19 @@ int hpusb::hp_init()
         if(!(ret=libusb_init(&ctx))) {
             log("libusb init ok");
             libusb_set_debug(ctx,LIBUSB_LOG_LEVEL_WARNING);
+
+            rc = libusb_hotplug_register_callback(ctx,	(libusb_hotplug_event) (LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
+                                                  LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT), LIBUSB_HOTPLUG_NO_FLAGS , USB_VID_HP, USB_PID_PRIME3,
+                                                 LIBUSB_HOTPLUG_MATCH_ANY, hotplug_callback, this,
+                                                  &callback_handle);
+
+            if (LIBUSB_SUCCESS != rc) {
+              log("Error creating a hotplug callback\n");
+              libusb_exit(ctx);
+              return EXIT_FAILURE;
+            }
+            log("hpusb::hp_init - hotplug registered\n");
+            hp_callback_handle=callback_handle;
             lb_init=1;
             return ret;
     }
@@ -740,6 +769,7 @@ int hpusb::send_file(hp_pkt_in * pkt) {
                sData.type=HP_MAIN;
                sData.name=filename;
                sData.data=rd.mid(len+3,-1);
+               pkt->calc->recvSettings(sData);
          }
         break;
         case HP_TP_FUNCTIONS: {
@@ -1012,7 +1042,6 @@ int hpusb::set_settings(hp_Handle * handle, hp_Settings set) {
     return 0;
 }
 
-
 int hpusb::vpkt_send_experiments(hp_Handle * handle, int cmd) {
 
     uint8_t transferbuffer[LEN_IN_BUFFER*8 ];
@@ -1060,7 +1089,6 @@ int hpusb::vpkt_send_experiments(hp_Handle * handle, int cmd) {
     transferbuffer[22]=0x00;
     transferbuffer[23]=0x48;
 
-
     transferbuffer[1024]=0x00;
     transferbuffer[1025]=0x00;
     transferbuffer[1026]=0x07;
@@ -1083,8 +1111,6 @@ int hpusb::vpkt_send_experiments(hp_Handle * handle, int cmd) {
     transferbuffer[8]=0xfd;
     transferbuffer[9]=0x01;
 */
-
-
 
     pktout.data=transferbuffer;
     pktout.size=2;
@@ -1306,7 +1332,6 @@ void cb_out(struct libusb_transfer *transfer) {
 //     That is, the data for in_buffer IS AVAILABLE.
 void cb_in(struct libusb_transfer *transfer)
 {
-
     qDebug()<<"in cb_in";
     uint32_t benchPackets=1;
     uint32_t benchBytes=0;
@@ -1330,6 +1355,51 @@ void cb_in(struct libusb_transfer *transfer)
         benchPackets=0;
         benchBytes=0;
     }
+}
+
+int hpusb::hotplugcallback(struct libusb_context *ctx, struct libusb_device *dev,
+                     libusb_hotplug_event event) {
+  int count;
+  qDebug()<<"hpusb::hotplug_callback - Hotplug";;
+
+  static libusb_device_handle *handle = NULL;
+  struct libusb_device_descriptor desc;
+  int rc;
+  (void)libusb_get_device_descriptor(dev, &desc);
+
+  if (LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED == event) {
+
+      qDebug()<<"Hot plugin event";
+      emit hotplug(HP_OPEN_DEVICE);
+  } else if (LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT == event) {
+    if (handle) {
+      emit hotplug(HP_CLOSE_DEVICE);
+    }
+  } else {
+    qDebug()<<QString("hpusb::hotplug_callback Unhandled event %1\n").arg(event);
+    log(QString("hpusb::hotplug_callback Unhandled event %1\n").arg(event));
+  }
+  count++;
+  return 0;
+}
+
+//eventhandler called periodically to handle async events
+int hpusb::eventHandler() {
+
+   int completed;
+//   qDebug()<<"In Eventhandler";
+   libusb_handle_events_completed(NULL, &completed);
+    return 0;
+}
+
+int hpusb::hp_close() {
+
+    libusb_device_handle * usbhandle;
+    usbhandle=hp_handle.usbhandle;
+    libusb_close(usbhandle);
+    hp_handle.usbhandle=nullptr;
+
+    return 0;
 }
 
 hpusb::~hpusb() {

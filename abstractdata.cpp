@@ -9,7 +9,7 @@
 
 uint16_t crc16_block(const uint8_t * buffer, uint32_t len);
 
-int BCD2I(quint16 num) {
+int BCD2I(quint8 num) {
 
         int ds,ret;
         if(num>0) {
@@ -30,7 +30,7 @@ long TwosComplement2Int(long rawValue)
 
     long ret;
 
-    qDebug()<<QString("List 2C: %1").arg(rawValue&0x80000000,1,16);
+//    qDebug()<<QString("List 2C: %1").arg(rawValue&0x80000000,1,16);
 
     // If a positive value, return it
     if ((rawValue & 0x80000000) == 0)
@@ -39,42 +39,36 @@ long TwosComplement2Int(long rawValue)
     }
     else {
        // Otherwise perform the 2's complement math on the value
-      qDebug()<<QString("List 2C Negative Detected");
+//      qDebug()<<QString("List 2C Negative Detected");
 
        ret = (long)(~(rawValue - 0x01)) * -1;
 //          ret = ~rawValue;
     }
-    qDebug()<<QString("List 2C: %1 %2").arg(rawValue,1,16).arg(ret,1,16);
+//    qDebug()<<QString("List 2C: %1 %2").arg(rawValue,1,16).arg(ret,1,16);
 
     return ret;
 }
 
-qint8 TwosComplement2Int(quint8 rawValue)
+qint16 TwosComp2Int_8(quint16 rawValue)
 {
 
-    qint8 ret;
-
-    qDebug()<<QString("List 2C UINT8: %1").arg(rawValue&0x80,1,16);
+    qint16 ret;
 
     // If a positive value, return it
-    if ((rawValue & 0x80) == 0)
+    if ((rawValue & 0x800) == 0)
     {
         ret = rawValue;
     }
     else {
        // Otherwise perform the 2's complement math on the value
-      qDebug()<<QString("List 2C UINT8 Negative Detected");
-
-       ret = ~(rawValue - 0x01) * -1;
+       ret = (~(rawValue - 0x01)&(0x0FFF)) * -1;
 //          ret = ~rawValue;
     }
-    qDebug()<<QString("List 2C UINT8: %1 %2").arg(rawValue,1,16).arg(ret,1,16);
-
     return ret;
 }
 
 
-itemData extractNubmer(QByteArray item) {
+itemData extract16(QByteArray item) {
 ;
     itemData listvalue;
     QString msg;
@@ -119,6 +113,67 @@ itemData extractNubmer(QByteArray item) {
        return listvalue;
 }
 
+itemData extract8(QByteArray item) {
+;
+    itemData listvalue;
+    QString msg;
+    QString value=QStringLiteral("");;
+    qint8 sign=1;
+    qint8 l;
+    qint8 v;
+    int multi;
+    qint16 exp=0;
+    double base;
+    double m,ret,n;
+    int k;
+
+    multi=1;
+    base=10;
+
+    exp=((((((qint8)item[1]&0x0F)))<<8)+((qint8)item[0]&0xFF));
+
+    exp=TwosComp2Int_8(exp);
+
+    m=0;
+
+    l=item[7]&0xF0;
+
+    if ((l&0xFF)==0x90) {
+
+        sign=-1;
+    }
+    for (k=1;k<8;k++) {
+          v=item[k];
+          if (k==7) {
+              v=v&0x0F;
+           }
+          if (k==1) {
+              v=v&0xF0;
+           }
+
+          n=(double)multi*BCD2I(v);
+          m=m*0.01+n;
+          if(k!=7) {
+            if ((m>0)||(k>5))
+                value=QString("%1").arg(n,0)+value;
+          }
+          else
+            value=QString("%1.").arg(n,0)+value;
+
+    }
+    ret=sign*m*qPow(base,exp);
+
+    if(sign<0)
+        value=QString("-")+value;
+
+    if(exp!=0)
+        value=value+"E"+QString("%1").arg(exp,0);
+
+       listvalue.dValue=ret;
+       listvalue.sValue=value;
+
+       return listvalue;
+}
 
 ////////////////////////
 
@@ -204,10 +259,22 @@ Real::Real(QString name_in, hp_DataType type_in):
     AbstractData(name_in, type_in) {
 
     setFileCode(HP_TP_SETTINGS);
+    parseData();
 }
 
 void Real::parseData() {
 
+    QByteArray a1;
+
+    QString name;
+    unsigned char searchstr[] = {0xFF,0x16,0x00};
+
+    qDebug()<<"Real: Parsing Vars";
+
+    name=getName();
+    log(name);
+    a1=data;
+    main_err->dump((uint8_t *)a1.constData(),a1.size());
 }
 
 //COMPLEX
@@ -215,10 +282,21 @@ Complex::Complex(QString name_in, hp_DataType type_in):
     AbstractData(name_in, type_in) {
 
     setFileCode(HP_TP_SETTINGS);
+    parseData();
 }
 
 void Complex::parseData() {
+    QByteArray a1;
 
+    QString name;
+    unsigned char searchstr[] = {0xFF,0x16,0x00};
+
+    qDebug()<<"Complex: Parsing Vars";
+
+    name=getName();
+    log(name);
+    a1=data;
+    main_err->dump((uint8_t *)a1.constData(),a1.size());
 }
 
 //LIST
@@ -230,13 +308,7 @@ List::List(QString name_in, hp_DataType type_in):
 }
 
 QByteArray List::getData() {
-
-    //temp
-
-    //parseData();
-
     return data;
-
 }
 
 void List::parseData() {
@@ -246,20 +318,26 @@ void List::parseData() {
     itemData listvalue;
     QString name;
     int len;
+    int ind;
     int start = 8;
     int j;
+    unsigned char searchstr[] = {0xFF,0x16,0x00};
 
     qDebug()<<"List: Parsing a List";
 
     name=getName();
 
     a1=data;
-    len=a1[4];
+    ind=a1.indexOf((char *) searchstr,0);
+
+    //look for FF 16 00
+
+    len=a1[ind+3];
 
     for(j=0;j<len;j++) {
 
         item=a1.mid(start,16);
-        listvalue=extractNubmer(item);
+        listvalue=extract16(item);
         setListItem(-1,listvalue);
         start+=16;
     }
@@ -330,23 +408,42 @@ void Matrix::parseData() {
     QString name;
     QString msg;
     QString value=QStringLiteral("");;
-    int len;
-    int start = 8;
-    qint8 sign;
-    int multi;
-    long exp;
-    double base;
-    double m,ret;
+    int mrows;
+    int mcolumns;
+    int start;
     int k,j;
+    int ind;
     QString ds;
+    QByteArray searchstr((char *)std::begin<quint8>({0x00,0x14}),2);
 
     qDebug()<<"Matrix: Parsing a Matrix";
 
     name=getName();
     log(name);
-
     a1=data;
-    len=a1[4];
+    ind=a1.indexOf(searchstr,0);
+
+    //look for 00 14
+    log(QString("Found string at %1").arg(ind));
+
+    mcolumns=a1[ind+11];
+    mrows=a1[ind+07];
+    qDebug()<<QString("Matrix: Row %1 Column %2").arg(mrows).arg(mcolumns);
+    log(QString("Matrix: Row %1 Column %2").arg(mrows).arg(mcolumns));
+
+    start=ind+15;
+    for(j=0;j<mrows;j++) {
+        for(k=0;k<mcolumns;k++) {
+
+        item=a1.mid(start,8);
+        qDebug()<<item;
+        listvalue=extract8(item);
+
+        setListItem(j,k,listvalue);
+        start+=8;
+        }
+    }
+
     main_err->dump((uint8_t *)a1.constData(),a1.size());
 }
 
@@ -362,7 +459,6 @@ itemData Matrix::getListItem(int row, int column) {
 void Matrix::setListItem(int row, int column, itemData item) {
 
     mdata.insert(row,column,item);
-
 }
 
 //Gets a  string representation of the list item in the matrix at position row,column
@@ -373,7 +469,7 @@ QString Matrix::getItem(int row, int column) {
 
     data=mdata.at(row,column);
     item=data.sValue;
-
+    item=QString("%1").arg(data.dValue,5);
     return item;
 }
 
@@ -489,4 +585,98 @@ void Notes::parseData() {
 
 void Notes::setNote(QString data_in) {
     text=data_in;
+}
+
+//Variables
+Variables::Variables(QString name_in, hp_DataType type_in):
+    AbstractData(name_in, type_in) {
+
+    setFileCode(HP_TP_SETTINGS);
+
+}
+
+void Variables::parseData() {
+
+//    quint16 len1,len2;
+    int formatstart;
+    quint16 crc;
+    QTextCodec * codec = QTextCodec::codecForName("UTF-16LE");
+
+    QByteArray a1,a3;
+
+    a1=getData();
+//    crc=qChecksum(a1.mid(4,-1),a1.size()-4,Qt::ChecksumIso3309);
+//    crc=crc16_block((uint8_t *)a1.mid(4,-1).constData(),a1.size()-4);
+
+/*
+    QDataStream ds(a1);
+    ds.setByteOrder(QDataStream::LittleEndian);
+
+    ds >> len1;
+    ds >> len2;
+*/
+
+
+}
+
+//CAS Variables
+CASVariables::CASVariables(QString name_in, hp_DataType type_in):
+    AbstractData(name_in, type_in) {
+
+    setFileCode(HP_TP_SETTINGS);
+
+}
+
+void CASVariables::parseData() {
+
+//    quint16 len1,len2;
+    int formatstart;
+    quint16 crc;
+    QTextCodec * codec = QTextCodec::codecForName("UTF-16LE");
+
+    QByteArray a1,a3;
+
+    a1=getData();
+//    crc=qChecksum(a1.mid(4,-1),a1.size()-4,Qt::ChecksumIso3309);
+//    crc=crc16_block((uint8_t *)a1.mid(4,-1).constData(),a1.size()-4);
+
+/*
+    QDataStream ds(a1);
+    ds.setByteOrder(QDataStream::LittleEndian);
+
+    ds >> len1;
+    ds >> len2;
+*/
+
+}
+
+//Settings
+Settings::Settings(QString name_in, hp_DataType type_in):
+    AbstractData(name_in, type_in) {
+
+    setFileCode(HP_TP_SETTINGS);
+
+}
+
+void Settings::parseData() {
+
+//    quint16 len1,len2;
+    int formatstart;
+    quint16 crc;
+    QTextCodec * codec = QTextCodec::codecForName("UTF-16LE");
+
+    QByteArray a1,a3;
+
+    a1=getData();
+//    crc=qChecksum(a1.mid(4,-1),a1.size()-4,Qt::ChecksumIso3309);
+//    crc=crc16_block((uint8_t *)a1.mid(4,-1).constData(),a1.size()-4);
+
+/*
+    QDataStream ds(a1);
+    ds.setByteOrder(QDataStream::LittleEndian);
+
+    ds >> len1;
+    ds >> len2;
+*/
+
 }

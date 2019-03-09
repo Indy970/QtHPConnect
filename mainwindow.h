@@ -18,6 +18,7 @@
 #include "hp_mdiwindow.h"
 #include "hp_mdivariableedit.h"
 #include "cntfilesystemmodel.h"
+#include "eventthread.h"
 
 class treeModel;
 class errorHandler;
@@ -34,10 +35,12 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void openHP();
+    void closeHP();
     void writeStatus(QString);
     void writeChatter(QString);
     void addDummy();
     void createActions();
+    hpusb * getAPI();
 
 private slots:
     void onOpen();
@@ -58,12 +61,19 @@ private slots:
 
     void treeMenuAction(bool);
     void on_tvCalculators_customContextMenuRequested(const QPoint &pos);
+    void eventHandler();
+    void refresh(bool clicked);
+    void hotplug_handler(int );
 
 private:
 
+    QString lastCalc;
     errorHandler *pErr;
     dataModel * myModel;
     treeModel * hpTreeModel;
+    QThread * eventThread;
+
+    EventThread * eventTimer;
     QMenu * treeMenu=nullptr;
     hpusb * hpapi;
     QMdiSubWindow * msgWindow=0;

@@ -30,6 +30,7 @@
 #include <QInputDialog>
 #include <QFile>
 #include <QTextStream>
+#include <QTimer>
 #include <QFileIconProvider>
 
 #include "global.h"
@@ -81,6 +82,8 @@ MainWindow::MainWindow(QWidget *parent) :
     setTreeMenu();
     setContentWindow();
 
+
+
     //setup trees
     ui->tvCalculators->setModel(hpTreeModel);
     ui->tvCalculators->show();
@@ -98,7 +101,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionTest,SIGNAL(triggered()),this,SLOT(testFunction()));
     connect(ui->actionTestSettings,SIGNAL(triggered()),this,SLOT(onTestSettings()));
     connect(ui->actionTestScreen,SIGNAL(triggered()),this,SLOT(onTestScreen()));
+    connect(ui->actionRefresh,SIGNAL(triggered(bool)),this,SLOT(refresh(bool)));
     connect(ui->tvCalculators, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(on_tvCalculators_customContextMenuRequested(const QPoint &)));
+    connect(hpapi, SIGNAL(hotplug(int)), this, SLOT(hotplug_handler(int)));
 
     //default data
     log("Initialising....");
@@ -106,10 +111,18 @@ MainWindow::MainWindow(QWidget *parent) :
     if (hpapi->hp_init())
         err(L1,0,QString().sprintf("%s Failed to open libusb",__FUNCTION__));
 
+    //setup event handler
+    eventThread = new QThread(this);
+    eventTimer = new EventThread(0);
+    eventTimer->moveToThread(eventThread);
+//    connect(eventTimer,SIGNAL(timeout()),this,SLOT(eventHandler()));
+    connect(eventThread,SIGNAL(started()),eventTimer,SLOT(start()));
+    eventThread->start();
+
     ui->dwMessenger->hide();
     ui->dwMonitor->hide();
 
-    addDummy();
+  //  addDummy();
   //  openHP();
 }
 
@@ -150,6 +163,17 @@ void MainWindow::writeChatter(QString line)
     return;
 }
 
+//eventhandler - for comms events
+
+void MainWindow::eventHandler() {
+
+    if(hpapi) {
+//        qDebug()<<"In Eventhandler";
+        hpapi->eventHandler();
+    }
+}
+
+
 MainWindow::~MainWindow()
 {
     delete ui;
@@ -181,9 +205,8 @@ void MainWindow::onTestSettings()
 
     QString key;
     key=hpTreeModel->getLastDataKey();
+    qDebug()<<key;
     hpCalcData * hpdata;
-    qDebug()<<"MainWindow:: getKey";
-
     hpdata=hpTreeModel->getHpCalcData(key);
     if(hpdata)
         hpdata->readSettings();
@@ -233,6 +256,11 @@ void MainWindow::openHP()
             //handle lost on second call!
  //           hpapi->submit_sync_transfer(&handle);
         }
+}
+
+//close and delete HP and associated functions.
+void MainWindow::closeHP() {
+
 }
 
 //testcode to add a dummy calculator to the tree
@@ -299,8 +327,10 @@ void MainWindow::clickedCalculator(QModelIndex index) {
     {
         log(QStringLiteral("treeItem is null"));
     }
-    log(item->data(Qt::DisplayRole).toString());
 
+    //HACK
+    lastCalc=item->data(Qt::DisplayRole).toString();
+    log(item->data(Qt::DisplayRole).toString());
 }
 
 void MainWindow::about()
@@ -442,12 +472,15 @@ void MainWindow::monitorAddImage(hp_ScreenShot  scrnshot) {
          log("Could not load image");
      }
      ui->dwMonitor->show();
-
 }
 
 void MainWindow::exit() {
     delete treeMenu;
     close();
+}
+
+hpusb * MainWindow::getAPI() {
+    return hpapi;
 }
 
 //opens a new test window
@@ -474,13 +507,43 @@ QMdiArea * MainWindow::getMdi() {
     return ui->mdiArea;
 }
 
+
+//action on refresh button
+void MainWindow::refresh(bool clicked) {
+    qDebug()<<"MainWindow:: Refresh";
+
+    QString key;
+    key=hpTreeModel->getLastDataKey();
+    hpCalcData * hpdata;
+    hpdata=hpTreeModel->getHpCalcData(key);
+    if(hpdata)
+        hpdata->refresh();
+}
+
+//handle hotplug actions
+void MainWindow::hotplug_handler(int status) {
+    qDebug()<<"MainWindow::hotplugin_handler";
+
+    if (status==HP_OPEN_DEVICE) {
+        openHP();
+    }
+
+    if (status==HP_CLOSE_DEVICE) {
+
+        //TODO
+    }
+}
+
 void MainWindow::setTreeMenu() {
 
     treeMenu = new QMenu(ui->tvCalculators); // add menu items
     treeMenu->addAction(ui->actionPreferences);
+    treeMenu->addAction(ui->actionRefresh);
     ui->tvCalculators->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->actionPreferences, SIGNAL(triggered(bool)),
         this, SLOT(treeMenuAction(bool)));
+    connect(ui->actionRefresh, SIGNAL(triggered(bool)),
+        this, SLOT(refresh(bool)));
 }
 
 void MainWindow::treeMenuAction(bool clicked) {

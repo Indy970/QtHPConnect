@@ -64,7 +64,6 @@ SOURCES += \
     datamodel.cpp \
     treemodel.cpp \
     hpdata.cpp \
-    hptoolbox.cpp \
     texteditor.cpp \
     variableview.cpp \
     hptreeitem.cpp \
@@ -78,7 +77,8 @@ SOURCES += \
     hp_settingsdlg.cpp \
     cntfilesystemmodel.cpp \
     abstractdata.cpp \
-    matrixdata.cpp
+    matrixdata.cpp \
+    eventthread.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -103,7 +103,6 @@ HEADERS += \
     datamodel.h \
     treemodel.h \
     hpdata.h \
-    hptoolbox.h \
     texteditor.h \
     variableview.h \
     hptreeitem.h \
@@ -118,7 +117,8 @@ HEADERS += \
     version.h \
     cntfilesystemmodel.h \
     abstractdata.h \
-    matrixdata.h
+    matrixdata.h \
+    eventthread.h
 
 FORMS += \
     mainwindow.ui \
