@@ -171,7 +171,7 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
                 hptextedit ->show();
             }
             break;
-        case HP_REAL:
+        case HP_REAL:           
             if (hpvaredit==nullptr) {
                 if (calc) {
                     data=calc->getData(getFileName(),HP_REAL);
@@ -265,6 +265,11 @@ QString hpTreeItem::getFileName() {
     return filename;
  }
 
+void hpTreeItem::setFileName(QString file) {
+
+    filename=file;
+ }
+
 //Slot to respond to data changes
 void hpTreeItem::dataChange(hp_Change hpchange) {
 
@@ -281,6 +286,10 @@ void hpTreeItem::dataChange(hp_Change hpchange) {
             case HP_SCREEN: {
                     emit dataChanged(hpchange);
                 }
+            break;
+            case HP_REAL: {
+                refresh();
+            }
             break;
             case HP_APP: {
                 refresh();
@@ -303,7 +312,7 @@ void hpTreeItem::dataChange(hp_Change hpchange) {
 }
 
 void hpTreeItem::addChild(AbstractData *obj) {
-    hpTreeItem * subItem;
+    hpTreeItem * subItem=nullptr;
     hp_DataType type;
 
     qDebug()<<"hpTreeItem:Adding Child";
@@ -329,35 +338,58 @@ void hpTreeItem::addChild(AbstractData *obj) {
 
             qDebug()<<"hpTreeItem: Creating hpTreeItem:"<<type;
 
-            subItem= new hpTreeItem(name,getDataStore(),1);
-            subItem->setType(type);
 
             qDebug()<<"Column Count:"<<columnCount();
             switch (type) {
                 case HP_APP: {
-                    subItem->setIcon(QIcon(func_list[HP_APP][1]));
+                subItem= new hpTreeItem(name,getDataStore(),1);
+                subItem->setType(type);
+                subItem->setIcon(QIcon(func_list[HP_APP][1]));
                 }
                 break;
                 case HP_MATRIX: {
-                    subItem->setIcon(QIcon(func_list[HP_MATRIX][1]));
+                subItem= new hpTreeItem(name,getDataStore(),1);
+                subItem->setType(type);
+                subItem->setIcon(QIcon(func_list[HP_MATRIX][1]));
                 }
                 break;
                 case HP_LIST: {
-                    subItem->setIcon(QIcon(func_list[HP_LIST][1]));
+                subItem= new hpTreeItem(name,getDataStore(),1);
+                subItem->setType(type);
+                subItem->setIcon(QIcon(func_list[HP_LIST][1]));
 
                 }
                 break;
                 case HP_NOTE: {
-                    subItem->setIcon(QIcon(func_list[HP_NOTE][1]));
+                subItem= new hpTreeItem(name,getDataStore(),1);
+                subItem->setType(type);
+                subItem->setIcon(QIcon(func_list[HP_NOTE][1]));
                     qDebug()<<"hpTreeItem: Creating Note type:"<<type;
                 }
                 break;
                 case HP_PROG: {
-                    subItem->setIcon(QIcon(func_list[HP_PROG][1]));
+                subItem= new hpTreeItem(name,getDataStore(),1);
+                subItem->setType(type);
+                subItem->setIcon(QIcon(func_list[HP_PROG][1]));
                 }
                 break;
+                case HP_REAL: {
+                    setType(type);
+                    setFileName(name);
+                }
+                break;
+                case HP_COMPLEX: {
+                    setType(type);
+                    setFileName(name);
+                }
+                break;
+                default: {
+                    subItem= new hpTreeItem(name,getDataStore(),1);
+                    subItem->setType(type);
+                }
             }
-            appendRow(subItem);
+            if (subItem)
+                appendRow(subItem);
         }
         else {
             qDebug()<<"hpTreeItem:No Object added";

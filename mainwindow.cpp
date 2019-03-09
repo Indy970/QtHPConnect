@@ -312,14 +312,6 @@ void MainWindow::clickedCalculator(QModelIndex index) {
 
       hp_DataType treetype;
       treetype=treeItem->getType();
-
-      switch (treetype) {
-       case HP_APP:
-          break;
-       case HP_CAS:
-
-          break;
-      }
       treeItem->clickAction(getMdi());
 
     }

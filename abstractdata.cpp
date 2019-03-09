@@ -1,6 +1,7 @@
 #include <QDebug>
 #include <QTextCodec>
 #include <QtMath>
+#include <QByteArrayMatcher>
 
 #include "global.h"
 #include "abstractdata.h"
@@ -21,7 +22,7 @@ int BCD2I(quint8 num) {
             ret=0;
         }
 
-//        qDebug()<<QString("Num= %1 Ret= %2").arg(num,1,16).arg(ret);
+   log(QString("Num= %1 Ret= %2").arg(num,1,16).arg(ret));
     return ret;
 }
 
@@ -90,16 +91,16 @@ itemData extract16(QByteArray item) {
         m=0;
 
         for (k=8;k<16;k++) {
-            if(item[k]>0) {
-                m=m*0.01+(double)multi*BCD2I(item[k]);
+            if((quint8)item[k]!=0) {
+                m=m*0.01+(double)multi*BCD2I((quint8)item[k]);
             }
         }
         ret=sign*m*qPow(base,exp);
 
         value=QString("%1E%2").arg(m).arg(exp);
 
-//        msg=QString("multi:%1 base:%2 sign:%3 exp:%4 m:%5").arg(multi).arg(base).arg(sign).arg(exp).arg(m);
-        msg=QString("value: %1").arg(value);
+        msg=QString("multi:%1 base:%2 sign:%3 exp:%4 m:%5").arg(multi).arg(base).arg(sign).arg(exp).arg(m);
+//        msg=QString("value: %1").arg(value);
 
         log(msg);
  //       log(value);
@@ -259,23 +260,107 @@ Real::Real(QString name_in, hp_DataType type_in):
     AbstractData(name_in, type_in) {
 
     setFileCode(HP_TP_SETTINGS);
-    parseData();
 }
 
+
+//Find the vars in the calc.hpsettings file. Marker b4 01 00
 void Real::parseData() {
 
     QByteArray a1;
+    int ind=0;
+    int len;
+    int j;
+    int start;
+    QByteArray searchstr=QByteArrayLiteral("\xb4\x01\x00");
+    QByteArrayMatcher matcher(searchstr);
 
+    QDataStream ds(data);
+    QByteArray item;
+    itemData listvalue;
     QString name;
-    unsigned char searchstr[] = {0xFF,0x16,0x00};
-
-    qDebug()<<"Real: Parsing Vars";
+    log("Real: Parsing Vars");
 
     name=getName();
     log(name);
-    a1=data;
-    main_err->dump((uint8_t *)a1.constData(),a1.size());
+    a1.clear();
+    a1=getData();
+
+    ds.setByteOrder(QDataStream::LittleEndian);
+
+    main_err->dump((uint8_t *)searchstr.constData(),4);
+
+ //   ind=a1.indexOf(searchstr,0);
+    ind=matcher.indexIn(a1,0);
+
+    log(QString("Real: %1 %2 %3").arg((int)ind,0,16)
+        .arg(searchstr.size())
+        .arg((const char *)matcher.pattern(),4,16));
+    qDebug()<<QString("Real: %1").arg(ind);
+    qDebug()<<matcher.pattern();
+//    qDebug()<<a1;
+    //len=a1[ind+3];
+    len=27; //assumed 27 variables
+    start=ind+8;
+    qDebug()<<start;
+    for(j=0;j<len;j++) {
+        item=a1.mid(start,16);
+        main_err->dump((uint8_t *)item.constData(),16);
+        listvalue=extract16(item);
+        setListItem(getListSize(),listvalue);
+        start+=16;
+    }
+    log("Real Dump");
+    main_err->dump((uint8_t *)a1.constData(),a1.size());   
 }
+
+//Gets a list item from the list
+itemData Real::getListItem(int row) {
+
+    itemData null;
+
+    if (row<values.size()) {
+        return values.at(row);
+    }
+    return null;
+}
+
+//Gets a list item in the list at position row
+void Real::setListItem(int row, itemData item) {
+
+    //May need to pad for missing items
+    values.insert(row,item);
+
+}
+
+//Gets a  string representation of the list item in the list at position row
+QString Real::getItem(int row) {
+    return QString("%1").arg(values.at(row).dValue);
+}
+
+//Passes a  string representation of the list item in the list at position row
+void Real::setItem(int row, QString string) {
+
+    itemData item;
+    item.dValue=string.toDouble();
+    item.sValue=string;
+    setListItem(row,item);
+}
+
+//Passes a  string representation of the list item in the list at position row
+void Real::setItem(int row, QString string, double value) {
+
+    itemData item;
+    item.dValue=value;
+    item.sValue=string;
+    setListItem(row,item);
+}
+
+//Passes the number of entries in the list
+int Real::getListSize() {
+
+    return values.size();
+}
+
 
 //COMPLEX
 Complex::Complex(QString name_in, hp_DataType type_in):
@@ -296,7 +381,7 @@ void Complex::parseData() {
     name=getName();
     log(name);
     a1=data;
-    main_err->dump((uint8_t *)a1.constData(),a1.size());
+//    main_err->dump((uint8_t *)a1.constData(),a1.size());
 }
 
 //LIST

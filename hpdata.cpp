@@ -213,12 +213,14 @@ void hpCalcData::recvSettings(hp_Data data) {
         qDebug()<<"hpCalcData::recvSetting - Setting";
 
         qDebug()<<"hpCalcData::recvSetting - Real";
+        log("hpCalcData::recvSetting - Real");
         Real * obj1 = new Real(data.name,HP_REAL);
         obj1->setData(data.data);
         addData(obj1);
         emit emitChange(HP_REAL);
 
         qDebug()<<"hpCalcData::recvSetting - Complex";
+        log("hpCalcData::recvSetting - Complex");
         Complex * obj2 = new Complex(data.name,HP_COMPLEX);
         obj2->setData(data.data);
         addData(obj2);

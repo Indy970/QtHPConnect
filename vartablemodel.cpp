@@ -34,6 +34,11 @@ int varTableModel::rowCount(const QModelIndex & /*parent*/) const
       list = (List *)dataobj;
       size= list->getListSize();
   }
+  if (type==HP_REAL) {
+      Real * real;
+      real = (Real *)dataobj;
+      size= real->getListSize();
+  }
   if (type==HP_MATRIX) {
       Matrix * matrix;
       matrix = (Matrix *)dataobj;
@@ -73,6 +78,12 @@ QVariant varTableModel::data(const QModelIndex &index, int role) const
              Matrix * matrix;
              matrix = (Matrix *)dataobj;
              item = matrix->getItem(index.row(),index.column());
+             return item;
+       }
+      if (type==HP_REAL) {
+             Real * list;
+             list = (Real *)dataobj;
+             item = list->getItem(index.row());
              return item;
        }
 

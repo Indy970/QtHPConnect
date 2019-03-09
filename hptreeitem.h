@@ -35,6 +35,7 @@ public:
     hpCalcData *  getDataStore();
     QString getGroupName();
     QString getFileName();
+    void setFileName(QString);
     hp_DataType getType();
     void refresh();
     int findFile(QString);

@@ -48,7 +48,7 @@ public:
     void setFileCode(hp_pkt_type);
     hp_pkt_type getFileCode();
     void setData(QByteArray);
-    QByteArray getData();
+    virtual QByteArray getData();
     virtual void parseData();
 };
 
@@ -64,9 +64,16 @@ public:
 class Real:  public AbstractData
 {
 private:
+    QList <itemData>values;
     void parseData();
 public:
     Real(QString, hp_DataType);
+    itemData getListItem(int);
+    void setListItem(int, itemData);
+    QString getItem(int);
+    void setItem(int, QString);
+    void setItem(int, QString, double);
+    int getListSize();
 };
 
 class Complex: public AbstractData
