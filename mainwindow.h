@@ -46,6 +46,7 @@ private slots:
     void onOpen();
     void onTestSettings();
     void onTestScreen();
+    void onOptions(bool);
     void selectionChangedSlot(const QItemSelection & /*newSelection*/, const QItemSelection & /*oldSelection*/);
     void about();
     void showContent();

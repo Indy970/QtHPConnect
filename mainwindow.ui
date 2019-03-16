@@ -507,6 +507,15 @@
     <string>Refresh</string>
    </property>
   </action>
+  <action name="actionSettings">
+   <property name="icon">
+    <iconset resource="qthpconnect.qrc">
+     <normaloff>:/icons/preferences_32x32.png</normaloff>:/icons/preferences_32x32.png</iconset>
+   </property>
+   <property name="text">
+    <string>Settings</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>

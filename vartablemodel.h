@@ -2,6 +2,7 @@
 #define VARTABLEMODEL_H
 
 #include <QAbstractTableModel>
+#include <QStringList>
 
 #include "hpdata.h"
 #include "abstractdata.h"
@@ -11,6 +12,8 @@ class varTableModel: public QAbstractTableModel
     Q_OBJECT
 
 private:
+    const static QStringList real_header;
+    const static QStringList complex_header;
     hpCalcData * hpcalc =nullptr;
     QString filename;
     hp_DataType type;
@@ -26,6 +29,7 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    QVariant  headerData(int section, Qt::Orientation orientation, int role) const override;
 };
 
 #endif // VARTABLEMODEL_H

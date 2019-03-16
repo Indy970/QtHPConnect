@@ -4,7 +4,8 @@
 #include <QList>
 
 struct itemData {
-    double dValue=0.0;
+    double dReal=0.0;
+    double dImaginary=0.0;
     QString sValue=QStringLiteral("NaH");
 };
 

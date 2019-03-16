@@ -78,7 +78,8 @@ SOURCES += \
     cntfilesystemmodel.cpp \
     abstractdata.cpp \
     matrixdata.cpp \
-    eventthread.cpp
+    eventthread.cpp \
+    options.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -118,7 +119,8 @@ HEADERS += \
     cntfilesystemmodel.h \
     abstractdata.h \
     matrixdata.h \
-    eventthread.h
+    eventthread.h \
+    options.h
 
 FORMS += \
     mainwindow.ui \
@@ -126,7 +128,8 @@ FORMS += \
     hp_mdiwindow.ui \
     getnumber.ui \
     hp_infodialog.ui \
-    hp_settingsdlg.ui
+    hp_settingsdlg.ui \
+    options.ui
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../usr/local/lib/release/ -lhpcalcs
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../usr/local/lib/debug/ -lhpcalcs

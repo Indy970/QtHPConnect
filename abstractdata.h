@@ -79,9 +79,16 @@ public:
 class Complex: public AbstractData
 {
 private:
+    QList <itemData>values;
     void parseData();
 public:
     Complex(QString, hp_DataType);
+    itemData getListItem(int);
+    void setListItem(int, itemData);
+    QString getItem(int);
+    void setItem(int, QString);
+    void setItem(int, QString, double);
+    int getListSize();
 };
 
 

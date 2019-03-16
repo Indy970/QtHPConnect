@@ -321,25 +321,19 @@ void hpTreeItem::addChild(AbstractData *obj) {
         QString name;
         //create fixed variable list
 
- //       qDebug()<<"hpTreeItem:getting object data";
-
         type= obj->getType();
         name=obj->getName();
 
-//        qDebug()<<"hpTreeItem:Object not null "<<name<<"type:"<<type;
-
         qDebug()<<"hpTreeItem:this is "<<getFileName()<<" of type:"<<getType()
                <<"Column:"<<columnCount();
-
 
         //check if this is the same type
         if ((getType()==type)&&(columnCount()<3))
         {
 
             qDebug()<<"hpTreeItem: Creating hpTreeItem:"<<type;
-
-
             qDebug()<<"Column Count:"<<columnCount();
+
             switch (type) {
                 case HP_APP: {
                 subItem= new hpTreeItem(name,getDataStore(),1);

@@ -2,6 +2,47 @@
 #include "vartablemodel.h"
 #include "abstractdata.h"
 
+const QStringList varTableModel::real_header={ "A",
+                                            "B",
+                                            "C",
+                                            "D",
+                                            "E",
+                                            "F",
+                                            "G",
+                                            "H",
+                                            "I",
+                                            "J",
+                                            "K",
+                                            "L",
+                                            "M",
+                                            "N",
+                                            "o",
+                                            "P",
+                                            "Q",
+                                            "R",
+                                            "S",
+                                            "T",
+                                            "U",
+                                            "V",
+                                            "W",
+                                            "X",
+                                            "Y",
+                                            "Z",
+                                            "THETA"
+                                           };
+
+const QStringList varTableModel::complex_header={ "Z0",
+                                            "Z1",
+                                            "Z2",
+                                            "Z3",
+                                            "Z4",
+                                            "Z5",
+                                            "Z6",
+                                            "Z7",
+                                            "Z8",
+                                            "Z9"
+                                           };
+
 varTableModel::varTableModel(QObject *parent,
         hpCalcData * dataStore,
         QString file,
@@ -39,6 +80,11 @@ int varTableModel::rowCount(const QModelIndex & /*parent*/) const
       real = (Real *)dataobj;
       size= real->getListSize();
   }
+  if (type==HP_COMPLEX) {
+      Complex * complex;
+      complex = (Complex *)dataobj;
+      size= complex->getListSize();
+  }
   if (type==HP_MATRIX) {
       Matrix * matrix;
       matrix = (Matrix *)dataobj;
@@ -58,6 +104,13 @@ int varTableModel::columnCount(const QModelIndex & /*parent*/) const
         size= matrix->getMatrixColumns();
  //       qDebug()<<matrix->getName()<<" column"<<size;
 
+    }
+    if (type==HP_COMPLEX) {
+        Complex * complex;
+        complex = (Complex *)dataobj;
+ //       size= matrix->getMatrixColumns();
+ //       qDebug()<<matrix->getName()<<" column"<<size;
+        return 1;
     }
     return size;
 }
@@ -81,9 +134,15 @@ QVariant varTableModel::data(const QModelIndex &index, int role) const
              return item;
        }
       if (type==HP_REAL) {
-             Real * list;
-             list = (Real *)dataobj;
-             item = list->getItem(index.row());
+             Real * real;
+             real = (Real *)dataobj;
+             item = real->getItem(index.row());
+             return item;
+       }
+      if (type==HP_COMPLEX) {
+             Complex * complex;
+             complex = (Complex *)dataobj;
+             item = complex->getItem(index.row());
              return item;
        }
 
@@ -91,5 +150,43 @@ QVariant varTableModel::data(const QModelIndex &index, int role) const
                    .arg(index.row() + 1)
                    .arg(index.column() +1);
     }
+    return QVariant();
+}
+
+QVariant  varTableModel::headerData(int section, Qt::Orientation orientation, int role) const
+{
+    if (role != Qt::DisplayRole) {
+        return QVariant();
+         }
+
+      if (orientation == Qt::Horizontal) {
+        if (type==HP_REAL) {
+             return QString("%1").arg(section+1);
+        }
+        return QString("%1").arg(section+1);
+
+      }
+      if (orientation == Qt::Vertical) {
+        if (type==HP_REAL) {
+            if (section < real_header.size()) {
+                return real_header.at(section);
+            }
+            else {
+                return QString("%1").arg(section);
+            }
+        }
+
+        if (type==HP_COMPLEX) {
+            if (section < complex_header.size()) {
+                return complex_header.at(section);
+            }
+            else {
+                return QString("%1").arg(section);
+            }
+        }
+
+        return QString("%1").arg(section);
+      }
+
     return QVariant();
 }

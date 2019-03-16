@@ -44,6 +44,7 @@
 #include "hpdata.h"
 #include "hp_mdivariableedit.h"
 #include "hp_mditexteditor.h"
+#include "options.h"
 
 errorHandler *main_err;
 #define log(a) main_err->error(L7,0,QString(a),QString());
@@ -102,6 +103,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionTestSettings,SIGNAL(triggered()),this,SLOT(onTestSettings()));
     connect(ui->actionTestScreen,SIGNAL(triggered()),this,SLOT(onTestScreen()));
     connect(ui->actionRefresh,SIGNAL(triggered(bool)),this,SLOT(refresh(bool)));
+    connect(ui->actionPreferences,SIGNAL(triggered(bool)),this,SLOT(onOptions(bool)));
     connect(ui->tvCalculators, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(on_tvCalculators_customContextMenuRequested(const QPoint &)));
     connect(hpapi, SIGNAL(hotplug(int)), this, SLOT(hotplug_handler(int)));
 
@@ -332,6 +334,13 @@ void MainWindow::about()
 
 }
 
+//Show options window
+void MainWindow::onOptions(bool clicked)
+{
+    Options * optiondlg = new Options(this);
+    optiondlg->show();
+}
+
 //Dummy from examples -- edit
 void MainWindow::createActions()
 {
@@ -529,10 +538,10 @@ void MainWindow::hotplug_handler(int status) {
 void MainWindow::setTreeMenu() {
 
     treeMenu = new QMenu(ui->tvCalculators); // add menu items
-    treeMenu->addAction(ui->actionPreferences);
+    treeMenu->addAction(ui->actionSettings);
     treeMenu->addAction(ui->actionRefresh);
     ui->tvCalculators->setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(ui->actionPreferences, SIGNAL(triggered(bool)),
+    connect(ui->actionSettings, SIGNAL(triggered(bool)),
         this, SLOT(treeMenuAction(bool)));
     connect(ui->actionRefresh, SIGNAL(triggered(bool)),
         this, SLOT(refresh(bool)));
@@ -541,7 +550,7 @@ void MainWindow::setTreeMenu() {
 void MainWindow::treeMenuAction(bool clicked) {
 
     QPoint pos;
-    pos=ui->actionPreferences->data().toPoint();
+    pos=ui->actionSettings->data().toPoint();
 
     QModelIndex index = ui->tvCalculators->indexAt(pos);
     if (index.isValid()) {
