@@ -13,6 +13,8 @@ class Options : public QDialog
 
 public:
     explicit Options(QWidget *parent = 0);
+    void accept();
+    void reject();
     ~Options();
 
 private:

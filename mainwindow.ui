@@ -18,6 +18,18 @@
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
      <widget class="QMdiArea" name="mdiArea">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>500</width>
+        <height>0</height>
+       </size>
+      </property>
       <property name="verticalScrollBarPolicy">
        <enum>Qt::ScrollBarAsNeeded</enum>
       </property>
@@ -98,14 +110,14 @@
   </widget>
   <widget class="QDockWidget" name="dwCalculator">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
    <property name="minimumSize">
     <size>
-     <width>104</width>
+     <width>200</width>
      <height>184</height>
     </size>
    </property>
@@ -117,7 +129,7 @@
    </property>
    <property name="baseSize">
     <size>
-     <width>200</width>
+     <width>300</width>
      <height>200</height>
     </size>
    </property>
@@ -191,14 +203,14 @@
   </widget>
   <widget class="QDockWidget" name="dwContent">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
    <property name="minimumSize">
     <size>
-     <width>200</width>
+     <width>300</width>
      <height>130</height>
     </size>
    </property>
@@ -227,7 +239,7 @@
   </widget>
   <widget class="QDockWidget" name="dwMessenger">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>
@@ -257,7 +269,7 @@
   </widget>
   <widget class="QDockWidget" name="dwMonitor">
    <property name="sizePolicy">
-    <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
      <horstretch>0</horstretch>
      <verstretch>0</verstretch>
     </sizepolicy>

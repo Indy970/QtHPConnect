@@ -18,7 +18,7 @@ hp_mdiVariableEdit::hp_mdiVariableEdit(QWidget *parent,
 
     setup();
 
-    setWindowTitle(treeItem->getFileName());
+    setWindowTitle(filename);
 }
 
 void hp_mdiVariableEdit::setup() {
@@ -36,8 +36,6 @@ void hp_mdiVariableEdit::show() {
         tableView->show();
     QMdiSubWindow::show();
 }
-
-
 
 hp_mdiVariableEdit::~hp_mdiVariableEdit() {
 

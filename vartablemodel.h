@@ -11,7 +11,9 @@ class varTableModel: public QAbstractTableModel
 {
     Q_OBJECT
 
+
 private:
+    QObject * q_parent;
     const static QStringList real_header;
     const static QStringList complex_header;
     hpCalcData * hpcalc =nullptr;
@@ -26,6 +28,8 @@ public:
                   hpCalcData * dataStore =nullptr,
                   QString file = QStringLiteral(""),
                   hp_DataType dtype = HP_MAIN);
+    QModelIndex parent(const QModelIndex &index) const;
+    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;

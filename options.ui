@@ -29,28 +29,72 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QLabel" name="label">
+  <widget class="QFrame" name="frame">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>30</y>
-     <width>58</width>
-     <height>18</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>File Path:</string>
-   </property>
-  </widget>
-  <widget class="QLineEdit" name="lineEdit">
-   <property name="geometry">
-    <rect>
-     <x>90</x>
+     <x>10</x>
      <y>20</y>
-     <width>521</width>
-     <height>32</height>
+     <width>621</width>
+     <height>91</height>
     </rect>
    </property>
+   <property name="toolTip">
+    <string extracomment="Set Global Settings"/>
+   </property>
+   <property name="statusTip">
+    <string extracomment="Set Global Settings"/>
+   </property>
+   <property name="whatsThis">
+    <string extracomment="Set Global Settings"/>
+   </property>
+   <property name="accessibleName">
+    <string extracomment="Settings"/>
+   </property>
+   <property name="accessibleDescription">
+    <string extracomment="Global Settings"/>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::StyledPanel</enum>
+   </property>
+   <property name="frameShadow">
+    <enum>QFrame::Raised</enum>
+   </property>
+   <widget class="QLineEdit" name="filePath">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>40</y>
+      <width>521</width>
+      <height>32</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>30</y>
+      <width>58</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>File Path:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>141</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Environment</string>
+    </property>
+   </widget>
   </widget>
  </widget>
  <resources/>

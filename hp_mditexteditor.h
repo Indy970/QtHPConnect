@@ -20,14 +20,16 @@ protected:
 
     textEditor * textEdit  =nullptr;
     hpTreeItem * hptreeitem =nullptr;
-    hpCalcData * hpcalc =nullptr;
+//    hpCalcData * hpcalc =nullptr;
     QString filename;
     hp_DataType type;
     AbstractData * data =nullptr;
 
 public:
     hp_mdiTextEdit(QWidget * parent = nullptr, hpTreeItem * treeItem = nullptr,
-                   hpCalcData * dataStore =nullptr);
+                   AbstractData * calcData =nullptr);
+    hp_mdiTextEdit(QWidget * parent, hp_DataStruct filename,
+                   AbstractData * calcData);
     void setup();
     void show();
     ~hp_mdiTextEdit();

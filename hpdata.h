@@ -34,8 +34,9 @@ struct hp_Settings {
 };
 
 
-struct hpDataStruct {
-
+struct hp_DataStruct {
+    QString filename;
+    hp_DataType type;
 };
 
 class hpCalcData;

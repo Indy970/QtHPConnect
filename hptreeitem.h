@@ -42,6 +42,7 @@ public:
     void addFile(AbstractData *);
     void addChild(AbstractData * obj);
 
+
 public slots:
     void dataChange(hp_Change hpchange);
 

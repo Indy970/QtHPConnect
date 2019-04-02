@@ -60,9 +60,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QSettings appSettings("IRGP","QtHPconnect");
 
     //Set config file location (default used)
-    //   appSettings->setPath(QSettings::NativeFormat,QSettings::UserScope,"");
-
-    appSettings.setValue("contentPath",QDir::homePath()+"/.local/share/qthpconnect/contents/");
+    if(!appSettings.contains("contentPath")) {
+        appSettings.setValue("contentPath",QDir::homePath()+"/.local/share/qthpconnect/contents/");
+    }
 
     //error handler
     main_err = new errorHandler(this);
@@ -83,10 +83,15 @@ MainWindow::MainWindow(QWidget *parent) :
     setTreeMenu();
     setContentWindow();
 
-
+    //Hack to fix QT resizing bug
+    resizeDocks({ui->dwCalculator,ui->dwContent},{0,0}, Qt::Horizontal);
 
     //setup trees
     ui->tvCalculators->setModel(hpTreeModel);
+    ui->tvCalculators->setAcceptDrops(true);
+    ui->tvCalculators->setDragEnabled(true);
+    ui->tvCalculators->setDragDropMode(QAbstractItemView::DragDrop);
+    ui->tvCalculators->setDropIndicatorShown(true);
     ui->tvCalculators->show();
     QItemSelectionModel *selectionModel= ui->tvCalculators->selectionModel();
 
@@ -98,6 +103,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionMessages,SIGNAL(triggered()),this,SLOT(showMessage()));
     connect(ui->actionMonitor,SIGNAL(triggered()),this,SLOT(showMonitor()));
     connect(ui->tvCalculators,SIGNAL(clicked(QModelIndex)),this,SLOT(clickedCalculator(QModelIndex)));
+    connect(ui->tvContent,SIGNAL(clicked(QModelIndex)),this,SLOT(clickedContent(QModelIndex)));
     connect(ui->actionLog,SIGNAL(triggered()),this,SLOT(createLogWindow()));
     connect(ui->actionTest,SIGNAL(triggered()),this,SLOT(testFunction()));
     connect(ui->actionTestSettings,SIGNAL(triggered()),this,SLOT(onTestSettings()));
@@ -245,12 +251,13 @@ void MainWindow::openHP()
 {
      hpCalcData  * data;
 
-     qDebug()<<"openHP";
+        qDebug()<<"openHP";
         QString name1 = QString("IAN");
         data=hpTreeModel->getCalculator(name1);
         if(data) {
-                 qDebug()<<"Read Info";
+            qDebug()<<"Read Info";
             data->readInfo();          
+            data->readSettings();
         }
         else {
             qDebug()<<"In open Func";
@@ -327,6 +334,12 @@ void MainWindow::clickedCalculator(QModelIndex index) {
     log(item->data(Qt::DisplayRole).toString());
 }
 
+void MainWindow::clickedContent(QModelIndex index) {
+
+   contentModel.clickAction(getMdi(),index);
+}
+
+
 void MainWindow::about()
 {
    QMessageBox::about(this, tr("About QtHP Connect"),
@@ -380,6 +393,11 @@ void MainWindow::setContentWindow() {
         const QModelIndex rootIndex = contentModel.index(QDir::cleanPath(path));
         if (rootIndex.isValid()) {
             ui->tvContent->setRootIndex(rootIndex);
+            ui->tvContent->setAcceptDrops(true);
+            ui->tvContent->setDragEnabled(true);
+            ui->tvContent->setDragDropMode(QAbstractItemView::DragDrop);
+            ui->tvContent->setDropIndicatorShown(true);
+
         }
     }
 }

@@ -3,7 +3,7 @@
 #include "hpdata.h"
 #include "abstractdata.h"
 
-hp_mdiTextEdit::hp_mdiTextEdit(QWidget * parent,hpTreeItem * treeItem, hpCalcData * calc)
+hp_mdiTextEdit::hp_mdiTextEdit(QWidget * parent,hpTreeItem * treeItem, AbstractData * calcData)
     :QMdiSubWindow(parent)
 {
     setMinimumSize(200,200);
@@ -11,13 +11,25 @@ hp_mdiTextEdit::hp_mdiTextEdit(QWidget * parent,hpTreeItem * treeItem, hpCalcDat
     setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
 
     hptreeitem=treeItem;
-    hpcalc = calc;
+    data = calcData;
     filename=treeItem->getFileName();
     type=treeItem->getType();
-    if (hpcalc) {
-        data=calc->getData(filename,type);
-    }
 
+    setup();
+    setWindowTitle(filename);
+}
+
+hp_mdiTextEdit::hp_mdiTextEdit(QWidget * parent,hp_DataStruct filedata, AbstractData * calcData)
+    :QMdiSubWindow(parent)
+{
+    setMinimumSize(200,200);
+    setMaximumSize(1000,1000);
+    setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
+
+    hptreeitem=nullptr;
+    data = calcData;
+    filename=filedata.filename;
+    type=filedata.type;
     setup();
     setWindowTitle(filename);
 }

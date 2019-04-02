@@ -49,10 +49,24 @@ varTableModel::varTableModel(QObject *parent,
         hp_DataType dtype)
     :QAbstractTableModel(parent)
 {
+    q_parent=parent;
     hpcalc = dataStore;
     filename=file;
     type=dtype;
     setup();
+}
+
+//REWORK!
+QModelIndex varTableModel::parent(const QModelIndex &index) const {
+
+
+    return QModelIndex();
+}
+
+//rework!
+QModelIndex varTableModel::index(int row, int column, const QModelIndex &parent) const {
+
+    return createIndex(row,column);
 }
 
 void varTableModel::setup()
@@ -67,7 +81,7 @@ void varTableModel::setup()
    return;
 }
 
-int varTableModel::rowCount(const QModelIndex & /*parent*/) const
+int varTableModel::rowCount(const QModelIndex & parent) const
 {
   int size=16; //should be zero
   if (type==HP_LIST) {

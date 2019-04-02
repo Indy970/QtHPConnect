@@ -52,6 +52,9 @@ hpTreeItem::hpTreeItem(const QString & name,hpCalcData * hpDataStore,int flag)
     setEditable(0);
     setDataStore(hpDataStore);
 
+    setDragEnabled(true);
+    setDropEnabled(true);
+
     filename=name;
 
     if (flag==0)
@@ -86,6 +89,7 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
     hp_infoDialog * hpinfodlg;
     hp_Information hpinfo;
     hpCalcData * calc;
+    hp_DataStruct hpdata;
     calc=getDataStore();
     AbstractData * data;
 
@@ -156,17 +160,27 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
              hpCalcData * dataStore;
              dataStore = getDataStore();
 
+             AbstractData * data =nullptr;
+             dataStore = getDataStore();
+             if (dataStore) {
+                 data=dataStore->getData(getFileName(),getType());
+             }
+
             if (hptextedit==nullptr)
-                hptextedit = new hp_mdiTextEdit(mdiwin,this, dataStore);
+                hptextedit = new hp_mdiTextEdit(mdiwin,this, data);
             if (hptextedit!=nullptr)
                     hptextedit ->show();
             }
             break;
         case HP_PROG: {
             hpCalcData * dataStore;
+            AbstractData * data =nullptr;
             dataStore = getDataStore();
+            if (dataStore) {
+                data=dataStore->getData(getFileName(),getType());
+            }
             if (hptextedit==nullptr)
-                hptextedit = new hp_mdiTextEdit(mdiwin,this, dataStore);
+                hptextedit = new hp_mdiTextEdit(mdiwin,this, data);
             if (hptextedit!=nullptr)
                 hptextedit ->show();
             }
@@ -535,4 +549,5 @@ int hpTreeItem::findFile(QString dataname) {
       }
       return 0;
 }
+
 

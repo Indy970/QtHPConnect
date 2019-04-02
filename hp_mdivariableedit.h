@@ -28,6 +28,10 @@ public:
                                 hpTreeItem * treeItem = nullptr,
                                 hpCalcData * dataStore =nullptr
                                 );
+//    explicit hp_mdiVariableEdit(QWidget *parent,
+//                                    hp_DataStruct filedata,
+//                                    hpCalcData * dataStore
+//                                    );
     void show();
     ~hp_mdiVariableEdit();
 

@@ -2,6 +2,7 @@
 #include <QTextCodec>
 #include <QtMath>
 #include <QByteArrayMatcher>
+#include <QByteArray>
 
 #include "global.h"
 #include "abstractdata.h"
@@ -280,6 +281,10 @@ QByteArray AbstractData::getData() {
 }
 
 void AbstractData::parseData() {
+     qDebug()<<"AbstractData::parseData";
+}
+
+void AbstractData::parseData(QDataStream& in) {
      qDebug()<<"AbstractData::parseData";
 }
 
@@ -826,19 +831,40 @@ QString Program::getProg() {
 }
 
 void Program::setProg(QString data_in) {
+    data=data_in.toUtf8();
     text=data_in;
 }
 
 void Program::parseData() {
 
-    int16_t len1,len2;
-    QTextCodec * codec = QTextCodec::codecForName("UTF-16LE");
-
+    QTextCodec * codec = QTextCodec::codecForName("UTF8");
     QByteArray a1;
     a1=getData();
     text = codec->toUnicode(a1);
-  }
+}
 
+void Program::parseData(QDataStream& in) {
+
+    QTextCodec * codec = QTextCodec::codecForName("UTF8");
+    QString str;
+    in.setByteOrder(QDataStream::LittleEndian);
+    quint8 c;
+    QByteArray a1;
+
+    while(!in.atEnd()) {
+     in>>c;
+     a1.append(c);
+    }
+    qDebug()<<a1;
+
+//    char cstr[20];
+//    in.readRawData(cstr,20);
+//    str=QString(cstr);
+//    qDebug()<<str;
+
+//    a1=getData();
+    text = codec->toUnicode(a1);
+}
 
 //Notes
 Notes::Notes(QString name_in, hp_DataType type_in, QString data_in):
@@ -979,4 +1005,28 @@ void Settings::parseData() {
     ds >> len2;
 */
 
+}
+
+void Settings::setData(QByteArray datain) {
+
+        qDebug()<<"Settings Compare:";
+
+        int len1=data.size();
+        int len2=datain.size();
+        log(QString("Settings Compare %1 %2").arg(len1).arg(len2));
+        int i=0;
+        while ((i<len1)&&(i<len2)) {
+            if (data[i]!=datain[i]) {
+                log(QString("Settings diff at:%1").arg(i));
+            }
+            i++;
+        }
+
+
+        data = datain;
+        len1=data.size();
+        len2=datain.size();
+        log(QString("Settings Compare 2 %1 %2").arg(len1).arg(len2));
+
+        //parseData();
 }

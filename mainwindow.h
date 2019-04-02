@@ -55,6 +55,7 @@ private slots:
     void showMonitor();
     void dataChange(hp_Change);
     void clickedCalculator(QModelIndex);
+    void clickedContent(QModelIndex);
     void exit();
     void createLogWindow();
     void testFunction();

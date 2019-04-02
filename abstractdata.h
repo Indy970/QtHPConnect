@@ -47,9 +47,10 @@ public:
     hp_DataType getType();
     void setFileCode(hp_pkt_type);
     hp_pkt_type getFileCode();
-    void setData(QByteArray);
+    virtual void setData(QByteArray);
     virtual QByteArray getData();
     virtual void parseData();
+    virtual void parseData(QDataStream& in);
 };
 
 
@@ -129,11 +130,13 @@ class Program:  public AbstractData
 {
 private:
     QString text;
-    void parseData();
+
 public:
     Program(QString, hp_DataType, QString);
     void setProg(QString);
     QString getProg();
+    void parseData();
+    virtual void parseData(QDataStream& in);
 };
 
 class Notes:  public AbstractData
@@ -174,8 +177,10 @@ private:
         QString text;
         QString format;
         void parseData();
+
 public:
     Settings(QString, hp_DataType);
+    virtual void setData(QByteArray);
 };
 
 #endif // ABSTRACTDATA_H

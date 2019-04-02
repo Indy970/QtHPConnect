@@ -3,7 +3,7 @@
 hp_MdiWindow::hp_MdiWindow(QWidget * parent)
     :QMdiSubWindow(parent)
 {
-    setMinimumSize(400,400);
+    setMinimumSize(500,400);
     setMaximumSize(1000,1000);
     setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
     setup();
