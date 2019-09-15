@@ -116,5 +116,5 @@ int errorHandler::dump(uint8_t * data, int size)
 }
 
 errorHandler::~errorHandler() {
-    qDebug()<<"errorHandler::close";
+    qDebug()<<"errorHandler:: close";
 }

@@ -491,7 +491,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
     writeSettings();
     event->accept();
 
-
     if (eventThread!=nullptr) {
         eventThread->quit();
         eventThread->wait(100);
@@ -512,21 +511,27 @@ void MainWindow::closeEvent(QCloseEvent *event)
         delete main_err;
         main_err=nullptr;
     }
-
+/*
     if (treeMenu!=nullptr) {
         delete treeMenu;
         treeMenu=nullptr;
     }
+*/
     if (myModel!=nullptr) {
         delete myModel;
         myModel=nullptr;
     }
+
     if (hpapi!=nullptr) {
         delete hpapi;
         hpapi=nullptr;
     }
 
+    qDebug()<<"MainWindow:: closeEvent Step 4";
+    QThread::msleep(100);
     close();
+
+    qDebug()<<"MainWindow:: closeEvent Step 5";
 }
 
 void MainWindow::writeSettings()
