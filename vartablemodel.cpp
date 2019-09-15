@@ -204,3 +204,7 @@ QVariant  varTableModel::headerData(int section, Qt::Orientation orientation, in
 
     return QVariant();
 }
+
+varTableModel::~varTableModel() {
+       qDebug()<<"Entering ~varTableModel()";
+}

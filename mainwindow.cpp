@@ -93,7 +93,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tvCalculators->setDragDropMode(QAbstractItemView::DragDrop);
     ui->tvCalculators->setDropIndicatorShown(true);
     ui->tvCalculators->show();
-    QItemSelectionModel *selectionModel= ui->tvCalculators->selectionModel();
 
     connect(ui->actionOpen,SIGNAL(triggered()),this,SLOT(onOpen()));
     connect(ui->actionAbout_HP_Connect,SIGNAL(triggered()),this,SLOT(about()));
@@ -121,7 +120,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //setup event handler
     eventThread = new QThread(this);
-    eventTimer = new EventThread(0);
+    eventTimer = new EventThread(nullptr);
     eventTimer->moveToThread(eventThread);
 //    connect(eventTimer,SIGNAL(timeout()),this,SLOT(eventHandler()));
     connect(eventThread,SIGNAL(started()),eventTimer,SLOT(start()));
@@ -172,19 +171,12 @@ void MainWindow::writeChatter(QString line)
 }
 
 //eventhandler - for comms events
-
 void MainWindow::eventHandler() {
 
     if(hpapi) {
 //        qDebug()<<"In Eventhandler";
         hpapi->eventHandler();
     }
-}
-
-
-MainWindow::~MainWindow()
-{
-    delete ui;
 }
 
 void MainWindow::onOpen()
@@ -311,8 +303,6 @@ void MainWindow::selectionChangedSlot(const QItemSelection & /*newSelection*/, c
 
 void MainWindow::clickedCalculator(QModelIndex index) {
 
-    hp_mdiVariableEdit * hpvaredit;
-
     QStandardItem * item = hpTreeModel->itemFromIndex(index);
 
     hpTreeItem * treeItem = dynamic_cast<hpTreeItem *>(hpTreeModel->itemFromIndex(index));
@@ -338,7 +328,6 @@ void MainWindow::clickedContent(QModelIndex index) {
 
    contentModel.clickAction(getMdi(),index);
 }
-
 
 void MainWindow::about()
 {
@@ -400,6 +389,7 @@ void MainWindow::setContentWindow() {
 
         }
     }
+    readSettings();
 }
 
 //show or hide calculator window
@@ -454,7 +444,8 @@ void MainWindow::dataChange(hp_Change hpchange) {
                     monitorAddImage(scrn);
                  }
                 }
-        break;
+            break;
+            default:;
     }
 }
 
@@ -493,9 +484,63 @@ void MainWindow::monitorAddImage(hp_ScreenShot  scrnshot) {
      ui->dwMonitor->show();
 }
 
-void MainWindow::exit() {
-    delete treeMenu;
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+
+    qDebug()<<"MainWindow:: closeEvent Step 1";
+    writeSettings();
+    event->accept();
+
+
+    if (eventThread!=nullptr) {
+        eventThread->quit();
+        eventThread->wait(100);
+    }
+
+    qDebug()<<"MainWindow:: closeEvent Step 2";
+
+    ui->tvCalculators->close();
+    ui->tvContent->close();
+    ui->dwContent->close();
+    ui->dwMonitor->close();
+    ui->dwMessenger->close();
+    ui->dwCalculator->close();
+
+    qDebug()<<"MainWindow:: closeEvent Step 3";
+
+    if (main_err!=nullptr) {
+        delete main_err;
+        main_err=nullptr;
+    }
+
+    if (treeMenu!=nullptr) {
+        delete treeMenu;
+        treeMenu=nullptr;
+    }
+    if (myModel!=nullptr) {
+        delete myModel;
+        myModel=nullptr;
+    }
+    if (hpapi!=nullptr) {
+        delete hpapi;
+        hpapi=nullptr;
+    }
+
     close();
+}
+
+void MainWindow::writeSettings()
+{
+    QSettings appSettings("IRGP","QtHPconnect");
+}
+
+void MainWindow::readSettings()
+{
+    QSettings appSettings("IRGP","QtHPconnect");
+    const QByteArray geometry = appSettings.value("geometry", QByteArray()).toByteArray();
+    if (!geometry.isEmpty()) {
+        restoreGeometry(geometry);
+    }
 }
 
 hpusb * MainWindow::getAPI() {
@@ -525,7 +570,6 @@ void MainWindow::createLogWindow() {
 QMdiArea * MainWindow::getMdi() {
     return ui->mdiArea;
 }
-
 
 //action on refresh button
 void MainWindow::refresh(bool clicked) {
@@ -580,6 +624,7 @@ void MainWindow::treeMenuAction(bool clicked) {
            case HP_MAIN:
                treeItem->contextAction(getMdi(),CT_PREFERENCE);
               break;
+           default:;
           }
         }
         else
@@ -606,7 +651,14 @@ void MainWindow::on_tvCalculators_customContextMenuRequested(const QPoint &pos)
                 }
               }
               break;
+          default:;
           }
           }
     }
+}
+
+//destructor
+MainWindow::~MainWindow()
+{
+    qDebug()<<"MainWindow:: closing";
 }

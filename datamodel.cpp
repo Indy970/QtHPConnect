@@ -67,3 +67,8 @@ QVariant dataModel::data(const QModelIndex &index, int role) const
     }
     return QVariant();
 }
+
+dataModel::~dataModel() {
+
+    qDebug()<<"dataModel::close";
+}

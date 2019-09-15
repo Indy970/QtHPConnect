@@ -42,6 +42,8 @@ int errorHandler::writeLog(QString lineToBeLogged)
     QTextStream out(&fileLog);
     out << time.toString("yyyy/MM/dd hh:mm:ss") << " "<< lineToBeLogged << endl;
 
+    fileLog.close();
+
     return 0;
 }
 
@@ -111,4 +113,8 @@ int errorHandler::dump(uint8_t * data, int size)
     writeChatter(texta);
 
     return 0;
+}
+
+errorHandler::~errorHandler() {
+    qDebug()<<"errorHandler::close";
 }

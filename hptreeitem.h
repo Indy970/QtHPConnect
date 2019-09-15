@@ -41,7 +41,7 @@ public:
     int findFile(QString);
     void addFile(AbstractData *);
     void addChild(AbstractData * obj);
-
+    virtual ~hpTreeItem();
 
 public slots:
     void dataChange(hp_Change hpchange);

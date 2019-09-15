@@ -31,5 +31,6 @@ void Options::reject() {
 
 Options::~Options()
 {
+    qDebug()<<"~Options()";
     delete ui;
 }

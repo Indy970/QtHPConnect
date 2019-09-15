@@ -1221,9 +1221,9 @@ int hpusb::submit_async_transfer(hp_Handle * handle, hp_pkt_in * pktin, hp_pkt_o
     sigact.sa_handler = sighandler;  // sighandler is defined below. It just sets do_exit.
     sigemptyset(&sigact.sa_mask);
     sigact.sa_flags = 0;
-    sigaction(SIGINT, &sigact, NULL);
-    sigaction(SIGTERM, &sigact, NULL);
-    sigaction(SIGQUIT, &sigact, NULL);
+    sigaction(SIGINT, &sigact, nullptr);
+    sigaction(SIGTERM, &sigact, nullptr);
+    sigaction(SIGQUIT, &sigact, nullptr);
 
     printf("Entering loop to process callbacks...\n");
 
@@ -1243,7 +1243,7 @@ int hpusb::submit_async_transfer(hp_Handle * handle, hp_pkt_in * pktin, hp_pkt_o
         // This implementation uses a blocking call
         while (!do_exit) {
             c++;
-            r =  libusb_handle_events_completed(ctx, NULL);
+            r =  libusb_handle_events_completed(ctx, nullptr);
             if ((r < 0)||(c>100000)){   // negative values are errors
                 qDebug()<<"At break";
                 exitflag = out_deinit;
@@ -1306,6 +1306,9 @@ int hpusb::submit_async_transfer(hp_Handle * handle, hp_pkt_in * pktin, hp_pkt_o
         case out_release:
             libusb_release_interface(devh, 0);
         break;
+        case out:
+            qDebug()<<"out";
+        break;
         }
     return 0;
 }
@@ -1359,12 +1362,12 @@ void cb_in(struct libusb_transfer *transfer)
 
 int hpusb::hotplugcallback(struct libusb_context *ctx, struct libusb_device *dev,
                      libusb_hotplug_event event) {
-  int count;
+  int count=0;
   qDebug()<<"hpusb::hotplug_callback - Hotplug";;
 
-  static libusb_device_handle *handle = NULL;
+  static libusb_device_handle *handle = nullptr;
   struct libusb_device_descriptor desc;
-  int rc;
+
   (void)libusb_get_device_descriptor(dev, &desc);
 
   if (LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED == event) {
@@ -1388,7 +1391,7 @@ int hpusb::eventHandler() {
 
    int completed;
 //   qDebug()<<"In Eventhandler";
-   libusb_handle_events_completed(NULL, &completed);
+   libusb_handle_events_completed(nullptr, &completed);
     return 0;
 }
 
@@ -1404,4 +1407,5 @@ int hpusb::hp_close() {
 
 hpusb::~hpusb() {
     libusb_exit(ctx);
+    qDebug()<<"hpusb::close";
 }

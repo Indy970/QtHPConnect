@@ -21,6 +21,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex &index) const;
     void clickAction(QMdiArea * mdiwin,QModelIndex &index);
     hp_DataStruct getFileType(QFileInfo info);
+    ~contentFileSystemModel();
 
 private:
     const static QString filetype_list[][2];

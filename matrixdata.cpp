@@ -230,6 +230,6 @@ int MatrixData::rows()
 
 MatrixData::~MatrixData()
 {
+    qDebug()<<"Entering ~MatrixData()";
     clear();
 }
-\

@@ -50,6 +50,7 @@ private:
 public:
     errorHandler();
     errorHandler(QObject *);
+    ~errorHandler();
     int error(ErrLevel, int, QString, QString Data);
     int dump(uint8_t *, int);
 };

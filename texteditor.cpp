@@ -141,5 +141,5 @@ QString textEditor::strippedName(const QString &fullFileName)
 }
 
 textEditor::~textEditor() {
-
+    qDebug()<<"textEditor:: delete";
 }

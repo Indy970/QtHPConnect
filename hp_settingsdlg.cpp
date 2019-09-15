@@ -103,5 +103,6 @@ void hp_SettingsDlg::on_clicked(QAbstractButton * button) {
 
 hp_SettingsDlg::~hp_SettingsDlg()
 {
+    qDebug()<<"delete hp_SettingsDlf";
     delete ui;
 }

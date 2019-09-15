@@ -74,7 +74,8 @@ void hp_mdiTextEdit::show() {
 
 hp_mdiTextEdit::~hp_mdiTextEdit() {
 
-    if (textEdit)
+    qDebug()<<"Entering ~hpmdiTextEdit()";
+    if (textEdit!=nullptr)
         delete textEdit;
 
 }

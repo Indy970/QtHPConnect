@@ -1,6 +1,3 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
-
 #include <QMainWindow>
 #include <QItemSelection>
 #include <QModelIndex>
@@ -8,6 +5,9 @@
 #include <QMdiSubWindow>
 #include <QSettings>
 #include <QFileSystemModel>
+
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
 
 #include "global.h"
 #include "errorhandler.h"
@@ -32,8 +32,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    explicit MainWindow(QWidget *parent = nullptr);
+    ~MainWindow() override;
     void openHP();
     void closeHP();
     void writeStatus(QString);
@@ -56,9 +56,11 @@ private slots:
     void dataChange(hp_Change);
     void clickedCalculator(QModelIndex);
     void clickedContent(QModelIndex);
-    void exit();
+    void closeEvent(QCloseEvent *) override;
     void createLogWindow();
     void testFunction();
+    void writeSettings();
+    void readSettings();
     treeModel * getTreeModel();
 
     void treeMenuAction(bool);
@@ -78,10 +80,10 @@ private:
     EventThread * eventTimer;
     QMenu * treeMenu=nullptr;
     hpusb * hpapi;
-    QMdiSubWindow * msgWindow=0;
-    hp_MdiWindow * logWindow=0;
+    QMdiSubWindow * msgWindow=nullptr;
+    hp_MdiWindow * logWindow=nullptr;
     contentFileSystemModel contentModel;
-    QTextEdit * logEdit=0;
+    QTextEdit * logEdit=nullptr;
     Ui::MainWindow *ui;
     void loadTextFile();
     void createTextWindow();
@@ -89,8 +91,6 @@ private:
     void setContentWindow();
     void setTreeMenu();
     void monitorAddImage(hp_ScreenShot scrnshot);
-
-
 };
 
 #endif // MAINWINDOW_H

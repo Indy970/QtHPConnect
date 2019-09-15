@@ -1,5 +1,6 @@
 #include "hp_infodialog.h"
 #include "ui_hp_infodialog.h"
+#include <QDebug>
 
 hp_infoDialog::hp_infoDialog(QWidget *parent, hp_Information info) :
     QDialog(parent),
@@ -13,5 +14,6 @@ hp_infoDialog::hp_infoDialog(QWidget *parent, hp_Information info) :
 
 hp_infoDialog::~hp_infoDialog()
 {
+ //  qDebug()<<"Entering ~hp_infoDialog()";
     delete ui;
 }

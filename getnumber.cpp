@@ -1,5 +1,6 @@
 #include "getnumber.h"
 #include "ui_getnumber.h"
+#include <QDebug>
 
 getNumber::getNumber(QWidget *parent) :
     QDialog(parent),
@@ -10,5 +11,6 @@ getNumber::getNumber(QWidget *parent) :
 
 getNumber::~getNumber()
 {
+ //   qDebug()<<"Entering ~getNumber()";
     delete ui;
 }

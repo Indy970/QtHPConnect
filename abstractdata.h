@@ -48,9 +48,11 @@ public:
     void setFileCode(hp_pkt_type);
     hp_pkt_type getFileCode();
     virtual void setData(QByteArray);
-    virtual QByteArray getData();
+    virtual QByteArray getData(); //data extract
     virtual void parseData();
     virtual void parseData(QDataStream& in);
+    virtual QByteArray fileOut(); //full data out in file transmittable format
+    virtual ~AbstractData();
 };
 
 
@@ -137,6 +139,7 @@ public:
     QString getProg();
     void parseData();
     virtual void parseData(QDataStream& in);
+    virtual QByteArray fileOut();
 };
 
 class Notes:  public AbstractData

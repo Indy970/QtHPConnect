@@ -1,4 +1,5 @@
 #include "hp_mdiwindow.h"
+#include <QDebug>
 
 hp_MdiWindow::hp_MdiWindow(QWidget * parent)
     :QMdiSubWindow(parent)
@@ -25,6 +26,7 @@ void hp_MdiWindow::show() {
 }
 
 hp_MdiWindow::~hp_MdiWindow() {
-    if (textEdit)
-        delete textEdit;
+
+//    qDebug()<<"Entering ~hpmdiWindow()";
+
 }

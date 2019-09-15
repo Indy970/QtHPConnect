@@ -402,5 +402,5 @@ void hpCalcData::vpkt_send_experiments(int cmd) {
 }
 
 hpCalcData::~hpCalcData() {
-
+// qDebug()<<"Close ~hpCalcData";
 };

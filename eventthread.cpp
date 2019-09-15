@@ -1,5 +1,5 @@
 #include "eventthread.h"
-#include <QTimer>
+
 #include "mainwindow.h"
 
 EventThread::EventThread(MainWindow * parent)
@@ -18,8 +18,27 @@ void EventThread::timerEvent()
 }
 
 void EventThread::start() {
-    QTimer* timer = new QTimer(this);
+    timer = new QTimer(this);
     timer->setInterval(100);
     timer->connect(timer, SIGNAL(timeout()), this, SLOT(timerEvent()));
+    timer->connect(this, SIGNAL(stop()), this, SLOT(stopTimer()));
     timer->start();
+}
+
+void EventThread::exit() {
+    stop();
+}
+
+void EventThread::stopTimer() {
+    timer->stop();
+}
+
+EventThread::~EventThread()
+{
+
+    if (timer!=nullptr) {
+        delete timer;
+        timer=nullptr;
+    }
+    qDebug()<<"delete eventThread";
 }

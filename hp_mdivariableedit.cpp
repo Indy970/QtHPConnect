@@ -39,8 +39,6 @@ void hp_mdiVariableEdit::show() {
 
 hp_mdiVariableEdit::~hp_mdiVariableEdit() {
 
-    if (tableView)
-        delete tableView;
-    if (varmodel)
-        delete varmodel;
+ //   qDebug()<<"Entering ~hpmdiVariableEdit()";
+
 }

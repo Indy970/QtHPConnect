@@ -13,6 +13,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName("Linux QtHP Connect");
     QCoreApplication::setApplicationVersion(HP_VERSION_STRING);
     QCommandLineParser parser;
+    MainWindow w;
 
     parser.setApplicationDescription(QCoreApplication::applicationName());
     //REWORK
@@ -21,10 +22,11 @@ int main(int argc, char *argv[])
 //    parser.addPositionalArgument("file", "The file to open.");
     parser.process(a);
 
-    MainWindow w;
+//    a.setQuitLockEnabled(true);
 //    if (!parser.positionalArguments().isEmpty())
 //        w.loadFile(parser.positionalArguments().first());
     w.show();
-
-    return a.exec();
+    a.exec();
+    qDebug()<<"Main.cpp:: closing main";
+    return 1;
 }

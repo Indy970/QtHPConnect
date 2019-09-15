@@ -70,7 +70,7 @@ void hpTreeItem::setGraphicTree() {
     int func_num=FUNC_NUM;
     hpTreeItem * newChild;
 
-    int i,j;
+    int i;
 
     for (i=1; i<func_num; i++)
     {
@@ -91,7 +91,7 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
     hpCalcData * calc;
     hp_DataStruct hpdata;
     calc=getDataStore();
-    AbstractData * data;
+    AbstractData * data=nullptr;
 
  //  QString test;
  //  test=data(Qt::DisplayRole).toString();
@@ -266,6 +266,7 @@ int hpTreeItem::dt2int() {
        case HP_PROG: return 6;
        case HP_REAL: return 7;
        case HP_VAR: return 8;
+       default:;
     };
     return 0;
 }
@@ -315,13 +316,16 @@ void hpTreeItem::dataChange(hp_Change hpchange) {
             case HP_LIST: {
                 refresh();
             }
+            break;
             case HP_NOTE: {
                 refresh();
             }
+            break;
             case HP_PROG: {
                 refresh();
             }
             break;
+            default:;
     }
 }
 
@@ -409,7 +413,6 @@ void hpTreeItem::addChild(AbstractData *obj) {
 //Up date the data
 void hpTreeItem::refresh() {
     int rows,i,j;
-    int flag=0; //indicate 1 if data matches tree
     int datalen;
     hpTreeItem * ti_child;
 
@@ -541,7 +544,7 @@ int hpTreeItem::findFile(QString dataname) {
       QString name;
 
       for (i=0; i<rows; i++) {
-            ti_child=(hpTreeItem *)child(i);
+            ti_child=static_cast<hpTreeItem *>(child(i));
             dataname=ti_child->getFileName();
             if(name==dataname) {
                return i;
@@ -550,4 +553,28 @@ int hpTreeItem::findFile(QString dataname) {
       return 0;
 }
 
+
+hpTreeItem::~hpTreeItem() {
+
+ /*
+    if (hpvaredit!=nullptr) {
+        hpvaredit->close();
+        delete hpvaredit;
+        hpvaredit=nullptr;
+    }
+
+    if (hptextedit!=nullptr) {
+        hptextedit->close();
+        delete hptextedit;
+        hptextedit=nullptr;
+    }
+
+    if (mdiarea!=nullptr) {
+        mdiarea->close();
+        mdiarea=nullptr;
+    }
+*/
+
+    qDebug()<<"hpTreeItem:: delete";
+}
 

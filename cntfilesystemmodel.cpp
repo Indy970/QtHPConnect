@@ -203,3 +203,7 @@ hp_DataStruct contentFileSystemModel::getFileType(QFileInfo info) {
 
     return filedata;
 }
+
+contentFileSystemModel::~contentFileSystemModel() {
+    qDebug()<<"contentFileSystemModel::delete";
+}

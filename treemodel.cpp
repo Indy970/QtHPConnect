@@ -9,7 +9,6 @@ treeModel::treeModel(QObject *parent)
     setItemPrototype(new hpTreeItem());
     createRoot();
     setParent(parent);    
-
 }
 
 int treeModel::createRoot()
@@ -21,8 +20,6 @@ int treeModel::createRoot()
 //Rework - name should be calc name
 int treeModel::addCalculator(QString name, hpusb * handle){
 
-
-    hpDataLink hplink;
     hpCalcData * hpData = new hpCalcData(handle);
     hpTreeItem * hpCalc = new hpTreeItem(name,hpData,0);
     hpCalc->setType(HP_MAIN);
@@ -35,6 +32,7 @@ int treeModel::addCalculator(QString name, hpusb * handle){
     rootNode->appendRow(hpCalc);
     hpData->readInfo();
 
+    return 0;
 }
 
 hpCalcData * treeModel::getCalculator(QString name){
@@ -180,10 +178,9 @@ Qt::ItemFlags treeModel::flags(const QModelIndex &index) const
         return Qt::ItemIsDropEnabled | defaultFlags;
 }
 
-
 treeModel::~treeModel() {
 
-    delete rootNode;
+    qDebug()<<"treeModel:: delete";
 }
 
 
