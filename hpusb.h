@@ -4,6 +4,7 @@
 #include <libusb.h>
 #include <QObject>
 #include <QByteArray>
+#include <QMutex>
 
 struct hp_Settings;
 class hpCalcData;
@@ -160,7 +161,7 @@ private:
             out
          } exitflag;
 
-        libusb_context * ctx;
+        libusb_context * ctx = nullptr;
 
         hp_Handle hp_handle;
         libusb_hotplug_callback_handle hp_callback_handle;
@@ -168,11 +169,13 @@ private:
         int lb_init=0;
 
         // OUT-going transfers (OUT from host PC to USB-device)
-        struct libusb_transfer *transfer_out = NULL;
+        struct libusb_transfer *transfer_out = nullptr;
 
         // IN-coming transfers (IN to host PC from USB-device)
-        struct libusb_transfer *transfer_in = NULL;
+        struct libusb_transfer *transfer_in = nullptr;
         int do_exit = 0;
+
+        QMutex mutex;
 
 public:
 

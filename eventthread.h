@@ -2,6 +2,7 @@
 #define EVENTTHREAD_H
 #include <QThread>
 #include <QTimer>
+#include <QMutex>
 #include "hpusb.h"
 
 class MainWindow;
@@ -13,17 +14,20 @@ private:
     MainWindow * main;
     hpusb * hpapi;
     QTimer * timer=nullptr;
+    mutable QMutex mutex;
+
 public:
     EventThread(MainWindow * parent);
     ~EventThread();
 public slots:
-     void timerEvent();
+     void timerAction();
      void start();
      void exit();
      void stopTimer();
 
 signals:
      void stop();
+     void stopped();
 };
 
 #endif // EVENTTHREAD_H

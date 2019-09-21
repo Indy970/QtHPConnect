@@ -1389,6 +1389,7 @@ int hpusb::hotplugcallback(struct libusb_context *ctx, struct libusb_device *dev
 //eventhandler called periodically to handle async events
 int hpusb::eventHandler() {
 
+//   QMutexLocker  locker(&mutex);
    int completed;
 //   qDebug()<<"In Eventhandler";
    libusb_handle_events_completed(nullptr, &completed);
@@ -1397,6 +1398,7 @@ int hpusb::eventHandler() {
 
 int hpusb::hp_close() {
 
+     qDebug()<<"hpusb::close";
     libusb_device_handle * usbhandle;
     usbhandle=hp_handle.usbhandle;
     libusb_close(usbhandle);
@@ -1406,6 +1408,7 @@ int hpusb::hp_close() {
 }
 
 hpusb::~hpusb() {
+    hp_close();
     libusb_exit(ctx);
-    qDebug()<<"hpusb::close";
+    qDebug()<<"hpusb:: delete";
 }

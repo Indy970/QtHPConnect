@@ -42,6 +42,9 @@ public:
     void createActions();
     hpusb * getAPI();
 
+signals:
+    void stopTimer();
+
 private slots:
     void onOpen();
     void onTestSettings();
@@ -61,6 +64,7 @@ private slots:
     void testFunction();
     void writeSettings();
     void readSettings();
+    void setTimerStopped();
     treeModel * getTreeModel();
 
     void treeMenuAction(bool);
@@ -68,6 +72,7 @@ private slots:
     void eventHandler();
     void refresh(bool clicked);
     void hotplug_handler(int );
+
 
 private:
 
@@ -91,6 +96,8 @@ private:
     void setContentWindow();
     void setTreeMenu();
     void monitorAddImage(hp_ScreenShot scrnshot);
+    int timerStopped=0; //flag
 };
 
-#endif // MAINWINDOW_H
+#endif
+//MAINWINDOW_H

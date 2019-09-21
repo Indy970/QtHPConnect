@@ -96,7 +96,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->actionOpen,SIGNAL(triggered()),this,SLOT(onOpen()));
     connect(ui->actionAbout_HP_Connect,SIGNAL(triggered()),this,SLOT(about()));
-    connect(ui->actionExit,SIGNAL(triggered()),this,SLOT(exit()));
+  //  connect(ui->actionExit,SIGNAL(triggered()),this,SLOT(exit()));
     connect(ui->actionContent,SIGNAL(triggered()),this,SLOT(showContent()));
     connect(ui->actionCalculators,SIGNAL(triggered()),this,SLOT(showCalculator()));
     connect(ui->actionMessages,SIGNAL(triggered()),this,SLOT(showMessage()));
@@ -124,6 +124,9 @@ MainWindow::MainWindow(QWidget *parent) :
     eventTimer->moveToThread(eventThread);
 //    connect(eventTimer,SIGNAL(timeout()),this,SLOT(eventHandler()));
     connect(eventThread,SIGNAL(started()),eventTimer,SLOT(start()));
+    connect(eventTimer,SIGNAL(stopped()),this,SLOT(setTimerStopped()));
+    connect(this,SIGNAL(stopTimer()),eventTimer,SLOT(stopTimer()));
+
     eventThread->start();
 
     ui->dwMessenger->hide();
@@ -484,54 +487,25 @@ void MainWindow::monitorAddImage(hp_ScreenShot  scrnshot) {
      ui->dwMonitor->show();
 }
 
+void MainWindow::setTimerStopped() {
+
+    qDebug()<<"MainWindow:: set timerStopped Flag";
+    timerStopped=1;
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
 
     qDebug()<<"MainWindow:: closeEvent Step 1";
     writeSettings();
+
+    //stop the timer pulse
+    emit stopTimer();
+
     event->accept();
-
-    if (eventThread!=nullptr) {
-        eventThread->quit();
-        eventThread->wait(100);
-    }
-
-    qDebug()<<"MainWindow:: closeEvent Step 2";
-
-    ui->tvCalculators->close();
-    ui->tvContent->close();
-    ui->dwContent->close();
-    ui->dwMonitor->close();
-    ui->dwMessenger->close();
-    ui->dwCalculator->close();
-
-    qDebug()<<"MainWindow:: closeEvent Step 3";
-
-    if (main_err!=nullptr) {
-        delete main_err;
-        main_err=nullptr;
-    }
-/*
-    if (treeMenu!=nullptr) {
-        delete treeMenu;
-        treeMenu=nullptr;
-    }
-*/
-    if (myModel!=nullptr) {
-        delete myModel;
-        myModel=nullptr;
-    }
-
-    if (hpapi!=nullptr) {
-        delete hpapi;
-        hpapi=nullptr;
-    }
-
-    qDebug()<<"MainWindow:: closeEvent Step 4";
-    QThread::msleep(100);
     close();
 
-    qDebug()<<"MainWindow:: closeEvent Step 5";
+    qDebug()<<"MainWindow:: closeEvent Step 2";
 }
 
 void MainWindow::writeSettings()
@@ -665,5 +639,40 @@ void MainWindow::on_tvCalculators_customContextMenuRequested(const QPoint &pos)
 //destructor
 MainWindow::~MainWindow()
 {
+    qDebug()<<"MainWindow:: closeEvent Step 3";
+
+    ui->tvCalculators->close();
+    ui->tvContent->close();
+    ui->dwContent->close();
+    ui->dwMonitor->close();
+    ui->dwMessenger->close();
+    ui->dwCalculator->close();
+
+    qDebug()<<"MainWindow:: closeEvent Step 4";
+
+    if (main_err!=nullptr) {
+        delete main_err;
+        main_err=nullptr;
+    }
+
+    if (myModel!=nullptr) {
+        delete myModel;
+        myModel=nullptr;
+    }
+
+    qDebug()<<"MainWindow:: closeEvent Step 5";
+
+
+    //might need a mechanism to inform eventThread that the comms module is closed
+    if ((hpapi!=nullptr) && (timerStopped)) {
+        delete hpapi;
+        hpapi=nullptr;
+    }
+
+    //delete extra thread
+    if (eventThread!=nullptr) {
+        eventThread->quit();
+    }
+
     qDebug()<<"MainWindow:: closing";
 }
