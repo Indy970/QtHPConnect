@@ -381,7 +381,19 @@ void MainWindow::setContentWindow() {
   //  contentModel.iconProvider()->setOptions(QFileIconProvider::DontUseCustomDirectoryIcons);
 
     ui->tvContent->setModel(&contentModel);
+
+    QDir dir(path);
+
+    if (!dir.exists()) {
+        qDebug()<<"Content Path Does not Exist:"<<path;
+        if(!dir.mkpath("."))
+        {
+           qDebug()<<"Path could not be created"<<path;
+        }
+    }
+
     if (!path.isEmpty()) {
+        qDebug()<<"Content Path Empty:"<<path;
         const QModelIndex rootIndex = contentModel.index(QDir::cleanPath(path));
         if (rootIndex.isValid()) {
             ui->tvContent->setRootIndex(rootIndex);
@@ -496,7 +508,7 @@ void MainWindow::setTimerStopped() {
 void MainWindow::closeEvent(QCloseEvent *event)
 {
 
-    qDebug()<<"MainWindow:: closeEvent Step 1";
+    //qDebug()<<"MainWindow:: closeEvent Step 1";
     writeSettings();
 
     //stop the timer pulse
@@ -505,7 +517,7 @@ void MainWindow::closeEvent(QCloseEvent *event)
     event->accept();
     close();
 
-    qDebug()<<"MainWindow:: closeEvent Step 2";
+    //qDebug()<<"MainWindow:: closeEvent Step 2";
 }
 
 void MainWindow::writeSettings()
@@ -639,7 +651,7 @@ void MainWindow::on_tvCalculators_customContextMenuRequested(const QPoint &pos)
 //destructor
 MainWindow::~MainWindow()
 {
-    qDebug()<<"MainWindow:: closeEvent Step 3";
+    //qDebug()<<"MainWindow:: closeEvent Step 3";
 
     ui->tvCalculators->close();
     ui->tvContent->close();
@@ -648,7 +660,7 @@ MainWindow::~MainWindow()
     ui->dwMessenger->close();
     ui->dwCalculator->close();
 
-    qDebug()<<"MainWindow:: closeEvent Step 4";
+    //qDebug()<<"MainWindow:: closeEvent Step 4";
 
     if (main_err!=nullptr) {
         delete main_err;
@@ -660,7 +672,7 @@ MainWindow::~MainWindow()
         myModel=nullptr;
     }
 
-    qDebug()<<"MainWindow:: closeEvent Step 5";
+    //qDebug()<<"MainWindow:: closeEvent Step 5";
 
 
     //might need a mechanism to inform eventThread that the comms module is closed

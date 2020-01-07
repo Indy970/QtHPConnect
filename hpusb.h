@@ -1,7 +1,7 @@
 #ifndef HPUSB_H
 #define HPUSB_H
 
-#include <libusb.h>
+#include <libusb-1.0/libusb.h>
 #include <QObject>
 #include <QByteArray>
 #include <QMutex>

@@ -575,6 +575,6 @@ hpTreeItem::~hpTreeItem() {
     }
 */
 
-    qDebug()<<"hpTreeItem:: delete";
+    //qDebug()<<"hpTreeItem:: delete";
 }
 
