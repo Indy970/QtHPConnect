@@ -1,16 +1,22 @@
+//
+// Model to contain the calculator data structure
+//
+
 #include "treemodel.h"
 #include "hptreeitem.h"
 #include <QStringListModel>
 #include <QMimeData>
 
+//Constructor
 treeModel::treeModel(QObject *parent)
     :QStandardItemModel(parent)
 {
     setItemPrototype(new hpTreeItem());
     createRoot();
     setParent(parent);    
-}
+ }
 
+//Create the start of the tree
 int treeModel::createRoot()
 {
     rootNode = invisibleRootItem();
@@ -35,6 +41,7 @@ int treeModel::addCalculator(QString name, hpusb * handle){
     return 0;
 }
 
+//return the calculator data within the model
 hpCalcData * treeModel::getCalculator(QString name){
 
     hpDataLink hplink;
@@ -51,6 +58,8 @@ hpCalcData * treeModel::getCalculator(QString name){
     return hpdata;
 }
 
+//index system for data retrieval
+//review QStandardItemModel should already have one in place
 QString treeModel::getLastDataKey() {
     if (hpCalcList.isEmpty())
         return QStringLiteral("");
@@ -88,6 +97,7 @@ void treeModel::setHpCalcData(QString name, hpCalcData * data, hpTreeItem * tree
     return;
 }
 
+//Part the the drag and drop system
 Qt::DropActions treeModel::supportedDropActions() const
 {
     return Qt::CopyAction | Qt::MoveAction | Qt::TargetMoveAction;
@@ -127,15 +137,19 @@ bool treeModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, in
 }
 
 //Process the drop action
-bool treeModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int row,
-            int column, const QModelIndex &parent)
+bool treeModel::dropMimeData(const QMimeData* md_data, Qt::DropAction action, int row,
+            int column, const QModelIndex &index)
 {
-    qDebug()<<"treemodel::DropMineData";
+    QByteArray data_in;
+
+    qDebug()<<"treemodel::DropMineData "<<row<<" "<<column;
     if (action == Qt::IgnoreAction) {
+        qDebug()<<"treemodel::IgnoreAction";
         return true;
     }
 
     if (column > 1) {
+        qDebug()<<"treemodel::column>1";
         return false;
     }
 
@@ -143,11 +157,19 @@ bool treeModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int r
 
     if (row != -1) {
         position = row;
-    } else if (parent.isValid()) {
-        position = parent.row();
+    } else if (index.isValid()) {
+        position = index.row();
     } else {
         position = rowCount(QModelIndex());
     }
+
+    hpTreeItem * item=nullptr;
+    item = static_cast<hpTreeItem *>(itemFromIndex(index));
+    if (item!=nullptr) {
+        qDebug()<<item->getType();
+    }
+    //item = getItem(parent);
+
 
 //	QByteArray encodedData = data->data("application/text.list");
 //	QDataStream stream(&encodedData, QIODevice::ReadOnly);
@@ -165,6 +187,10 @@ bool treeModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int r
 //		insertRow(position, parent, rowId);
 //	}
 
+    data_in=md_data->data("application/x-qstandarditemmodeldatalist");
+    qDebug()<<position;
+    //qDebug()<<data_in;
+    qDebug()<<"treemodel::dropMimeData End";
     return true;
 }
 
@@ -180,6 +206,8 @@ Qt::ItemFlags treeModel::flags(const QModelIndex &index) const
 
 treeModel::~treeModel() {
 
+    if (rootNode!=nullptr)
+            delete rootNode;
     qDebug()<<"treeModel:: delete";
 }
 

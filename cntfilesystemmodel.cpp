@@ -31,7 +31,7 @@ const QString contentFileSystemModel::file_type[FILE_TYPE]={"hpprgm",
                                                            "hpmat",
                                                            "hpnote",
                                                             ""};
-
+//condtrutor
 contentFileSystemModel::contentFileSystemModel(QObject * parent)
     :QFileSystemModel(parent)
 {
@@ -44,24 +44,32 @@ QMimeData* contentFileSystemModel::mimeData(const QModelIndexList &indexes) cons
 
     QMimeData *mimeDataPtr = new QMimeData();
     QByteArray mydata;
+    QModelIndex index;
+    AbstractData * adata = nullptr;
 
     qDebug()<<"contentFileSystemModel::mimeData";
 
-    mimeDataPtr->setData("application/x-qstandarditemmodeldatalist",mydata);
+    index=indexes.first();
+    qDebug()<<index.data(Qt::DisplayRole);
+    QString data;
 
-    /* Store row id list */
-    QList<int> rowIdList;
-    int rowId;
-    foreach (QModelIndex index, indexes) {
-        if (index.isValid()) {
-            rowId = index.row();
+    data=index.data().toString();
+    qDebug()<<data;
 
-            if (!rowIdList.contains(rowId)) {
-                rowIdList << rowId;
-            }
-        }
+    QFileInfo info = contentFileSystemModel::fileInfo(index);
+    QFile file(info.absoluteFilePath());
+
+    qDebug()<<info.absoluteFilePath();
+
+    adata=readFile(info);
+    if (adata!=nullptr) {
+        mydata = adata->getData();
+        mimeDataPtr->setData("application/x-qstandarditemmodeldatalist",mydata);
     }
-
+    else {
+        mydata=data.toUtf8();
+        mimeDataPtr->setData("application/x-qstandarditemmodeldatalist",mydata);
+    }
     return mimeDataPtr;
 }
 
@@ -94,10 +102,12 @@ bool contentFileSystemModel::dropMimeData(const QMimeData* data, Qt::DropAction 
 {
     qDebug()<<"contentFileSystemModel::DropMineData";
     if (action == Qt::IgnoreAction) {
+        qDebug()<<"contentFileSystemModel::QT::ignoreAction";
         return true;
     }
 
     if (column > 1) {
+        qDebug()<<"contentFileSystemModel::column>1";
         return false;
     }
 
@@ -127,6 +137,8 @@ bool contentFileSystemModel::dropMimeData(const QMimeData* data, Qt::DropAction 
 //		insertRow(position, parent, rowId);
 //	}
 
+
+    qDebug()<<"contentFileSystemModel::dropMineData end";
     return true;
 }
 
@@ -158,7 +170,7 @@ void contentFileSystemModel::clickAction(QMdiArea * mdiwin, QModelIndex &index) 
     AbstractData * data=nullptr;
 
     QFileInfo info = contentFileSystemModel::fileInfo(index);
-    QFile file(info.absoluteFilePath());
+/*
     if (file.open(QIODevice::ReadOnly),QFileDevice::AutoCloseHandle) {
         QDataStream in(&file);
 
@@ -174,18 +186,53 @@ void contentFileSystemModel::clickAction(QMdiArea * mdiwin, QModelIndex &index) 
             break;
             default: ;
         }
+*/
 
-        if (hptextedit==nullptr)
-            hptextedit = new hp_mdiTextEdit(mdiwin,filedata, data);
-        if (hptextedit!=nullptr)
-            hptextedit ->show();
+        data = readFile(info);
 
-        file.close();
-    }
+        if (data!=nullptr) {
+           if (hptextedit==nullptr)
+                hptextedit = new hp_mdiTextEdit(mdiwin,filedata, data);
+             if (hptextedit!=nullptr)
+                hptextedit ->show();
+        }
+        else {
+            qDebug()<<"Null data";
+        }
     qDebug()<<"ClickAction "<<info.absoluteFilePath();
 }
 
-hp_DataStruct contentFileSystemModel::getFileType(QFileInfo info) {
+AbstractData * contentFileSystemModel::readFile(QFileInfo fileinfo) const {
+
+    AbstractData * data=nullptr;
+    hp_DataStruct filedata;
+    QFile file(fileinfo.absoluteFilePath());
+
+    if (file.open(QIODevice::ReadOnly),QFileDevice::AutoCloseHandle) {
+        QDataStream in(&file);
+
+        filedata=getFileType(fileinfo);
+
+        switch (filedata.type) {
+
+            case HP_PROG: {
+                qDebug()<<"HP_PROG";
+                data = new Program(filedata.filename, HP_PROG, QStringLiteral(""));
+                data->parseData(in);
+            }
+            break;
+            default: ;
+        }
+
+        file.close();
+    }
+
+    return data;
+}
+
+
+
+hp_DataStruct contentFileSystemModel::getFileType(QFileInfo info) const {
     hp_DataStruct filedata;
     int i;
     QString suffix;

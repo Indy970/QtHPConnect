@@ -33,7 +33,7 @@ public:
     hpCalcData * getHpCalcData(QString name);
     void setHpCalcData(QString name, hpCalcData * , hpTreeItem *);
     QString getLastDataKey();
-    bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex &parent) override;
+    bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex &index) override;
     bool canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const override;
     Qt::DropActions supportedDropActions() const override;
     QMimeData* mimeData(const QModelIndexList &) const override;

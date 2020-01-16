@@ -20,7 +20,9 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex &index) const;
     void clickAction(QMdiArea * mdiwin,QModelIndex &index);
-    hp_DataStruct getFileType(QFileInfo info);
+    hp_DataStruct getFileType(QFileInfo info) const;
+    AbstractData * readFile(QFileInfo fileinfo) const;
+
     ~contentFileSystemModel();
 
 private:

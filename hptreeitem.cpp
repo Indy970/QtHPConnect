@@ -43,7 +43,14 @@ const hp_DataType hpTreeItem::func_type[FUNC_NUM]={
 
 hpTreeItem::hpTreeItem()
     :QStandardItem() {
+    setDropEnabled(true);
+    setEditable(0);
+}
 
+
+bool hpTreeItem::dropMimeData(const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent) {
+
+    qDebug()<<"hpTreeItem::dropMimeData";
 }
 
 hpTreeItem::hpTreeItem(const QString & name,hpCalcData * hpDataStore,int flag)

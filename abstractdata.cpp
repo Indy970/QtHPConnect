@@ -904,7 +904,9 @@ void Program::parseData(QDataStream& in) {
 //    qDebug()<<str;
 
 //    a1=getData();
-    text = codec->toUnicode(a1);
+    setProg(codec->toUnicode(a1));
+
+    return;
 }
 
 

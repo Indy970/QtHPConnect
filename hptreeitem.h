@@ -35,6 +35,7 @@ public:
     hpCalcData *  getDataStore();
     QString getGroupName();
     QString getFileName();
+    bool dropMimeData(const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent);
     void setFileName(QString);
     hp_DataType getType();
     void refresh();
