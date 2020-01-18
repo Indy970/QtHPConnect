@@ -4,7 +4,7 @@
 #include <QStandardItemModel>
 #include <QObject>
 #include <QMap>
-
+#include "hp_typedef.h"
 #include "hpdata.h"
 
 class hpTreeItem;
@@ -30,9 +30,14 @@ public:
     virtual ~treeModel() override;
     int addCalculator(QString name, hpusb * handle);
     hpCalcData * getCalculator(QString name);
+    hpTreeItem * getCalculatorItem(QString name);
     hpCalcData * getHpCalcData(QString name);
+    AbstractData * createData(hp_Data data_in);
+    int addItem(QString calc, AbstractData * obj);
+    int deleteItem(hpCalcData* hpcalc, AbstractData * obj);
     void setHpCalcData(QString name, hpCalcData * , hpTreeItem *);
     QString getLastDataKey();
+    hpTreeItem * findTypeRoot(QString CalcName, hp_DataType type);
     bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex &index) override;
     bool canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const override;
     Qt::DropActions supportedDropActions() const override;

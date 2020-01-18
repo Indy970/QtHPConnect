@@ -140,6 +140,7 @@ public:
     void parseData();
     virtual void parseData(QDataStream& in);
     virtual QByteArray fileOut();
+    virtual ~Program();
 };
 
 class Notes:  public AbstractData

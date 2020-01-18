@@ -2,11 +2,11 @@
 #include "cntfilesystemmodel.h"
 #include <QMimeData>
 #include <QStringListModel>
-
 #include "hp_mditexteditor.h"
 
 #define FILE_NUM 9
 #define FILE_TYPE 5
+
 //Todo fix for all file types
 const QString contentFileSystemModel::filetype_list[FILE_NUM][2]={{"hpprgm",":/icons/apps_16x16.png"},
                                            {"CAS Vars",":/icons/casFolder_16x16.png"},
@@ -45,31 +45,58 @@ QMimeData* contentFileSystemModel::mimeData(const QModelIndexList &indexes) cons
     QMimeData *mimeDataPtr = new QMimeData();
     QByteArray mydata;
     QModelIndex index;
-    AbstractData * adata = nullptr;
+    hp_DataStruct filedata;
 
     qDebug()<<"contentFileSystemModel::mimeData";
 
     index=indexes.first();
-    qDebug()<<index.data(Qt::DisplayRole);
-    QString data;
-
-    data=index.data().toString();
-    qDebug()<<data;
+ //   qDebug()<<index.data(Qt::DisplayRole);
+ //   QString data;
 
     QFileInfo info = contentFileSystemModel::fileInfo(index);
     QFile file(info.absoluteFilePath());
 
     qDebug()<<info.absoluteFilePath();
 
-    adata=readFile(info);
-    if (adata!=nullptr) {
-        mydata = adata->getData();
-        mimeDataPtr->setData("application/x-qstandarditemmodeldatalist",mydata);
+    if (file.open(QIODevice::ReadOnly), QFileDevice::AutoCloseHandle) {
+        QDataStream in(&file);
+
+        filedata=getFileType(info);
+
+        in.setByteOrder(QDataStream::LittleEndian);
+        qint8 c;
+
+        //read in file
+        in.startTransaction();
+        while(!in.atEnd()) {
+            in>>c;
+            mydata.append(c);
+        }
+
+        switch (filedata.type) {
+
+            case HP_PROG: {
+                qDebug()<<"HP_PROG Found";
+                mimeDataPtr->setText(info.baseName());
+                mimeDataPtr->setData("application/x-programme",mydata);
+                break;
+            }
+            case HP_APP: {
+                qDebug()<<"HP_APP Found";
+                mimeDataPtr->setText(info.baseName());
+                mimeDataPtr->setData("application/x-application",mydata);
+                break;
+            }
+            case HP_MATRIX: {
+                qDebug()<<"HP_MATRIX Found";
+                mimeDataPtr->setData("application/x-matrix",mydata);
+                break;
+            }
+        }
     }
-    else {
-        mydata=data.toUtf8();
-        mimeDataPtr->setData("application/x-qstandarditemmodeldatalist",mydata);
-    }
+
+    file.close();
+
     return mimeDataPtr;
 }
 

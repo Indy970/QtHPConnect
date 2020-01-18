@@ -1,4 +1,10 @@
+//
+// Error Handler
+//
+
+
 #include "errorhandler.h"
+#include "mainwindow.h"
 
 errorHandler::errorHandler()
 {

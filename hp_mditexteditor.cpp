@@ -46,13 +46,13 @@ void hp_mdiTextEdit::setup() {
 
         if (data->getType()==HP_NOTE) {
             Notes *note;
-            note=(Notes *)data;
+            note=static_cast<Notes *>(data);
             text=note->getNote();
         }
 
         if (data->getType()==HP_PROG) {
             Program *note;
-            note=(Program *)data;
+            note=static_cast<Program *>(data);
             text=note->getProg();
         }
         qDebug()<<text;

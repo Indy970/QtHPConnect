@@ -33,6 +33,7 @@ public:
     void contextAction(QMdiArea * mdiwin, contextActionType cta );
     void setDataStore(hpCalcData *);
     hpCalcData *  getDataStore();
+    QString getCalculatorName();
     QString getGroupName();
     QString getFileName();
     bool dropMimeData(const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent);

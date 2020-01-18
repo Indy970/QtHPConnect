@@ -275,9 +275,13 @@ hp_pkt_type AbstractData::getFileCode() {
 void AbstractData::setData(QByteArray data_in) {
     data = data_in;
     parseData();
+     qDebug()<<"AbstrtactData::setData()";
+
+    return;
 }
 
 QByteArray AbstractData::getData() {
+    qDebug()<<"AbstrtactData::getData()";
     return data;
 }
 
@@ -838,8 +842,11 @@ QString Program::getProg() {
 }
 
 void Program::setProg(QString data_in) {
-    data=data_in.toUtf8();
+    QByteArray ba_data=data_in.toUtf8();
+    setData(ba_data);
     text=data_in;
+    qDebug()<<text;
+    return;
 }
 
 void Program::parseData() {
@@ -848,6 +855,8 @@ void Program::parseData() {
     QByteArray a1;
     a1=getData();
     text = codec->toUnicode(a1);
+
+    return;
 }
 
 void Program::parseData(QDataStream& in) {
@@ -865,11 +874,13 @@ void Program::parseData(QDataStream& in) {
     uint length;
     length=16;
 
+    qDebug()<<"Parsing Program";
     in.startTransaction();
     while(!in.atEnd()) {
     in>>c;
     a1.append(c);
     }
+
     main_err->dump((uint8_t *)a1.constData(),a1.size());
 
     search="\x7c\x61";
@@ -904,6 +915,7 @@ void Program::parseData(QDataStream& in) {
 //    qDebug()<<str;
 
 //    a1=getData();
+//    qDebug()<<codec->toUnicode(a1);
     setProg(codec->toUnicode(a1));
 
     return;
@@ -919,6 +931,10 @@ QByteArray Program::fileOut() {
     qDebug()<<out;
     return out;
 
+}
+
+Program::~Program() {
+     qDebug()<<"~Program";
 }
 
 //Notes

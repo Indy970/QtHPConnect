@@ -7,7 +7,6 @@
 #include <QMutexLocker>
 #include <QDateTime>
 #include <QDebug>
-#include <mainwindow.h>
 
 enum ErrLevel {
     L0,    //abort

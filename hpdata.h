@@ -6,6 +6,7 @@
 #include <QList>
 #include "hpusb.h"
 #include "abstractdata.h"
+#include "hp_typedef.h"
 
 class AbstractData;
 
@@ -15,6 +16,7 @@ struct hp_Information {
                 QString appver="-";
                 QString osver="-";
 };
+
 
 struct hp_Settings {
                 int angle_measure=0;
@@ -34,42 +36,6 @@ struct hp_Settings {
 };
 
 
-struct hp_DataStruct {
-    QString filename;
-    hp_DataType type;
-};
-
-class hpCalcData;
-
-struct hp_ScreenShot {
-    QPixmap * image;
-    hp_screenshot_format format;
-    hpCalcData * calc;
-};
-
-struct hp_Change {
-    hp_DataType dataChange=HP_MAIN;
-    hpCalcData * calc;
-};
-
-struct hp_Prog {
-    QString filename;
-    QString prog;
-    QByteArray data;
-};
-
-struct hp_Note {
-    QString filename;
-    QString text;
-    QByteArray data;
-};
-
-struct hp_Data {
-    QString name;
-    hp_DataType type;
-    QByteArray data;
-};
-
 class hpCalcData: public QObject
 {
     Q_OBJECT
@@ -84,9 +50,10 @@ private:
     hp_Information hp_info;
     hp_Settings hp_homesettings;
     QList<AbstractData *> lData;
+    QString calculatorName;
 
 public:
-    hpCalcData(hpusb * hpapi);
+    hpCalcData(QString name, hpusb * hpapi);
     ~hpCalcData();
     hp_Handle * getHandle();
     hpusb * getAPI();
@@ -112,6 +79,7 @@ public:
     hp_Information getInfo();
     QString getName();
     hp_Settings getSettings();
+    QString getCalculatorName();
     int setSettings(hp_Settings set);
     void vpkt_send_experiments(int );
     void emitChange(hp_DataType type);

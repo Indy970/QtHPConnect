@@ -103,6 +103,8 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
  //  QString test;
  //  test=data(Qt::DisplayRole).toString();
 
+   qDebug()<<"hpTreeItem::clickAction ... click";
+
     switch (getType()) {
         case HP_MAIN:   {
                 hpCalcData * dataStore;
@@ -183,11 +185,13 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
             hpCalcData * dataStore;
             AbstractData * data =nullptr;
             dataStore = getDataStore();
+            qDebug()<<"HP_Prog ... click"<<getFileName();
             if (dataStore) {
                 data=dataStore->getData(getFileName(),getType());
             }
-            if (hptextedit==nullptr)
+            if (hptextedit==nullptr) {
                 hptextedit = new hp_mdiTextEdit(mdiwin,this, data);
+            }
             if (hptextedit!=nullptr)
                 hptextedit ->show();
             }
@@ -251,10 +255,13 @@ void hpTreeItem::setType(hp_DataType dtype) {
 //manage access to datastore
 hpCalcData * hpTreeItem::getDataStore() {
     if (hp_data) {
+        qDebug()<<"Data store found";
         return hp_data;
     }
-    else
+    else {
+        qDebug()<<"Null data store";
         return nullptr;
+    }
 }
 
 void hpTreeItem::setDataStore(hpCalcData * dtype) {
@@ -285,6 +292,18 @@ QString hpTreeItem::getGroupName() {
 QString hpTreeItem::getFileName() {
 
     return filename;
+ }
+
+QString hpTreeItem::getCalculatorName() {
+    hpCalcData * hpcalc;
+    QString calcName;
+    hpcalc=getDataStore();
+
+    if (hpcalc!=nullptr)
+        calcName=hpcalc->getCalculatorName();
+
+    qDebug()<<calcName;
+    return calcName;
  }
 
 void hpTreeItem::setFileName(QString file) {

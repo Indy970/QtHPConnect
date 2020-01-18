@@ -7,6 +7,7 @@
 #include <QStringListModel>
 #include <QMimeData>
 
+
 //Constructor
 treeModel::treeModel(QObject *parent)
     :QStandardItemModel(parent)
@@ -23,10 +24,39 @@ int treeModel::createRoot()
     return 0;
 }
 
+//Create Item
+AbstractData * treeModel::createData(hp_Data data_in) {
+
+    AbstractData * obj=nullptr;
+    log("TreeModel::Creating Data Stucture");
+
+    switch (data_in.type) {
+        case HP_APP: {
+            qDebug()<<"hpCalcData::recvData - Application";
+            Application * obj = new Application(data_in.name,data_in.type);
+            return obj;
+        }
+        break;
+     case HP_LIST: {
+            List * obj = new List(data_in.name,data_in.type);
+            return obj;
+        }
+        break;
+    case HP_MATRIX: {
+            qDebug()<<"hpCalcData::recvData - Matrix";
+            Matrix * obj = new Matrix(data_in.name,data_in.type);
+            return obj;
+        }
+        break;
+    }
+
+    return obj;
+}
+
 //Rework - name should be calc name
 int treeModel::addCalculator(QString name, hpusb * handle){
 
-    hpCalcData * hpData = new hpCalcData(handle);
+    hpCalcData * hpData = new hpCalcData(name, handle);
     hpTreeItem * hpCalc = new hpTreeItem(name,hpData,0);
     hpCalc->setType(HP_MAIN);
     hpCalc->setIcon(QIcon(":/icons/monitor_32x32.png"));
@@ -56,6 +86,23 @@ hpCalcData * treeModel::getCalculator(QString name){
         }
     }
     return hpdata;
+}
+
+//return the calculator data within the model
+hpTreeItem * treeModel::getCalculatorItem(QString name){
+
+    hpDataLink hplink;
+    hpTreeItem * hpitem = nullptr;
+
+    if (!hpCalcList.isEmpty()) {
+        QMap<QString, hpDataLink>::const_iterator i = hpCalcList.find(name);
+
+        if (i!=hpCalcList.end()) {
+            hplink = i.value();
+            hpitem= hplink.treeItem;
+        }
+    }
+    return hpitem;
 }
 
 //index system for data retrieval
@@ -141,6 +188,7 @@ bool treeModel::dropMimeData(const QMimeData* md_data, Qt::DropAction action, in
             int column, const QModelIndex &index)
 {
     QByteArray data_in;
+    AbstractData * absitem;
 
     qDebug()<<"treemodel::DropMineData "<<row<<" "<<column;
     if (action == Qt::IgnoreAction) {
@@ -148,51 +196,85 @@ bool treeModel::dropMimeData(const QMimeData* md_data, Qt::DropAction action, in
         return true;
     }
 
-    if (column > 1) {
-        qDebug()<<"treemodel::column>1";
-        return false;
-    }
-
-    int position;
-
-    if (row != -1) {
-        position = row;
-    } else if (index.isValid()) {
-        position = index.row();
-    } else {
-        position = rowCount(QModelIndex());
-    }
-
     hpTreeItem * item=nullptr;
     item = static_cast<hpTreeItem *>(itemFromIndex(index));
     if (item!=nullptr) {
-        qDebug()<<item->getType();
+        
+        qDebug()<<md_data->formats();
+
+        QString name;
+
+        name=md_data->text();
+        data_in=md_data->data("application/x-programme");
+
+        QDataStream in(&data_in,QIODevice::ReadOnly);
+        absitem = new Program(name, HP_PROG, QStringLiteral(""));
+        absitem->parseData(in);
+
+        QString calc = item->getCalculatorName();
+        addItem(calc,absitem);
+
+        qDebug()<<"treemodel::dropMimeData End";
+
     }
-    //item = getItem(parent);
-
-
-//	QByteArray encodedData = data->data("application/text.list");
-//	QDataStream stream(&encodedData, QIODevice::ReadOnly);
-
-        /* Retrieve row id */
-    QList<int> rowIdList;
-//	while (!stream.atEnd()) {
-//		QString text;
-//		stream >> text;
-//		rowIdList << text.toInt();
-//	}
-
-       /* Insert rows (one by one) */
-//	foreach(int rowId, rowIdList) {
-//		insertRow(position, parent, rowId);
-//	}
-
-    data_in=md_data->data("application/x-qstandarditemmodeldatalist");
-    qDebug()<<position;
-    //qDebug()<<data_in;
-    qDebug()<<"treemodel::dropMimeData End";
     return true;
 }
+
+//Find the hpTreeItem of a type in a calculator
+hpTreeItem * treeModel::findTypeRoot(QString calcName, hp_DataType type) {
+
+    qDebug()<<calcName;
+    hpTreeItem * calc=getCalculatorItem(calcName);
+    hpTreeItem *item;
+
+    qDebug()<<calc->getGroupName();
+
+    QModelIndex in = calc->index();
+
+    for (int e = 0; e<calc->rowCount(); e++) {
+        QModelIndex si=index(e,0,in);
+        item = static_cast<hpTreeItem *>(itemFromIndex(si));
+        if(item->getType()==type) {
+            return item;
+        }
+    }
+
+    return nullptr;
+
+}
+
+//add an object to the correct place in the tree of a calaculator
+int treeModel::addItem(QString calc, AbstractData * obj) {
+
+    hp_DataType type;
+    hpCalcData * hpdata;
+
+    if (obj!=nullptr) {
+        type = obj->getType();
+    }
+    else {
+        return -1;
+    }
+
+    hpTreeItem * rootitem = findTypeRoot(calc,type);
+
+    if(rootitem!=nullptr) {
+        hpdata=rootitem->getDataStore();
+    }
+    else {
+        return -1;
+    }
+    rootitem->addChild(obj);
+    hpdata->addData(obj);
+
+    return 0;
+}
+
+
+int treeModel::deleteItem(hpCalcData* hpcalc, AbstractData * obj) {
+
+}
+
 
 Qt::ItemFlags treeModel::flags(const QModelIndex &index) const
 {
@@ -208,6 +290,7 @@ treeModel::~treeModel() {
 
     if (rootNode!=nullptr)
             delete rootNode;
+
     qDebug()<<"treeModel:: delete";
 }
 

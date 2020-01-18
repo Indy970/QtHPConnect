@@ -7,5 +7,4 @@
 #define HP_VERSION_BUILD ""
 #define HP_VERSION_STRING QString("%1.%2.%3%4").arg(HP_VERSION_MAJOR).arg(HP_VERSION_MINOR).arg(HP_VERSION_PATCH).arg(HP_VERSION_BUILD)
 
-
 #endif // VERSION_H

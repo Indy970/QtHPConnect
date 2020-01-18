@@ -1,8 +1,8 @@
-#include "version.h"
-#include "errorhandler.h"
-
 #ifndef GLOBAL_H
 #define GLOBAL_H
+
+    #include "version.h"
+    #include "errorhandler.h"
 
     class errorHandler;
     extern errorHandler *main_err;

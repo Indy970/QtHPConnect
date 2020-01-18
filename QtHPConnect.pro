@@ -120,7 +120,8 @@ HEADERS += \
     abstractdata.h \
     matrixdata.h \
     eventthread.h \
-    options.h
+    options.h \
+    hp_typedef.h
 
 FORMS += \
     mainwindow.ui \

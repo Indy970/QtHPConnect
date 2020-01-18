@@ -8,9 +8,7 @@
 #include "global.h"
 #include "errorhandler.h"
 #include "abstractdata.h"
-
-#define FUNC_NUM 9
-
+#include "hp_typedef.h"
 
 const QString hpCalcData::func_list[FUNC_NUM][2]={{"Application Library",":/icons/apps_32x32.png"},
                                            {"CAS Vars",":/icons/casFolder_32x32.png"},
@@ -31,16 +29,19 @@ const hp_DataType hpCalcData::func_type[FUNC_NUM]={HP_APP,
                                            HP_LIST,
                                            HP_MATRIX,
                                            HP_NOTE,
-                                           HP_PROG,                                           
+                                           HP_PROG,
                                            HP_VAR
                                            };
 
+
+
 //constructor
-hpCalcData::hpCalcData(hpusb * handle)
+hpCalcData::hpCalcData(QString name, hpusb * handle)
         :QObject()
 {
     hp_api = handle;
     lData.clear();
+    calculatorName=name;
 
     //open usb port and store the handle
     if (hp_api) {
@@ -71,6 +72,13 @@ QString hpCalcData::getName() {
 
     return hp_info.name;
 }
+
+//get Calculator Name
+QString hpCalcData::getCalculatorName() {
+
+    return calculatorName;
+}
+
 
 //get Settings
 hp_Settings hpCalcData::getSettings() {
@@ -103,10 +111,13 @@ AbstractData * hpCalcData::getData(QString name, hp_DataType dataType) {
 
     for (int i = 0; i < lData.size(); ++i) {
         if (lData.at(i)->equivalent(name,dataType)) {
+
+            qDebug()<<"hpCalcData::Data found"<<name<<" "<<dataType;
             return lData.at(i);
         }
     }
 
+    qDebug()<<"hpCalcData::No data found"<<name<<" "<<dataType;;
     return nullptr;
 }
 
