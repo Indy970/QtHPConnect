@@ -45,6 +45,8 @@
 #include "hp_mdivariableedit.h"
 #include "hp_mditexteditor.h"
 #include "options.h"
+#include "eventthread.h"
+#include "eventtimer.h"
 
 errorHandler *main_err;
 #define log(a) main_err->error(L7,0,QString(a),QString());
@@ -119,14 +121,14 @@ MainWindow::MainWindow(QWidget *parent) :
         err(L1,0,QString().sprintf("%s Failed to open libusb",__FUNCTION__));
 
     //setup event handler
-    eventThread = new QThread(this);
-    eventTimer = new EventThread(nullptr);
+    eventThread = new EventThread(this);
+    eventTimer = new EventTimer(this);
+    //    connect(eventTimer,SIGNAL(timeout()),this,SLOT(eventHandler()));
+    connect(eventThread,SIGNAL(finished()),eventTimer,SLOT(exit()), Qt::DirectConnection);
+    connect(eventTimer,SIGNAL(stopped()),this,SLOT(setTimerStopped()), Qt::DirectConnection);
+    connect(this,SIGNAL(stopTimer()),eventTimer,SLOT(exit()), Qt::DirectConnection);
+    connect(eventThread,SIGNAL(startTimer()),eventTimer,SLOT(start()));
     eventTimer->moveToThread(eventThread);
-//    connect(eventTimer,SIGNAL(timeout()),this,SLOT(eventHandler()));
-    connect(eventThread,SIGNAL(started()),eventTimer,SLOT(start()));
-    connect(eventTimer,SIGNAL(stopped()),this,SLOT(setTimerStopped()));
-    connect(this,SIGNAL(stopTimer()),eventTimer,SLOT(stopTimer()));
-
     eventThread->start();
 
     ui->dwMessenger->hide();
@@ -178,7 +180,7 @@ void MainWindow::eventHandler() {
 
     if(hpapi) {
 //        qDebug()<<"In Eventhandler";
-        hpapi->eventHandler();
+//        hpapi->eventHandler();
     }
 }
 
@@ -503,22 +505,10 @@ void MainWindow::setTimerStopped() {
 
     qDebug()<<"MainWindow:: set timerStopped Flag";
     timerStopped=1;
-}
-
-void MainWindow::closeEvent(QCloseEvent *event)
-{
-
-    //qDebug()<<"MainWindow:: closeEvent Step 1";
-    writeSettings();
-
-    //stop the timer pulse
-    emit stopTimer();
-
-    event->accept();
+    eventThread->exit();
     close();
-
-    //qDebug()<<"MainWindow:: closeEvent Step 2";
 }
+
 
 void MainWindow::writeSettings()
 {
@@ -648,43 +638,50 @@ void MainWindow::on_tvCalculators_customContextMenuRequested(const QPoint &pos)
     }
 }
 
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+
+    qDebug()<<"MainWindow:: closeEvent Step 1";
+    writeSettings();
+
+    //stop the timer pulse
+    emit stopTimer();
+
+    eventThread->quit();
+    eventThread->terminate();
+    eventThread->wait();
+
+    event->accept();
+
+    qDebug()<<"MainWindow:: closeEvent Step 2";
+}
+
+
 //destructor
 MainWindow::~MainWindow()
 {
-    //qDebug()<<"MainWindow:: closeEvent Step 3";
 
-    ui->tvCalculators->close();
-    ui->tvContent->close();
-    ui->dwContent->close();
-    ui->dwMonitor->close();
-    ui->dwMessenger->close();
-    ui->dwCalculator->close();
+ //   qDebug()<<"MainWindow:: closeEvent Step 4";
 
-    //qDebug()<<"MainWindow:: closeEvent Step 4";
-
-    if (main_err!=nullptr) {
-        delete main_err;
-        main_err=nullptr;
-    }
-
-    if (myModel!=nullptr) {
+   if (myModel!=nullptr) {
         delete myModel;
         myModel=nullptr;
     }
 
-    //qDebug()<<"MainWindow:: closeEvent Step 5";
+   //   qDebug()<<"MainWindow:: closeEvent Step 3";
 
+      ui->tvCalculators->close();
+      ui->tvContent->close();
+      ui->dwContent->close();
+      ui->dwMonitor->close();
+      ui->dwMessenger->close();
+      ui->dwCalculator->close();
 
-    //might need a mechanism to inform eventThread that the comms module is closed
-    if ((hpapi!=nullptr) && (timerStopped)) {
-        delete hpapi;
-        hpapi=nullptr;
-    }
-
-    //delete extra thread
-    if (eventThread!=nullptr) {
-        eventThread->quit();
-    }
+      //  qDebug()<<"MainWindow:: closeEvent Step 5";
+      if (main_err!=nullptr) {
+          delete main_err;
+          main_err=nullptr;
+      }
 
     qDebug()<<"MainWindow:: closing";
 }

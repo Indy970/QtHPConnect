@@ -199,23 +199,47 @@ bool treeModel::dropMimeData(const QMimeData* md_data, Qt::DropAction action, in
     hpTreeItem * item=nullptr;
     item = static_cast<hpTreeItem *>(itemFromIndex(index));
     if (item!=nullptr) {
-        
-        qDebug()<<md_data->formats();
+        hp_DataType type=HP_MAIN;
+        QStringList formatList;
+        QString mimeType;
+        formatList=md_data->formats();
 
-        QString name;
+        foreach(const QString& format, formatList) {
+ //           qDebug()<<format;
+            for(int i = HP_MAIN; i < HP_SETTINGS; i++) {
+                mimeType=mimetypes[i][1];
+ //               qDebug()<<mimeType;
+                if( mimeType==format) {
+                    type=static_cast<hp_DataType>(i);
+                    break;
+                }
+            }
+        }
 
-        name=md_data->text();
-        data_in=md_data->data("application/x-programme");
+        if ( type!=HP_MAIN) {
+            QString name=md_data->text();
+            data_in=md_data->data(mimetypes[type][1]);
 
-        QDataStream in(&data_in,QIODevice::ReadOnly);
-        absitem = new Program(name, HP_PROG, QStringLiteral(""));
-        absitem->parseData(in);
+            QDataStream in(&data_in,QIODevice::ReadOnly);
+
+            switch(type) {
+
+                case HP_PROG: {
+                    absitem = new Program(name, HP_PROG, QStringLiteral(""));
+                    absitem->parseData(in);
+                    break;
+                }
+        }
 
         QString calc = item->getCalculatorName();
         addItem(calc,absitem);
 
-        qDebug()<<"treemodel::dropMimeData End";
-
+ //       qDebug()<<"treemodel::dropMimeData End";
+        }
+        else {
+            qDebug()<<"treemodel::sropMimeData type not found "<<type;
+            return false;
+        }
     }
     return true;
 }
@@ -227,7 +251,7 @@ hpTreeItem * treeModel::findTypeRoot(QString calcName, hp_DataType type) {
     hpTreeItem * calc=getCalculatorItem(calcName);
     hpTreeItem *item;
 
-    qDebug()<<calc->getGroupName();
+//    qDebug()<<calc->getGroupName();
 
     QModelIndex in = calc->index();
 
@@ -286,10 +310,31 @@ Qt::ItemFlags treeModel::flags(const QModelIndex &index) const
         return Qt::ItemIsDropEnabled | defaultFlags;
 }
 
+int deletCalculator(QString name, hpusb * handle) {
+
+}
+
+int treeModel::deleteAllCalculators() {
+
+    hpDataLink hplink;
+    hpCalcData * hpdata = nullptr;
+
+    foreach(QString key, hpCalcList.keys()) {
+
+        QMap<QString, hpDataLink>::const_iterator i = hpCalcList.find(key);
+        hplink=i.value();
+        delete(hplink.dataItem);
+        hpCalcList.remove(key);
+    }
+    hpCalcList.clear();
+    return 0;
+
+}
+
+
 treeModel::~treeModel() {
 
-    if (rootNode!=nullptr)
-            delete rootNode;
+    deleteAllCalculators();
 
     qDebug()<<"treeModel:: delete";
 }

@@ -29,6 +29,8 @@ public:
     treeModel(QObject *parent);
     virtual ~treeModel() override;
     int addCalculator(QString name, hpusb * handle);
+    int deletCalculator(QString name, hpusb * handle);
+    int deleteAllCalculators();
     hpCalcData * getCalculator(QString name);
     hpTreeItem * getCalculatorItem(QString name);
     hpCalcData * getHpCalcData(QString name);

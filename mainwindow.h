@@ -18,7 +18,7 @@
 #include "hp_mdiwindow.h"
 #include "hp_mdivariableedit.h"
 #include "cntfilesystemmodel.h"
-#include "eventthread.h"
+#include "eventtimer.h"
 
 class treeModel;
 class errorHandler;
@@ -82,9 +82,9 @@ private:
     treeModel * hpTreeModel;
     QThread * eventThread;
 
-    EventThread * eventTimer;
+    EventTimer * eventTimer;
     QMenu * treeMenu=nullptr;
-    hpusb * hpapi;
+    hpusb * hpapi=nullptr;
     QMdiSubWindow * msgWindow=nullptr;
     hp_MdiWindow * logWindow=nullptr;
     contentFileSystemModel contentModel;

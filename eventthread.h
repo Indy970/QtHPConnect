@@ -1,33 +1,27 @@
 #ifndef EVENTTHREAD_H
 #define EVENTTHREAD_H
+
 #include <QThread>
-#include <QTimer>
-#include <QMutex>
-#include "hpusb.h"
+#include <hpusb.h>
 
 class MainWindow;
 
-class EventThread : public QObject
+class EventThread : public QThread
 {
     Q_OBJECT
+
 private:
     MainWindow * main;
-    hpusb * hpapi;
-    QTimer * timer=nullptr;
+    hpusb * hpapi=nullptr;
     mutable QMutex mutex;
 
 public:
     EventThread(MainWindow * parent);
-    ~EventThread();
-public slots:
-     void timerAction();
-     void start();
-     void exit();
-     void stopTimer();
+    void run() override;
 
 signals:
-     void stop();
-     void stopped();
+    void startTimer();
+
 };
 
 #endif // EVENTTHREAD_H

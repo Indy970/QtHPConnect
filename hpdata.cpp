@@ -12,12 +12,12 @@
 
 const QString hpCalcData::func_list[FUNC_NUM][2]={{"Application Library",":/icons/apps_32x32.png"},
                                            {"CAS Vars",":/icons/casFolder_32x32.png"},
+                                           {"Real",":/icons/real_32x32.png"},
                                            {"Complex",":/icons/complex_32x32.png"},
                                            {"Lists",":/icons/list_32x32.png"},
                                            {"Matrices",":/icons/table_32x32.png"},
                                            {"Notes",":/icons/note_32x32.png"},
                                            {"Programs",":/icons/program_32x32.png"},
-                                           {"Real",":/icons/real_32x32.png"},
                                            {"Variables",":/icons/varFolder_32x32.png"}
                                            };
 
@@ -413,5 +413,5 @@ void hpCalcData::vpkt_send_experiments(int cmd) {
 }
 
 hpCalcData::~hpCalcData() {
-// qDebug()<<"Close ~hpCalcData";
+ qDebug()<<"Close ~hpCalcData";
 };

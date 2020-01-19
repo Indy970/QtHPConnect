@@ -8,18 +8,16 @@
 #include <QMessageBox>
 #include <QString>
 
-#define FUNC_NUM 10
-
 const QString hpTreeItem::func_list[FUNC_NUM][2]={
                                            {"Main",":/icons/apps_32x32.png"},
                                            {"Application Library",":/icons/apps_32x32.png"},
                                            {"CAS Vars",":/icons/casFolder_32x32.png"},
+                                           {"Real",":/icons/real_32x32.png"},
                                            {"Complex",":/icons/complex_32x32.png"},
                                            {"Lists",":/icons/list_32x32.png"},
                                            {"Matrices",":/icons/table_32x32.png"},
                                            {"Notes",":/icons/note_32x32.png"},
                                            {"Programs",":/icons/program_32x32.png"},
-                                           {"Real",":/icons/real_32x32.png"},
                                            {"Variables",":/icons/varFolder_32x32.png"}
                                            };
 
@@ -27,12 +25,12 @@ const hp_DataType hpTreeItem::func_type[FUNC_NUM]={
                                            HP_MAIN,
                                            HP_APP,
                                            HP_CAS,
+                                           HP_REAL,
                                            HP_COMPLEX,
                                            HP_LIST,
                                            HP_MATRIX,
                                            HP_NOTE,
                                            HP_PROG,
-                                           HP_REAL,
                                            HP_VAR
                                            };
 
@@ -600,7 +598,7 @@ hpTreeItem::~hpTreeItem() {
         mdiarea=nullptr;
     }
 */
-
-    //qDebug()<<"hpTreeItem:: delete";
+    removeColumn(0);
+    qDebug()<<"hpTreeItem:: delete"<<filename;
 }
 

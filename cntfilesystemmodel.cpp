@@ -78,13 +78,13 @@ QMimeData* contentFileSystemModel::mimeData(const QModelIndexList &indexes) cons
             case HP_PROG: {
                 qDebug()<<"HP_PROG Found";
                 mimeDataPtr->setText(info.baseName());
-                mimeDataPtr->setData("application/x-programme",mydata);
+                mimeDataPtr->setData(mimetypes[HP_PROG][1],mydata);
                 break;
             }
             case HP_APP: {
                 qDebug()<<"HP_APP Found";
                 mimeDataPtr->setText(info.baseName());
-                mimeDataPtr->setData("application/x-application",mydata);
+                mimeDataPtr->setData(mimetypes[HP_APP][1],mydata);
                 break;
             }
             case HP_MATRIX: {

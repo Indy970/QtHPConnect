@@ -78,8 +78,9 @@ SOURCES += \
     cntfilesystemmodel.cpp \
     abstractdata.cpp \
     matrixdata.cpp \
-    eventthread.cpp \
-    options.cpp
+    options.cpp \
+    eventtimer.cpp \
+    eventthread.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -119,9 +120,11 @@ HEADERS += \
     cntfilesystemmodel.h \
     abstractdata.h \
     matrixdata.h \
-    eventthread.h \
     options.h \
-    hp_typedef.h
+    hp_typedef.h \
+    eventtimer.h \
+    eventthread.h \
+    eventthread.h
 
 FORMS += \
     mainwindow.ui \

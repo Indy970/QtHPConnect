@@ -27,6 +27,6 @@ void hp_MdiWindow::show() {
 
 hp_MdiWindow::~hp_MdiWindow() {
 
-//    qDebug()<<"Entering ~hpmdiWindow()";
+    qDebug()<<"Entering ~hpmdiWindow()";
 
 }

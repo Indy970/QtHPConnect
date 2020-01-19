@@ -3,23 +3,11 @@
 
 #include <QString>
 #include <QByteArray>
+#include "hp_typedef.h"
 #include "hpusb.h"
 #include "matrixdata.h"
 
-enum hp_DataType{
-                HP_MAIN=0,
-                HP_APP=1,
-                HP_CAS=2,
-                HP_COMPLEX=3,
-                HP_LIST=4,
-                HP_MATRIX=5,
-                HP_NOTE=6,
-                HP_PROG=7,
-                HP_REAL=8,
-                HP_VAR=9,
-                HP_SCREEN=10,
-                HP_SETTINGS=10
-};
+
 
 struct m_Size {
     int row;

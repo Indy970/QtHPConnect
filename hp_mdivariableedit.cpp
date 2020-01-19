@@ -39,6 +39,6 @@ void hp_mdiVariableEdit::show() {
 
 hp_mdiVariableEdit::~hp_mdiVariableEdit() {
 
- //   qDebug()<<"Entering ~hpmdiVariableEdit()";
+    qDebug()<<"Entering ~hpmdiVariableEdit()";
 
 }

@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QByteArray>
 #include <QMutex>
+#include "hp_typedef.h"
 
 struct hp_Settings;
 class hpCalcData;
@@ -117,15 +118,7 @@ struct hp_pkt_out {
     uint8_t cmd;
 };
 
-typedef  enum {
-    // 5 is triggered periodically by the official connectivity kit. It returns something with a PNG header, but much smaller.
-    CALC_SCREENSHOT_FORMAT_FIRST = 8,
-    CALC_SCREENSHOT_FORMAT_PRIME_PNG_320x240x16 = 8,
-    CALC_SCREENSHOT_FORMAT_PRIME_PNG_320x240x4 = 9,
-    CALC_SCREENSHOT_FORMAT_PRIME_PNG_160x120x16 = 10,
-    CALC_SCREENSHOT_FORMAT_PRIME_PNG_160x120x4 = 11,
-    CALC_SCREENSHOT_FORMAT_LAST ///< Keep this one last
-} hp_screenshot_format;
+
 
 //! Structure defining a raw packet for the Prime, used at the lowest layer of the protocol implementation.
 typedef struct
@@ -217,12 +210,14 @@ public:
         int hotplugcallback(struct libusb_context *ctx, struct libusb_device *dev,
                              libusb_hotplug_event event);
 
-        int eventHandler();
+
         ~hpusb();
 
 signals:
         void hotplug(int );
 
+public slots:
+         int eventHandler();
 };
 
 #endif // HPUSB_H

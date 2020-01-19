@@ -1389,10 +1389,15 @@ int hpusb::hotplugcallback(struct libusb_context *ctx, struct libusb_device *dev
 //eventhandler called periodically to handle async events
 int hpusb::eventHandler() {
 
-//   QMutexLocker  locker(&mutex);
-   int completed;
-//   qDebug()<<"In Eventhandler";
-   libusb_handle_events_completed(nullptr, &completed);
+   QMutexLocker  locker(&mutex);
+   int completed=0;
+
+   if (lb_init==1) {
+
+        libusb_handle_events_completed(nullptr, &completed);
+   }
+
+    qDebug()<<"hpusb::eventHandler::In Eventhandler closed";
     return 0;
 }
 
