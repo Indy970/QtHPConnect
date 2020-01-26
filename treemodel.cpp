@@ -4,6 +4,7 @@
 
 #include "treemodel.h"
 #include "hptreeitem.h"
+#include <hp_mditexteditor.h>
 #include <QStringListModel>
 #include <QMimeData>
 
@@ -88,6 +89,66 @@ hpCalcData * treeModel::getCalculator(QString name){
     return hpdata;
 }
 
+void treeModel::clickAction(QMdiArea * mdiwin,QModelIndex &index) {
+
+    return openFile(mdiwin,index);
+}
+
+void treeModel::openFile(QMdiArea * mdiwin, QModelIndex &index) {
+
+    qDebug()<<"treeModel::openFile";
+    hp_mdiTextEdit * hptextedit = nullptr;
+    AbstractData * data=nullptr;
+    hpTreeItem * item=nullptr;
+
+    item = static_cast<hpTreeItem *>(itemFromIndex(index));
+    data=getData(index);
+    if ((data!=nullptr)&&(item!=nullptr)) {
+           if (hptextedit==nullptr)
+                hptextedit = new hp_mdiTextEdit(mdiwin,item, data);
+             if (hptextedit!=nullptr)
+                hptextedit ->show();
+        }
+        else {
+            qDebug()<<"Null data";
+        }
+}
+
+void treeModel::renameFile(QModelIndex &index,QString newName) {
+
+    qDebug()<<"treeModel::renameFile";
+    hp_mdiTextEdit * hptextedit = nullptr;
+    AbstractData * data=nullptr;
+    hpTreeItem * item=nullptr;
+
+    item = static_cast<hpTreeItem *>(itemFromIndex(index));
+
+    if (item!=nullptr) {
+        //
+    }
+        else {
+            qDebug()<<"Null data";
+        }
+}
+
+
+void treeModel::deleteFile( QModelIndex &index) {
+
+    qDebug()<<"treeModel::deleteFile";
+    hp_mdiTextEdit * hptextedit = nullptr;
+    AbstractData * data=nullptr;
+    hpTreeItem * item=nullptr;
+
+    item = static_cast<hpTreeItem *>(itemFromIndex(index));
+
+    if (item!=nullptr) {
+
+    }
+        else {
+            qDebug()<<"Null data";
+        }
+}
+
 //return the calculator data within the model
 hpTreeItem * treeModel::getCalculatorItem(QString name){
 
@@ -117,7 +178,7 @@ QString treeModel::getLastDataKey() {
 //manage link between tree and data
 //A map stores the treeItem, dataItem and in future perhaps the handle in a list
 // retrievable by a string key
-hpCalcData * treeModel::getHpCalcData(QString name) {
+hpCalcData * treeModel::getHpCalcData(QString name) const {
 
     hpDataLink hplink;
     hpCalcData * hpdata=nullptr;
@@ -150,28 +211,69 @@ Qt::DropActions treeModel::supportedDropActions() const
     return Qt::CopyAction | Qt::MoveAction | Qt::TargetMoveAction;
 }
 
+//Return the data object belonging to an item
+AbstractData * treeModel::getData(QModelIndex index) const {
+
+    AbstractData * adata=nullptr;
+    QString calc;
+    QString name;
+    hp_DataType type;
+    hpTreeItem * item=nullptr;
+    hpCalcData * hpdata=nullptr;
+    if (index.isValid()) {
+        item = static_cast<hpTreeItem *>(itemFromIndex(index));
+        if (item!=nullptr) {
+            calc=item->getCalculatorName();
+            name=item->getFileName();
+            qDebug()<<name;
+            type=item->getType();
+            hpdata=getHpCalcData(calc);
+            if (hpdata!=nullptr) {
+                adata=hpdata->getData(name,type);
+            }
+            else {
+                qDebug()<<"treeMoel::getData hpdata is null";
+            }
+        }
+        else {
+            qDebug()<<"treeMoel::getData item is null";
+        }
+    }
+    else {
+        qDebug()<<"treeMoel::getData invalid index";
+    }
+    return adata;
+}
+
+
 //Get and pass on the data to be dragged
 QMimeData* treeModel::mimeData(const QModelIndexList &indexes) const
 {
 
     QMimeData *mimeDataPtr = new QMimeData();
+    AbstractData * adata = nullptr;
     QByteArray mydata;
+    QByteArray datatype;
+    QModelIndex index;
 
     qDebug()<<"treeModel::mimeData";
 
-    mimeDataPtr->setData("application/x-qabstractmodeldatalist",mydata);
-
-    /* Store row id list */
-    QList<int> rowIdList;
-    int rowId;
-    foreach (QModelIndex index, indexes) {
-        if (index.isValid()) {
-            rowId = index.row();
-
-            if (!rowIdList.contains(rowId)) {
-                rowIdList << rowId;
-            }
+    for(int i =0; i<indexes.count(); i++)
+    {
+        index = indexes.at(i);
+        adata = getData(index);
+        if (adata!=nullptr) {
+            qDebug()<<"Data "<<adata->getType();
+            mydata = adata->getData();
+            mimeDataPtr->setText(adata->getName());
+            datatype[0] = adata->getType();
+            mimeDataPtr->setData("application/x-type",datatype);
+            mimeDataPtr->setData("application/x-qabstractmodeldatalist",mydata);
         }
+        else {
+             qDebug()<<"treeModel::mimeData No Data";
+        }
+
     }
 
     return mimeDataPtr;
@@ -205,10 +307,10 @@ bool treeModel::dropMimeData(const QMimeData* md_data, Qt::DropAction action, in
         formatList=md_data->formats();
 
         foreach(const QString& format, formatList) {
- //           qDebug()<<format;
+            qDebug()<<format;
             for(int i = HP_MAIN; i < HP_SETTINGS; i++) {
                 mimeType=mimetypes[i][1];
- //               qDebug()<<mimeType;
+                qDebug()<<mimeType;
                 if( mimeType==format) {
                     type=static_cast<hp_DataType>(i);
                     break;
@@ -222,13 +324,33 @@ bool treeModel::dropMimeData(const QMimeData* md_data, Qt::DropAction action, in
 
             QDataStream in(&data_in,QIODevice::ReadOnly);
 
+            qDebug()<<"Type="<<type;
             switch(type) {
-
+                case HP_NOTE: {
+                    absitem = new Notes(name, HP_NOTE,QStringLiteral(""));
+                    absitem->parseData(in);
+                    break;
+                }
+                case HP_LIST: {
+                    absitem = new List(name, HP_LIST);
+                    absitem->parseData(in);
+                    break;
+                }
+                case HP_MATRIX: {
+                    absitem = new Matrix(name, HP_MATRIX);
+                    absitem->parseData(in);
+                    break;
+                }
                 case HP_PROG: {
                     absitem = new Program(name, HP_PROG, QStringLiteral(""));
                     absitem->parseData(in);
                     break;
                 }
+                case HP_VAR: {
+                    absitem = new Variables(name, HP_VAR);
+                    absitem->parseData(in);
+                break;
+            }
         }
 
         QString calc = item->getCalculatorName();

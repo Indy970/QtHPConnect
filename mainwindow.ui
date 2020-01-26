@@ -46,7 +46,7 @@
      <x>0</x>
      <y>0</y>
      <width>919</width>
-     <height>30</height>
+     <height>23</height>
     </rect>
    </property>
    <property name="font">
@@ -159,7 +159,10 @@
         </sizepolicy>
        </property>
        <property name="contextMenuPolicy">
-        <enum>Qt::CustomContextMenu</enum>
+        <enum>Qt::ActionsContextMenu</enum>
+       </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Calculator View&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="lineWidth">
         <number>2</number>
@@ -232,7 +235,32 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QTreeView" name="tvContent"/>
+      <widget class="QTreeView" name="tvContent">
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;File View&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectItems</enum>
+       </property>
+       <property name="indentation">
+        <number>15</number>
+       </property>
+       <attribute name="headerCascadingSectionResizes">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="headerMinimumSectionSize">
+        <number>47</number>
+       </attribute>
+       <attribute name="headerDefaultSectionSize">
+        <number>150</number>
+       </attribute>
+       <attribute name="headerHighlightSections">
+        <bool>true</bool>
+       </attribute>
+       <attribute name="headerStretchLastSection">
+        <bool>false</bool>
+       </attribute>
+      </widget>
      </item>
     </layout>
    </widget>
@@ -526,6 +554,102 @@
    </property>
    <property name="text">
     <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionFileOpen">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/open_16x16.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Open</string>
+   </property>
+   <property name="toolTip">
+    <string>Open a file</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+O</string>
+   </property>
+  </action>
+  <action name="actionFileDelete">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/delete_16x16.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Delete</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete a file</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+D</string>
+   </property>
+  </action>
+  <action name="actionFileRename">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/rename_16x16.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Rename</string>
+   </property>
+   <property name="toolTip">
+    <string>Rename a file</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+R</string>
+   </property>
+  </action>
+  <action name="actionCalcOpen">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/open_16x16.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Open</string>
+   </property>
+   <property name="toolTip">
+    <string>Open a file</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+O</string>
+   </property>
+  </action>
+  <action name="actionCalcDelete">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/delete_16x16.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Delete</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete a file</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+D</string>
+   </property>
+  </action>
+  <action name="actionCalcRename">
+   <property name="icon">
+    <iconset>
+     <normalon>:/icons/rename_16x16.png</normalon>
+    </iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Rename</string>
+   </property>
+   <property name="toolTip">
+    <string>Rename a file</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+R</string>
    </property>
   </action>
  </widget>

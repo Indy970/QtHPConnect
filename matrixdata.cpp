@@ -1,10 +1,10 @@
 #include <QDebug>
-
 #include "matrixdata.h"
 
 MatrixData::MatrixData()
 {
-    clear();
+//    clear();
+    qDebug()<<"MtarixData Construct";
 }
 
 //Return the item or a zero item

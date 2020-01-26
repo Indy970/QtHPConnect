@@ -3,13 +3,14 @@
 
 #include <QTextEdit>
 
+
 class textEditor : public QTextEdit
 {
     Q_OBJECT
 
 public:
-    explicit textEditor(QWidget *parent = 0);
-    ~textEditor();
+    explicit textEditor(QWidget *parent = nullptr);
+    ~textEditor() override;
     void newFile();
     bool loadFile(const QString &fileName);
     bool save();

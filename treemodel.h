@@ -4,6 +4,7 @@
 #include <QStandardItemModel>
 #include <QObject>
 #include <QMap>
+#include <QMdiArea>
 #include "hp_typedef.h"
 #include "hpdata.h"
 
@@ -31,10 +32,15 @@ public:
     int addCalculator(QString name, hpusb * handle);
     int deletCalculator(QString name, hpusb * handle);
     int deleteAllCalculators();
+    void clickAction(QMdiArea * mdiwin,QModelIndex &index);
+    void openFile(QMdiArea * mdiwin,QModelIndex &index);
+    void deleteFile(QModelIndex &index);
+    void renameFile(QModelIndex &index,QString newName);
     hpCalcData * getCalculator(QString name);
     hpTreeItem * getCalculatorItem(QString name);
-    hpCalcData * getHpCalcData(QString name);
+    hpCalcData * getHpCalcData(QString name) const;
     AbstractData * createData(hp_Data data_in);
+    AbstractData * getData(QModelIndex) const;
     int addItem(QString calc, AbstractData * obj);
     int deleteItem(hpCalcData* hpcalc, AbstractData * obj);
     void setHpCalcData(QString name, hpCalcData * , hpTreeItem *);

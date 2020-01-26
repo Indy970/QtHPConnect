@@ -20,6 +20,7 @@
 #include "cntfilesystemmodel.h"
 #include "eventtimer.h"
 
+
 class treeModel;
 class errorHandler;
 
@@ -68,7 +69,17 @@ private slots:
     treeModel * getTreeModel();
 
     void treeMenuAction(bool);
+    void treeOpenAction(bool);
+    void treeRenameAction(bool);
+    void treeDeleteAction(bool);
+
+    void contentMenuAction(bool);
+    void contentOpenAction(bool);
+    void contentRenameAction(bool);
+    void contentDeleteAction(bool);
+
     void on_tvCalculators_customContextMenuRequested(const QPoint &pos);
+    void on_tvContent_customContextMenuRequested(const QPoint &pos);
     void eventHandler();
     void refresh(bool clicked);
     void hotplug_handler(int );
@@ -84,6 +95,11 @@ private:
 
     EventTimer * eventTimer;
     QMenu * treeMenu=nullptr;
+    QMenu * treeMenu1=nullptr;
+    QMenu * treeMenu2=nullptr;
+    QMenu * fileMenu1=nullptr;
+    QMenu * fileMenu2=nullptr;
+
     hpusb * hpapi=nullptr;
     QMdiSubWindow * msgWindow=nullptr;
     hp_MdiWindow * logWindow=nullptr;

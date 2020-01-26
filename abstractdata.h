@@ -103,11 +103,12 @@ class Matrix:  public AbstractData
 {
 private:
     MatrixData mdata;
-    void parseData();
 public:
     Matrix(QString, hp_DataType);
     itemData getListItem(int row, int column);
     void setListItem(int, int, itemData);
+    void parseData();
+    virtual void parseData(QDataStream& in);
     QString getItem(int row, int column);
     void setItem(int, int, QString);
     void setItem(int, int, QString, double);
@@ -136,11 +137,12 @@ class Notes:  public AbstractData
 private:
         QString text;
         QString format;
-        void parseData();
+
 public:
     Notes(QString, hp_DataType, QString);
     void setNote(QString);
     QString getNote();
+    void parseData();
 };
 
 class Variables:  public AbstractData

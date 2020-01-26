@@ -96,6 +96,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tvCalculators->setDropIndicatorShown(true);
     ui->tvCalculators->show();
 
+
+
+
+
     connect(ui->actionOpen,SIGNAL(triggered()),this,SLOT(onOpen()));
     connect(ui->actionAbout_HP_Connect,SIGNAL(triggered()),this,SLOT(about()));
   //  connect(ui->actionExit,SIGNAL(triggered()),this,SLOT(exit()));
@@ -112,6 +116,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionRefresh,SIGNAL(triggered(bool)),this,SLOT(refresh(bool)));
     connect(ui->actionPreferences,SIGNAL(triggered(bool)),this,SLOT(onOptions(bool)));
     connect(ui->tvCalculators, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(on_tvCalculators_customContextMenuRequested(const QPoint &)));
+    connect(ui->tvContent, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(on_tvContent_customContextMenuRequested(const QPoint &)));
     connect(hpapi, SIGNAL(hotplug(int)), this, SLOT(hotplug_handler(int)));
 
     //default data
@@ -584,13 +589,51 @@ void MainWindow::setTreeMenu() {
     treeMenu->addAction(ui->actionSettings);
     treeMenu->addAction(ui->actionRefresh);
     ui->tvCalculators->setContextMenuPolicy(Qt::CustomContextMenu);
+    ui->tvContent->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->actionSettings, SIGNAL(triggered(bool)),
         this, SLOT(treeMenuAction(bool)));
     connect(ui->actionRefresh, SIGNAL(triggered(bool)),
         this, SLOT(refresh(bool)));
+
+
+    treeMenu1 = new QMenu(ui->tvCalculators);
+    treeMenu1->addAction(ui->actionCalcOpen);
+    treeMenu1->addAction(ui->actionCalcDelete);
+    treeMenu1->addAction(ui->actionCalcRename);
+
+    treeMenu2 = new QMenu(ui->tvCalculators);
+    treeMenu2->addAction(ui->actionCalcOpen);
+    treeMenu2->addAction(ui->actionCalcDelete);
+
+    connect(ui->actionCalcOpen, SIGNAL(triggered(bool)),
+        this, SLOT(treeOpenAction(bool)));
+    connect(ui->actionCalcDelete, SIGNAL(triggered(bool)),
+        this, SLOT(treeDeleteAction(bool)));
+    connect(ui->actionCalcRename, SIGNAL(triggered(bool)),
+        this, SLOT(treeRenameAction(bool)));
+
+
+    fileMenu1 = new QMenu(ui->tvContent);
+    fileMenu1->addAction(ui->actionFileOpen);
+    fileMenu1->addAction(ui->actionFileDelete);
+    fileMenu1->addAction(ui->actionFileRename);
+
+    fileMenu2 = new QMenu(ui->tvContent);
+    fileMenu2->addAction(ui->actionFileOpen);
+    fileMenu2->addAction(ui->actionFileDelete);
+
+    connect(ui->actionFileOpen, SIGNAL(triggered(bool)),
+        this, SLOT(contentOpenAction(bool)));
+    connect(ui->actionFileRename, SIGNAL(triggered(bool)),
+        this, SLOT(contentRenameAction(bool)));
+    connect(ui->actionFileDelete, SIGNAL(triggered(bool)),
+        this, SLOT(contentDeleteAction(bool)));
+
 }
 
 void MainWindow::treeMenuAction(bool clicked) {
+
+    qDebug()<<"MainWindow::treeMenuAction";
 
     QPoint pos;
     pos=ui->actionSettings->data().toPoint();
@@ -615,10 +658,164 @@ void MainWindow::treeMenuAction(bool clicked) {
     }
 }
 
+
+void MainWindow::treeOpenAction(bool clicked) {
+      qDebug()<<"MainWindow::treeOpenAction";
+
+      QPoint pos;
+      pos=ui->actionCalcOpen->data().toPoint();
+      QModelIndex index = ui->tvCalculators->indexAt(pos);
+
+      if (index.isValid()) {
+            hpTreeModel->openFile(getMdi(),index);
+      }
+       else {
+       }
+       return;
+
+}
+
+void MainWindow::treeRenameAction(bool clicked) {
+  qDebug()<<"MainWindow::treeRenameAction";
+
+  QPoint pos;
+  pos=ui->actionCalcRename->data().toPoint();
+  QModelIndex index = ui->tvCalculators->indexAt(pos);
+
+  QString newName=QStringLiteral("New");
+
+
+  if (index.isValid()) {
+
+  //    QFileInfo fileinfo = contentModel.fileInfo(index);
+
+  //    newName=fileinfo.fileName();
+
+      bool ok;
+      newName = QInputDialog::getText(this, tr("QInputDialog::getText()"),
+                                                       tr("File name:"), QLineEdit::Normal,
+                                                       newName, &ok);
+
+     if (ok && !newName.isEmpty()) {
+        hpTreeModel->renameFile(index,newName);
+     }
+   }
+   else {
+   }
+   return;
+
+}
+
+void MainWindow::treeDeleteAction(bool clicked) {
+  qDebug()<<"MainWindow::treeDeleteAction";
+
+  QPoint pos;
+  pos=ui->actionCalcDelete->data().toPoint();
+  QModelIndex index = ui->tvCalculators->indexAt(pos);
+  QMessageBox::StandardButton reply;
+
+  if (index.isValid()) {
+
+      QString msg("Are you sure you want to delete file ");
+
+      reply = QMessageBox::question(this, "Delete File", msg,
+                                     QMessageBox::Yes|QMessageBox::No);
+      if (reply == QMessageBox::Yes) {
+            hpTreeModel->deleteFile(index);
+      }
+  }
+   else {
+   }
+   return;
+
+}
+
+void MainWindow::contentMenuAction(bool clicked) {
+   qDebug()<<"MainWindow::contentMenuAction";
+
+}
+
+void MainWindow::contentOpenAction(bool clicked) {
+   qDebug()<<"MainWindow::contentOpenAction";
+
+   QPoint pos;
+   pos=ui->actionFileOpen->data().toPoint();
+   QModelIndex index = ui->tvContent->indexAt(pos);
+
+   if (index.isValid()) {
+        contentModel.clickAction(getMdi(),index);
+   }
+    else {
+    }
+    return;
+}
+
+void MainWindow::contentRenameAction(bool clicked) {
+   qDebug()<<"MainWindow::contentRenameAction";
+
+   QPoint pos;
+   pos=ui->actionFileRename->data().toPoint();
+   QModelIndex index = ui->tvContent->indexAt(pos);
+
+   QString newName;
+
+   if (index.isValid()) {
+   QFileInfo fileinfo = contentModel.fileInfo(index);
+
+   newName=fileinfo.fileName();
+
+   bool ok;
+   newName = QInputDialog::getText(this, tr("QInputDialog::getText()"),
+                                                    tr("File name:"), QLineEdit::Normal,
+                                                    newName, &ok);
+   if (ok && !newName.isEmpty()) {
+           contentModel.renameFile(index,newName);
+        }
+    }
+    else {
+    }
+
+    return;
+
+}
+
+void MainWindow::contentDeleteAction(bool clicked) {
+   qDebug()<<"MainWindow::contentDeleteAction";
+
+   QPoint pos;
+   pos=ui->actionFileDelete->data().toPoint();
+   QModelIndex index = ui->tvContent->indexAt(pos);
+
+   QMessageBox::StandardButton reply;
+
+   if (index.isValid()) {
+    QFileInfo fileinfo = contentModel.fileInfo(index);
+    QString msg("Are you sure you want to delete file ");
+
+    msg=msg+fileinfo.fileName()+".";
+
+    reply = QMessageBox::question(this, "Delete File", msg,
+                                   QMessageBox::Yes|QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+           contentModel.deleteFile(index);
+       }
+   }
+   else {
+     }
+
+   return;
+}
+
 void MainWindow::on_tvCalculators_customContextMenuRequested(const QPoint &pos)
 {
     QModelIndex index = ui->tvCalculators->indexAt(pos);
     if (index.isValid()) {
+
+        ui->actionCalcOpen->setData(QVariant(pos));
+        ui->actionCalcDelete->setData(QVariant(pos));
+        ui->actionCalcRename->setData(QVariant(pos));
+
         hpTreeItem * treeItem = dynamic_cast<hpTreeItem *>(hpTreeModel->itemFromIndex(index));
         if(treeItem) {
           hp_DataType treetype;
@@ -632,9 +829,62 @@ void MainWindow::on_tvCalculators_customContextMenuRequested(const QPoint &pos)
                 }
               }
               break;
+          case HP_PROG:
+          case HP_NOTE:{
+              if(treeMenu1) {
+                  ui->actionPreferences->setData(QVariant(pos));
+                  treeMenu1->exec(ui->tvCalculators->viewport()->mapToGlobal(pos));
+                  treeMenu1->hide();
+              }
+              }
+              break;
+          case HP_MATRIX:
+          case HP_LIST:{
+              if(treeMenu2) {
+                  ui->actionPreferences->setData(QVariant(pos));
+                  treeMenu2->exec(ui->tvCalculators->viewport()->mapToGlobal(pos));
+                }
+              }
+              break;
           default:;
           }
           }
+    }
+}
+
+void MainWindow::on_tvContent_customContextMenuRequested(const QPoint &pos)
+{
+    QModelIndex index = ui->tvContent->indexAt(pos);
+
+    hp_DataStruct filedata;
+    if (index.isValid()) {
+
+        QFileInfo info = contentModel.fileInfo(index);
+        ui->actionFileOpen->setData(QVariant(pos));
+        ui->actionFileDelete->setData(QVariant(pos));
+        ui->actionFileRename->setData(QVariant(pos));
+//        qDebug()<<"MainWindow::on_tvContent_customContextMenuRequested";
+        filedata=contentModel.getFileType(info);
+        switch (filedata.type) {
+            case HP_PROG:
+            case HP_APP:
+            case HP_NOTE:
+            case HP_VAR: {
+                 fileMenu1->exec(ui->tvContent->viewport()->mapToGlobal(pos));
+                 fileMenu1->hide();
+                 break;
+            }
+            case HP_CAS:
+            case HP_MAIN:
+            case HP_MATRIX:
+            case HP_LIST:
+            case HP_COMPLEX:
+            case HP_SCREEN:
+            case HP_REAL: {
+                  fileMenu2->exec(ui->tvContent->viewport()->mapToGlobal(pos));
+            }
+        }
+
     }
 }
 

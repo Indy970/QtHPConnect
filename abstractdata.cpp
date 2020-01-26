@@ -225,9 +225,10 @@ itemData extract8(QByteArray item) {
 AbstractData::AbstractData(QString name_in, hp_DataType type_in)
 {
 
- //   qDebug()<<"base class called "<<name_in;
+    qDebug()<<"base class called "<<name_in;
     setName(name_in);
     setType(type_in);
+
 }
 
 //Equivalence on name and type NOT on data
@@ -293,8 +294,23 @@ void AbstractData::parseData() {
      qDebug()<<"AbstractData::parseData";
 }
 
-void AbstractData::parseData(QDataStream& ) {
-     qDebug()<<"AbstractData::parseData";
+void AbstractData::parseData(QDataStream& in) {
+     qDebug()<<"AbstractData::parseData(DS)";
+
+     in.setByteOrder(QDataStream::LittleEndian);
+     qint8 c;
+     QByteArray a1;
+     uint length;
+     length=16;
+
+     qDebug()<<"Parsing Matrix";
+     in.startTransaction();
+     while(!in.atEnd()) {
+         in>>c;
+         a1.append(c);
+     }
+     data = a1;
+     parseData();
 }
 
 AbstractData::~AbstractData() {
@@ -681,9 +697,28 @@ int List::getListSize() {
 
 Matrix::Matrix(QString name_in, hp_DataType type_in):
     AbstractData(name_in, type_in) {
-
+    qDebug()<<"Create Matrix";
     setFileCode(HP_TP_MATRIX);
 }
+
+void Matrix::parseData(QDataStream & in) {
+
+    in.setByteOrder(QDataStream::LittleEndian);
+    qint8 c;
+    QByteArray a1;
+    uint length;
+    length=16;
+
+    qDebug()<<"Parsing Matrix";
+    in.startTransaction();
+    while(!in.atEnd()) {
+        in>>c;
+        a1.append(c);
+    }
+    data = a1;
+    parseData();
+}
+
 
 void Matrix::parseData() {
 
