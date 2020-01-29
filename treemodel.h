@@ -41,6 +41,7 @@ public:
     hpCalcData * getHpCalcData(QString name) const;
     AbstractData * createData(hp_Data data_in);
     AbstractData * getData(QModelIndex) const;
+    QString getName(QModelIndex) const;
     int addItem(QString calc, AbstractData * obj);
     int deleteItem(hpCalcData* hpcalc, AbstractData * obj);
     void setHpCalcData(QString name, hpCalcData * , hpTreeItem *);

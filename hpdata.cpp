@@ -93,6 +93,7 @@ void hpCalcData::addData(AbstractData * data) {
 
 void hpCalcData::deleteData(AbstractData *) {
  //   lData.erase();
+    qDebug()<<"hpCalcData::deleteData - functionality requierd";
 }
 
 //returns position of entry in list or returns 0;

@@ -682,15 +682,9 @@ void MainWindow::treeRenameAction(bool clicked) {
   pos=ui->actionCalcRename->data().toPoint();
   QModelIndex index = ui->tvCalculators->indexAt(pos);
 
-  QString newName=QStringLiteral("New");
-
-
   if (index.isValid()) {
 
-  //    QFileInfo fileinfo = contentModel.fileInfo(index);
-
-  //    newName=fileinfo.fileName();
-
+      QString newName= hpTreeModel->getName(index);
       bool ok;
       newName = QInputDialog::getText(this, tr("QInputDialog::getText()"),
                                                        tr("File name:"), QLineEdit::Normal,
@@ -716,7 +710,9 @@ void MainWindow::treeDeleteAction(bool clicked) {
 
   if (index.isValid()) {
 
+      QString fileName= hpTreeModel->getName(index);
       QString msg("Are you sure you want to delete file ");
+      msg=msg+fileName;
 
       reply = QMessageBox::question(this, "Delete File", msg,
                                      QMessageBox::Yes|QMessageBox::No);

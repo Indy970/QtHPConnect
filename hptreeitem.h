@@ -51,7 +51,7 @@ public slots:
 private:
     const static QString func_list[][2];
     const static hp_DataType func_type[];
-    QString filename;
+  //  QString filename;
     hp_DataType type;
     hpCalcData * hp_data=nullptr;
     QMdiArea * mdiarea=nullptr;

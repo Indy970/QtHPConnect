@@ -243,14 +243,16 @@ inline bool AbstractData::operator ==(AbstractData& lhs) {
 //Equivalence on name and type NOT on data
 bool AbstractData::equivalent(QString name_in, hp_DataType type_in) {
 
-    if((name==name_in)&&(type==type_in))
+    if((getName()==name_in)&&(getType()==type_in))
         return true;
     else
         return false;
 }
 
 void AbstractData::setName(QString name_in) {
+    qDebug()<<"Abstract set name"<<name_in;
     name = name_in;
+    return;
 }
 
 QString AbstractData::getName() {

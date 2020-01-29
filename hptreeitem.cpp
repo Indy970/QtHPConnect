@@ -60,7 +60,7 @@ hpTreeItem::hpTreeItem(const QString & name,hpCalcData * hpDataStore,int flag)
     setDragEnabled(true);
     setDropEnabled(true);
 
-    filename=name;
+  //  filename=name;
 
     if (flag==0)
         setGraphicTree();
@@ -173,6 +173,10 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
                  data=dataStore->getData(getFileName(),getType());
              }
 
+            //To fix by having hp_mdi reset
+            hptextedit=nullptr;
+
+
             if (hptextedit==nullptr)
                 hptextedit = new hp_mdiTextEdit(mdiwin,this, data);
             if (hptextedit!=nullptr)
@@ -180,13 +184,18 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
             }
             break;
         case HP_PROG: {
-            hpCalcData * dataStore;
+            hpCalcData * dataStore =nullptr;
             AbstractData * data =nullptr;
             dataStore = getDataStore();
             qDebug()<<"HP_Prog ... click"<<getFileName();
             if (dataStore) {
                 data=dataStore->getData(getFileName(),getType());
+                qDebug()<<data->getName();
             }
+
+            //To fix by having hp_mdi reset
+            hptextedit=nullptr;
+
             if (hptextedit==nullptr) {
                 hptextedit = new hp_mdiTextEdit(mdiwin,this, data);
             }
@@ -289,7 +298,7 @@ QString hpTreeItem::getGroupName() {
 
 QString hpTreeItem::getFileName() {
 
-    return filename;
+    return text();
  }
 
 QString hpTreeItem::getCalculatorName() {
@@ -306,7 +315,14 @@ QString hpTreeItem::getCalculatorName() {
 
 void hpTreeItem::setFileName(QString file) {
 
-    filename=file;
+
+    qDebug()<<"rename "<<text()<<" to "<<file;
+
+//    filename=file;
+    setText(file);
+
+    return;
+
  }
 
 //Slot to respond to data changes
@@ -599,6 +615,6 @@ hpTreeItem::~hpTreeItem() {
     }
 */
     removeColumn(0);
-    qDebug()<<"hpTreeItem:: delete"<<filename;
+    qDebug()<<"hpTreeItem:: delete"<<text();
 }
 

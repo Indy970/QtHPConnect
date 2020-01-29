@@ -117,36 +117,89 @@ void treeModel::openFile(QMdiArea * mdiwin, QModelIndex &index) {
 void treeModel::renameFile(QModelIndex &index,QString newName) {
 
     qDebug()<<"treeModel::renameFile";
-    hp_mdiTextEdit * hptextedit = nullptr;
-    AbstractData * data=nullptr;
+
+    AbstractData * adata=nullptr;
     hpTreeItem * item=nullptr;
+    QString calc;
+    QString name;
+    hp_DataType type;
+    hpCalcData * hpdata=nullptr;
 
-    item = static_cast<hpTreeItem *>(itemFromIndex(index));
+    if (index.isValid()) {
+        item = static_cast<hpTreeItem *>(itemFromIndex(index));
 
-    if (item!=nullptr) {
-        //
-    }
+        if (item!=nullptr) {
+
+            calc=item->getCalculatorName();
+            name=item->getFileName();
+            qDebug()<<name;
+            type=item->getType();
+            hpdata=getHpCalcData(calc);
+            if (hpdata!=nullptr) {
+                adata=hpdata->getData(name,type);
+            }
+            else {
+                qDebug()<<"treeModel::renameFile hpdata is null";
+            }
+
+            //
+            item->setFileName(newName);
+            adata->setName(newName);
+
+            //
+        }
         else {
             qDebug()<<"Null data";
         }
+    }
+    else {
+         qDebug()<<"treeModel::renameFile invalid index";
+    }
 }
-
 
 void treeModel::deleteFile( QModelIndex &index) {
 
     qDebug()<<"treeModel::deleteFile";
-    hp_mdiTextEdit * hptextedit = nullptr;
-    AbstractData * data=nullptr;
+    AbstractData * adata=nullptr;
     hpTreeItem * item=nullptr;
+    QString calc;
+    QString name;
+    hp_DataType type;
+    hpCalcData * hpdata=nullptr;
 
-    item = static_cast<hpTreeItem *>(itemFromIndex(index));
+    if (index.isValid()) {
+        item = static_cast<hpTreeItem *>(itemFromIndex(index));
 
-    if (item!=nullptr) {
+        if (item!=nullptr) {
 
-    }
+            calc=item->getCalculatorName();
+            name=item->getFileName();
+            qDebug()<<name;
+            type=item->getType();
+            hpdata=getHpCalcData(calc);
+            if (hpdata!=nullptr) {
+                adata=hpdata->getData(name,type);
+            }
+            else {
+                qDebug()<<"treeMoel::deletFile hpdata is null";
+            }
+
+            //
+            //delete hpTreeItem
+
+            //delete Data
+            hpdata->deleteData(adata);
+
+
+
+        }
         else {
             qDebug()<<"Null data";
         }
+    }
+    else {
+         qDebug()<<"treeMoel::deleteFile invalid index";
+    }
 }
 
 //return the calculator data within the model
@@ -210,6 +263,23 @@ Qt::DropActions treeModel::supportedDropActions() const
 {
     return Qt::CopyAction | Qt::MoveAction | Qt::TargetMoveAction;
 }
+
+QString treeModel::getName(QModelIndex index) const {
+
+    QString calc;
+    QString name=QStringLiteral("None");
+    hpTreeItem * item=nullptr;
+    if (index.isValid()) {
+        item = static_cast<hpTreeItem *>(itemFromIndex(index));
+        if (item!=nullptr) {
+            calc=item->getCalculatorName();
+            name=item->getFileName();
+        }
+    }
+    return name;
+}
+
+
 
 //Return the data object belonging to an item
 AbstractData * treeModel::getData(QModelIndex index) const {

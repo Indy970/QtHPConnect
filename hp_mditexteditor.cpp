@@ -10,9 +10,14 @@ hp_mdiTextEdit::hp_mdiTextEdit(QWidget * parent,hpTreeItem * treeItem, AbstractD
     setMaximumSize(1000,1000);
     setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
 
+        qDebug()<<"hp_mdiTextEdit::hp_mdiTextEdit";
     hptreeitem=treeItem;
     data = calcData;
+    qDebug()<<data->getName();
+    qDebug()<<data->getType();
     filename=treeItem->getFileName();
+    qDebug()<<filename;
+
     type=treeItem->getType();
 
     setup();
