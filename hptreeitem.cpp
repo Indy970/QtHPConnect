@@ -1,3 +1,20 @@
+/*
+ * This file is part of the QtHPConnect distribution (https://github.com/Indy970/QtHPConnect.git).
+ * Copyright (c) 2020 Ian Gebbie.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 or later.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "hptreeitem.h"
 #include "global.h"
 #include "hpdata.h"
@@ -46,10 +63,7 @@ hpTreeItem::hpTreeItem()
 }
 
 
-bool hpTreeItem::dropMimeData(const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent) {
 
-    qDebug()<<"hpTreeItem::dropMimeData";
-}
 
 hpTreeItem::hpTreeItem(const QString & name,hpCalcData * hpDataStore,int flag)
 :QStandardItem(name)
@@ -64,6 +78,11 @@ hpTreeItem::hpTreeItem(const QString & name,hpCalcData * hpDataStore,int flag)
 
     if (flag==0)
         setGraphicTree();
+}
+
+bool hpTreeItem::dropMimeData(const QMimeData * data, Qt::DropAction action, int row, int column, const QModelIndex & parent) {
+
+    qDebug()<<"hpTreeItem::dropMimeData";
 }
 
 QStandardItem * hpTreeItem::clone() const {
@@ -121,7 +140,7 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
                     if (calc) {
                         data=calc->getData(getFileName(),HP_COMPLEX);
                     }
-                    if (data) {
+                    if (data!=nullptr) {
                         hpvaredit = new hp_mdiVariableEdit(mdiwin,this,calc);
                     }
                 }
@@ -132,7 +151,7 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
                 if (calc) {
                     data=calc->getData(getFileName(),HP_COMPLEX);
                 }
-                if (data) {
+                if (data!=nullptr) {
                     hpvaredit = new hp_mdiVariableEdit(mdiwin,this,calc);
                 }
             }
@@ -156,7 +175,7 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
                 if (calc) {
                     data=calc->getData(getFileName(),HP_MATRIX);
                 }
-                if (data) {
+                if (data!=nullptr) {
                 hpvaredit = new hp_mdiVariableEdit(mdiwin,this,calc);
                 }
             }
@@ -177,7 +196,7 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
             hptextedit=nullptr;
 
 
-            if (hptextedit==nullptr)
+            if ((hptextedit==nullptr)&&(data!=nullptr))
                 hptextedit = new hp_mdiTextEdit(mdiwin,this, data);
             if (hptextedit!=nullptr)
                     hptextedit ->show();
@@ -188,15 +207,17 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
             AbstractData * data =nullptr;
             dataStore = getDataStore();
             qDebug()<<"HP_Prog ... click"<<getFileName();
-            if (dataStore) {
+            if (dataStore!=nullptr) {
                 data=dataStore->getData(getFileName(),getType());
-                qDebug()<<data->getName();
+                if(data!=nullptr) {
+                    qDebug()<<data->getName();
+                }
             }
 
             //To fix by having hp_mdi reset
             hptextedit=nullptr;
 
-            if (hptextedit==nullptr) {
+            if ((hptextedit==nullptr)&&(data!=nullptr)) {
                 hptextedit = new hp_mdiTextEdit(mdiwin,this, data);
             }
             if (hptextedit!=nullptr)
@@ -208,7 +229,7 @@ void hpTreeItem::clickAction(QMdiArea * mdiwin) {
                 if (calc) {
                     data=calc->getData(getFileName(),HP_REAL);
                 }
-                if (data) {
+                if (data!=nullptr) {
                      hpvaredit = new hp_mdiVariableEdit(mdiwin,this,calc);
                 }
             }

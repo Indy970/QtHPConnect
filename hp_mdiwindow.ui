@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>hp_MdiWindow</class>
  <widget class="QMainWindow" name="hp_MdiWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>

@@ -91,24 +91,44 @@ void hpCalcData::addData(AbstractData * data) {
     lData.append(data);
 }
 
-void hpCalcData::deleteData(AbstractData *) {
+void hpCalcData::deleteData(AbstractData * data) {
  //   lData.erase();
-    qDebug()<<"hpCalcData::deleteData - functionality requierd";
+    if (data!=nullptr) {
+        QString name=data->getName();
+        hp_DataType type=data->getType();
+        QList<AbstractData *>::iterator i;
+        i=findData(name,type);
+
+        lData.erase(i);
+        delete data;
+        qDebug()<<"hpCalcData::deleteData - Object Deleted";
+    }
+    else {
+        qDebug()<<"hpCalcData::deleteData - Object not deleted";
+    }
 }
 
 //returns position of entry in list or returns 0;
-int hpCalcData::findData(QString name, hp_DataType dataType) {
+QList<AbstractData *>::iterator  hpCalcData::findData(QString name, hp_DataType dataType) {
 
-    for (int i = 0; i < lData.size(); ++i) {
-        if (lData.at(i)->equivalent(name,dataType))
+    QList<AbstractData *>::iterator i;
+    AbstractData * ldata;
+
+    i = lData.begin();
+    while (i!= lData.end()) {
+        ldata=*i;
+        if (ldata->equivalent(name,dataType)) {
             return i;
+        }
+
     }
 
-    return 0;
+    return nullptr;
 }
 
 //returns position of entry in list or returns 0;
 AbstractData * hpCalcData::getData(QString name, hp_DataType dataType) {
+
 
     for (int i = 0; i < lData.size(); ++i) {
         if (lData.at(i)->equivalent(name,dataType)) {

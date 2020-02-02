@@ -1,14 +1,37 @@
+/*
+ * This file is part of the QtHPConnect distribution (https://github.com/Indy970/QtHPConnect.git).
+ * Copyright (c) 2020 Ian Gebbie.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3 or later.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
 #include "texteditor.h"
 #include <QtWidgets>
 #include <QRect>
+#include <QSettings>
 
 textEditor::textEditor(QWidget *parent) :
     QTextEdit(parent)
 {
+    QSettings appSettings("IRGP","QtHPconnect");
     wParent = parent;
     setAttribute(Qt::WA_DeleteOnClose);
     setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     isUntitled = true;
+
+    defaultPath=QDir(appSettings.value("contentPath").toString());
+    qDebug()<<defaultPath;
 }
 
 void textEditor::newFile()
@@ -58,8 +81,10 @@ bool textEditor::save()
 
 bool textEditor::saveAs()
 {
+    QFileInfo fileinfo(defaultPath,curFile);
+
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
-                                                    curFile);
+                                                    fileinfo.absoluteFilePath());
     if (fileName.isEmpty())
         return false;
 
@@ -68,7 +93,8 @@ bool textEditor::saveAs()
 
 bool textEditor::saveFile(const QString &fileName)
 {
-    QFile file(fileName);
+    QFileInfo fileinfo(defaultPath,fileName);
+    QFile file(fileinfo.absoluteFilePath());
     if (!file.open(QFile::WriteOnly | QFile::Text)) {
         QMessageBox::warning(this, tr("MDI"),
                              tr("Cannot write file %1:\n%2.")
@@ -108,6 +134,7 @@ bool textEditor::maybeSave()
 {
     if (!document()->isModified())
         return true;
+
     const QMessageBox::StandardButton ret
             = QMessageBox::warning(this, tr("MDI"),
                                    tr("'%1' has been modified.\n"

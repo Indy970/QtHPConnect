@@ -152,6 +152,9 @@
     <layout class="QVBoxLayout" name="verticalLayout_3">
      <item>
       <widget class="QTreeView" name="tvCalculators">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>0</horstretch>
@@ -468,6 +471,9 @@
    <property name="text">
     <string>CreateNew</string>
    </property>
+   <property name="toolTip">
+    <string>Create New </string>
+   </property>
   </action>
   <action name="actionExit">
    <property name="icon">
@@ -650,6 +656,28 @@
    </property>
    <property name="shortcut">
     <string>Alt+R</string>
+   </property>
+  </action>
+  <action name="actionNewFolder">
+   <property name="icon">
+    <iconset resource="qthpconnect.qrc">
+     <normaloff>:/icons/new_folder_16x16.png</normaloff>:/icons/new_folder_16x16.png</iconset>
+   </property>
+   <property name="text">
+    <string>Folder</string>
+   </property>
+   <property name="toolTip">
+    <string>Create a New Folder</string>
+   </property>
+  </action>
+  <action name="actionNew_Note">
+   <property name="text">
+    <string>New Note</string>
+   </property>
+  </action>
+  <action name="actionNew_Program">
+   <property name="text">
+    <string>New Program</string>
    </property>
   </action>
  </widget>

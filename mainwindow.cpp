@@ -1,5 +1,5 @@
 /*
- * QtHP Connect: hand-helds support interface.
+ * QtHP Connect: hand-helds support interface. (https://github.com/Indy970/QtHPConnect.git).
  * Copyright (C) 2019 Ian Gebbie
  * Code patterns and snippets borrowed from libhpcalcs :
  * Copyright (C) 1999-2009 Romain Li�vin
@@ -32,6 +32,7 @@
 #include <QTextStream>
 #include <QTimer>
 #include <QFileIconProvider>
+#include <QToolButton>
 
 #include "global.h"
 #include "hpusb.h"
@@ -85,6 +86,30 @@ MainWindow::MainWindow(QWidget *parent) :
     setTreeMenu();
     setContentWindow();
 
+
+    //create some sub menus
+
+    QToolButton *createNewButton=
+               dynamic_cast<QToolButton*>(ui->toolBar->widgetForAction(ui->actionCreateNew));
+       createNewButton->setPopupMode(QToolButton::InstantPopup);
+       QMenu *createMenu=new QMenu(createNewButton);
+
+       QIcon folder(":/icons/new_folder_16x16.png");
+       QAction * actionNewFolder= new QAction(folder,"Folder",this);
+
+       QIcon note(":/icons/note_16x16.png");
+       QAction * actionNewNote= new QAction(note,"Note",this);
+
+       QIcon program(":/icons/program_16x16.png");
+       QAction * actionNewProgram= new QAction(program,"Program",this);
+
+       createMenu->addAction(actionNewFolder);
+       createMenu->addAction(actionNewNote);
+       createMenu->addAction(actionNewProgram);
+
+       createNewButton->setMenu(createMenu);
+
+
     //Hack to fix QT resizing bug
     resizeDocks({ui->dwCalculator,ui->dwContent},{0,0}, Qt::Horizontal);
 
@@ -107,6 +132,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionCalculators,SIGNAL(triggered()),this,SLOT(showCalculator()));
     connect(ui->actionMessages,SIGNAL(triggered()),this,SLOT(showMessage()));
     connect(ui->actionMonitor,SIGNAL(triggered()),this,SLOT(showMonitor()));
+
+    connect(ui->actionSave,SIGNAL(triggered()),this,SLOT(eventSave()));
+    connect(ui->actionSave_All,SIGNAL(triggered()),this,SLOT(eventSaveAs()));
+    connect(actionNewFolder,SIGNAL(triggered()),this,SLOT(eventCreateFolder()));
+    connect(actionNewNote,SIGNAL(triggered()),this,SLOT(eventCreateNote()));
+    connect(actionNewProgram,SIGNAL(triggered()),this,SLOT(eventCreateProgram()));
+
     connect(ui->tvCalculators,SIGNAL(clicked(QModelIndex)),this,SLOT(clickedCalculator(QModelIndex)));
     connect(ui->tvContent,SIGNAL(clicked(QModelIndex)),this,SLOT(clickedContent(QModelIndex)));
     connect(ui->actionLog,SIGNAL(triggered()),this,SLOT(createLogWindow()));
@@ -313,7 +345,12 @@ void MainWindow::selectionChangedSlot(const QItemSelection & /*newSelection*/, c
 
 void MainWindow::clickedCalculator(QModelIndex index) {
 
-    QStandardItem * item = hpTreeModel->itemFromIndex(index);
+//    QStandardItem * item = hpTreeModel->itemFromIndex(index);
+
+    if (hpTreeModel!=nullptr) {
+        hpTreeModel->clickAction(getMdi(),index);
+    }
+/*
 
     hpTreeItem * treeItem = dynamic_cast<hpTreeItem *>(hpTreeModel->itemFromIndex(index));
 
@@ -330,9 +367,39 @@ void MainWindow::clickedCalculator(QModelIndex index) {
     }
 
     //HACK
-    lastCalc=item->data(Qt::DisplayRole).toString();
-    log(item->data(Qt::DisplayRole).toString());
+    lastCalc=treeItem->data(Qt::DisplayRole).toString();
+    log(treeItem->data(Qt::DisplayRole).toString());
+
+    */
+
 }
+
+
+void MainWindow::eventSave() {
+
+    qDebug()<<"Save Pressed";
+}
+
+void MainWindow::eventSaveAs() {
+
+    qDebug()<<"Save As Pressed";
+}
+
+void MainWindow::eventCreateFolder() {
+
+    return contentModel.createNewFolder();
+}
+
+void MainWindow::eventCreateNote() {
+
+    qDebug()<<"Create new note pressed";
+}
+
+void MainWindow::eventCreateProgram() {
+
+    qDebug()<<"Create new program pressed";
+}
+
 
 void MainWindow::clickedContent(QModelIndex index) {
 

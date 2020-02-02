@@ -1,3 +1,25 @@
+/*
+ * QtHP Connect: hand-helds support interface.
+ * Copyright (C) 2019 Ian Gebbie
+ * Code patterns and snippets borrowed from libhpcalcs :
+ * Copyright (C) 1999-2009 Romain Li�vin
+ * Copyright (C) 2009-2013 Lionel Debroux
+ * Copyright (C) 1999-2013 libti* contributors.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ */
+
+
+
 //
 // Model to contain the calculator data structure
 //
@@ -91,6 +113,7 @@ hpCalcData * treeModel::getCalculator(QString name){
 
 void treeModel::clickAction(QMdiArea * mdiwin,QModelIndex &index) {
 
+    qDebug()<<"row "<<index.row()<<" column "<<index.column();
     return openFile(mdiwin,index);
 }
 
@@ -125,6 +148,7 @@ void treeModel::renameFile(QModelIndex &index,QString newName) {
     hp_DataType type;
     hpCalcData * hpdata=nullptr;
 
+    qDebug()<<"row "<<index.row()<<" column "<<index.column();
     if (index.isValid()) {
         item = static_cast<hpTreeItem *>(itemFromIndex(index));
 
@@ -186,11 +210,17 @@ void treeModel::deleteFile( QModelIndex &index) {
 
             //
             //delete hpTreeItem
+  //          qDebug()<<"row "<<index.row()<<" column "<<index.column();
+            if (removeRow(index.row(),index.parent()))
+            {
+                //qDebug()<<"Deleted";
+            }
+            else {
+                qDebug()<<"Removal failed";
+            }
 
             //delete Data
             hpdata->deleteData(adata);
-
-
 
         }
         else {
