@@ -26,6 +26,7 @@
 #define FILE_NUM 9
 
 
+//list of file types and associated icons
 //Todo fix for all file types
 const QString contentFileSystemModel::filetype_list[FILE_NUM][2]={{"hpprgm",":/icons/apps_16x16.png"},
                                            {"CAS Vars",":/icons/casFolder_16x16.png"},
@@ -38,6 +39,8 @@ const QString contentFileSystemModel::filetype_list[FILE_NUM][2]={{"hpprgm",":/i
                                            {"Variables",":/icons/varFolder_16x16.png"}
                                            };
 
+
+//list of data object types used by contentFileSystemModel
 const hp_DataType contentFileSystemModel::func_type[FILE_TYPE]={
                                            HP_PROG,
                                            HP_LIST,
@@ -53,6 +56,7 @@ const std::array<std::pair<hp_DataType,QString>,FILE_TYPE> contentFileSystemMode
                                                             {4,""}};
 */
 
+//list of file type suffixes
 const QString contentFileSystemModel::file_type[FILE_TYPE]{ "hpprgm",
                                                            "hplist",
                                                            "hpmat",
@@ -204,6 +208,7 @@ bool contentFileSystemModel::dropMimeData(const QMimeData* md_data, Qt::DropActi
         return true;
 }
 
+//override to return a file object
 QVariant contentFileSystemModel::data( const QModelIndex &index, int role ) const {
 
     if( role == Qt::DecorationRole )
@@ -225,10 +230,12 @@ QVariant contentFileSystemModel::data( const QModelIndex &index, int role ) cons
     return QFileSystemModel::data(index, role);
 }
 
+//action if file is left clicked
 void contentFileSystemModel::clickAction(QMdiArea * mdiwin, QModelIndex &index) {
     return openFile(mdiwin,index);
 }
 
+//open a file in the mdi window
 void contentFileSystemModel::openFile(QMdiArea * mdiwin, QModelIndex &index) {
 
     hp_mdiTextEdit * hptextedit = nullptr;
@@ -252,6 +259,7 @@ void contentFileSystemModel::openFile(QMdiArea * mdiwin, QModelIndex &index) {
 
 }
 
+//delete  a file
 void contentFileSystemModel::deleteFile(QModelIndex &index) {
    QFileInfo fileinfo = contentFileSystemModel::fileInfo(index);
    qDebug()<<"deleteFile "<<fileinfo.absoluteFilePath();
@@ -259,15 +267,27 @@ void contentFileSystemModel::deleteFile(QModelIndex &index) {
    file.remove();
 }
 
+//rename a file
 void contentFileSystemModel::renameFile(QModelIndex &index, QString newName) {
    QFileInfo fileinfo = contentFileSystemModel::fileInfo(index);
-   qDebug()<<"renameFile "<<fileinfo.absoluteFilePath();
+
    QFile file(fileinfo.absoluteFilePath());
+   QDir dir=fileinfo.absoluteDir();
+   QString newPath;
 
-  // file.rename(newName);
+   newPath=dir.absolutePath()+"/"+newName;
 
+   if (file.rename(newPath)) {
+    qDebug()<<"File rename succesfull";
+   }
+   else {
+    qDebug()<<"File rename failed";
+   }
+
+   return;
 }
 
+//read a file and return the resulting data object
 AbstractData * contentFileSystemModel::readFile(QFileInfo fileinfo) const {
 
     AbstractData * data=nullptr;
@@ -327,24 +347,51 @@ int contentFileSystemModel::writeFile(QFileInfo fileinfo, QByteArray data_in) co
     return -1;
 }
 
-void contentFileSystemModel::createNewFolder() {
+//create a new folder in the contents location
+bool contentFileSystemModel::createNewFolder(QString foldername) {
 
-    qDebug()<<"Create new folder pressed";
-    return;
+    QSettings appSettings("IRGP","QtHPconnect");
+    QString path=appSettings.value("contentPath").toString();
+
+    path=path+foldername;
+
+    QDir dir(path);
+
+    if (!dir.exists()) {
+        if(!dir.mkpath("."))
+        {
+           return false;
+        }
+    }
+    qDebug()<<"Create new folder pressed"<<path;
+    return true;
 }
 
-void contentFileSystemModel::createNewProgram() {
+//create a new program file
+bool contentFileSystemModel::createNewProgram(QMdiArea * mdiwin,QString foldername) {
 
+    QSettings appSettings("IRGP","QtHPconnect");
+    QString path=appSettings.value("contentPath").toString();
+
+//    QFileInfo fileinfo =
+
+    //....
+    //openFile(mdiwin,fileinfo);
     qDebug()<<"Create new program pressed";
-    return;
+    return false;
 }
 
-void contentFileSystemModel::createNewNote() {
+//create a new note file
+bool contentFileSystemModel::createNewNote(QMdiArea * mdiwin,QString foldername) {
+
+    QSettings appSettings("IRGP","QtHPconnect");
+    QString path=appSettings.value("contentPath").toString();
 
     qDebug()<<"Create new note pressed";
-    return;
+    return false;
 }
 
+//return the file type
 hp_DataStruct contentFileSystemModel::getFileType(QFileInfo info) const {
     hp_DataStruct filedata;
     int i;
@@ -364,6 +411,7 @@ hp_DataStruct contentFileSystemModel::getFileType(QFileInfo info) const {
     return filedata;
 }
 
+//return the file type suffix
 QString contentFileSystemModel::getFileType(hp_DataType type) const {
     int i;
     QString suffix=QStringLiteral("");
@@ -397,6 +445,7 @@ QString contentFileSystemModel::getFileType(hp_DataType type) const {
     return suffix;
 }
 
+//destructor
 contentFileSystemModel::~contentFileSystemModel() {
     qDebug()<<"contentFileSystemModel::delete";
 }

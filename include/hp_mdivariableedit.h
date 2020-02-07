@@ -24,10 +24,11 @@
 #include <QTableView>
 #include "vartablemodel.h"
 #include "hpdata.h"
+#include "hp_mdiwindow.h"
 
 class hpTreeItem;
 
-class hp_mdiVariableEdit : public QMdiSubWindow
+class hp_mdiVariableEdit : public hp_MdiWindow
 {
     Q_OBJECT
 

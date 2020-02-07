@@ -32,7 +32,7 @@
 #include "datamodel.h"
 #include "treemodel.h"
 #include "texteditor.h"
-#include "hp_mdiwindow.h"
+#include "hp_mdilogwindow.h"
 #include "hp_mdivariableedit.h"
 #include "cntfilesystemmodel.h"
 #include "eventtimer.h"
@@ -102,6 +102,8 @@ private slots:
     void contentRenameAction(bool);
     void contentDeleteAction(bool);
 
+    hp_MdiWindow * activeMdiChild();
+
     void on_tvCalculators_customContextMenuRequested(const QPoint &pos);
     void on_tvContent_customContextMenuRequested(const QPoint &pos);
     void eventHandler();
@@ -126,7 +128,7 @@ private:
 
     hpusb * hpapi=nullptr;
     QMdiSubWindow * msgWindow=nullptr;
-    hp_MdiWindow * logWindow=nullptr;
+    hp_MdiLogWindow * logWindow=nullptr;
     contentFileSystemModel contentModel;
     QTextEdit * logEdit=nullptr;
     Ui::MainWindow *ui;

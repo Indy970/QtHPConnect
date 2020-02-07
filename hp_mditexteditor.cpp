@@ -17,12 +17,13 @@
 
 
 #include "hp_mditexteditor.h"
+#include "hp_mdiwindow.h"
 #include "hptreeitem.h"
 #include "hpdata.h"
 #include "abstractdata.h"
 
 hp_mdiTextEdit::hp_mdiTextEdit(QWidget * parent,hpTreeItem * treeItem, AbstractData * calcData)
-    :QMdiSubWindow(parent)
+    :hp_MdiWindow(parent)
 {
     setMinimumSize(200,200);
     setMaximumSize(1000,1000);
@@ -43,7 +44,7 @@ hp_mdiTextEdit::hp_mdiTextEdit(QWidget * parent,hpTreeItem * treeItem, AbstractD
 }
 
 hp_mdiTextEdit::hp_mdiTextEdit(QWidget * parent,hp_DataStruct filedata, AbstractData * calcData)
-    :QMdiSubWindow(parent)
+    :hp_MdiWindow (parent)
 {
     setMinimumSize(200,200);
     setMaximumSize(1000,1000);
@@ -88,6 +89,16 @@ void hp_mdiTextEdit::setup() {
         qDebug()<<"hp_mdiTextEdit::setup - Data Null";
     }
     setWidget(textEdit);
+}
+
+bool hp_mdiTextEdit::save(){
+
+    return textEdit->save();
+}
+
+bool hp_mdiTextEdit::saveAs(){
+
+    return textEdit->saveAs();
 }
 
 void hp_mdiTextEdit::show() {

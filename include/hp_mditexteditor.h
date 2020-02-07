@@ -23,13 +23,14 @@
 #include <QMdiSubWindow>
 #include <QTreeView>
 #include "hpdata.h"
+#include "hp_mdiwindow.h"
 
 class hpTreeItem;
 class hpCalcData;
 
 #include "texteditor.h"
 
-class hp_mdiTextEdit: public QMdiSubWindow
+class hp_mdiTextEdit: public hp_MdiWindow
 {
     Q_OBJECT
 
@@ -48,6 +49,8 @@ public:
     hp_mdiTextEdit(QWidget * parent, hp_DataStruct filename,
                    AbstractData * calcData);
     void setup();
+    bool save();
+    bool saveAs();
     void show();
     ~hp_mdiTextEdit();
 

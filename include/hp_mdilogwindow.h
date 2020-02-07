@@ -15,42 +15,31 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef HP_MDILOGWINDOW_H
+#define HP_MDILOGWINDOW_H
+
+#include <QObject>
+#include <QWidget>
+#include <QMdiSubWindow>
 #include "hp_mdiwindow.h"
-#include <QDebug>
 
-hp_MdiWindow::hp_MdiWindow(QWidget * parent)
-    :QMdiSubWindow(parent)
+#include "texteditor.h"
+
+class hp_MdiLogWindow: public hp_MdiWindow
 {
- //   setMinimumSize(500,400);
- //   setMaximumSize(1000,1000);
-    setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
-    setup();
-}
+    Q_OBJECT
 
-void hp_MdiWindow::setup() {
+protected:
 
+    QTextEdit * textEdit;
 
-}
+public:
+    hp_MdiLogWindow(QWidget * parent);
+    void setup();
+    QTextEdit * getEditor();
+    void show();
+    ~hp_MdiLogWindow();
 
-bool hp_MdiWindow::save() {
+};
 
-    qDebug()<<"hp_MdiWindow::save";
-    return false;
-}
-
-bool hp_MdiWindow::saveAs() {
-
-    qDebug()<<"hp_MdiWindow::saveas";
-    return false;
-}
-
-void hp_MdiWindow::show() {
-
-    QMdiSubWindow::show();
-}
-
-hp_MdiWindow::~hp_MdiWindow() {
-
-    qDebug()<<"Entering ~hpmdiWindow()";
-
-}
+#endif // HP_MDILOGWINDOW_H

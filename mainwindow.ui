@@ -100,14 +100,6 @@
    <addaction name="menuWindow"/>
    <addaction name="menuHelp"/>
   </widget>
-  <widget class="QStatusBar" name="statusBar">
-   <property name="sizePolicy">
-    <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-     <horstretch>0</horstretch>
-     <verstretch>0</verstretch>
-    </sizepolicy>
-   </property>
-  </widget>
   <widget class="QDockWidget" name="dwCalculator">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -321,6 +313,26 @@
      </item>
     </layout>
    </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusBar">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+     <horstretch>100</horstretch>
+     <verstretch>20</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>100</width>
+     <height>20</height>
+    </size>
+   </property>
+   <property name="toolTip">
+    <string extracomment="Status"/>
+   </property>
+   <property name="autoFillBackground">
+    <bool>true</bool>
+   </property>
   </widget>
   <action name="actionCut">
    <property name="icon">

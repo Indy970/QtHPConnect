@@ -41,9 +41,31 @@ VERSION = $${VERSION_MAJOR}.$${VERSION_MINOR}.$${VERSION_PATCH}$${VERSION_BUILD}
 
 
 SOURCES += \
-    mainwindow.cpp \
-    main.cpp \
+    abstractdata.cpp \
+    cntfilesystemmodel.cpp \
+    datamodel.cpp \
     errorhandler.cpp \
+    eventthread.cpp \
+    eventtimer.cpp \
+    getnumber.cpp \
+    hp_infodialog.cpp \
+    hp_mdilogwindow.cpp \
+    hp_mditexteditor.cpp \
+    hp_mdivariableedit.cpp \
+    hp_mdiwindow.cpp \
+    hp_settingsdlg.cpp \
+    hpdata.cpp \
+#    hptoolbox.cpp \
+    hptreeitem.cpp \
+    hpusb.cpp \
+    main.cpp \
+    mainwindow.cpp \
+    matrixdata.cpp \
+    options.cpp \
+    texteditor.cpp \
+    treemodel.cpp \
+    variableview.cpp \
+    vartablemodel.cpp \
     libhpcalcs/src/calc_none.c \
     libhpcalcs/src/calc_prime.c \
     libhpcalcs/src/error.c \
@@ -60,34 +82,46 @@ SOURCES += \
     libhpcalcs/src/prime_vpkt.c \
     libhpcalcs/src/type2str.c \
     libhpcalcs/src/typesprime.c \
-    libhpcalcs/src/utils.c \
-    datamodel.cpp \
-    treemodel.cpp \
-    hpdata.cpp \
-    texteditor.cpp \
-    variableview.cpp \
-    hptreeitem.cpp \
-    hp_mdiwindow.cpp \
-    hp_mditexteditor.cpp \
-    hp_mdivariableedit.cpp \
-    vartablemodel.cpp \
-    hp_infodialog.cpp \
-    getnumber.cpp \
-    hpusb.cpp \
-    hp_settingsdlg.cpp \
-    cntfilesystemmodel.cpp \
-    abstractdata.cpp \
-    matrixdata.cpp \
-    options.cpp \
-    eventtimer.cpp \
-    eventthread.cpp
+    libhpcalcs/src/utils.c
 
 HEADERS += \
-        mainwindow.h \
-        main.h \
-    global.h \
     hidapi/hidapi.h \
-    errorhandler.h \
+    include/abstractdata.h \
+    include/cntfilesystemmodel.h \
+    include/datamodel.h \
+    include/errorhandler.h \
+    include/eventthread.h \
+    include/eventtimer.h \
+    include/getnumber.h \
+    include/global.h \
+    include/hp_infodialog.h \
+    include/hp_mdilogwindow.h \
+    include/hp_mditexteditor.h \
+    include/hp_mdivariableedit.h \
+    include/hp_mdiwindow.h \
+    include/hp_settingsdlg.h \
+    include/hp_typedef.h \
+    include/hpdata.h \
+    include/hpinterface.h \
+    include/hptreeitem.h \
+    include/hpusb.h \
+    include/main.h \
+    include/mainwindow.h \
+    include/matrixdata.h \
+    include/moc_predefs.h \
+    include/options.h \
+    include/texteditor.h \
+    include/treemodel.h \
+    include/ui_getnumber.h \
+    include/ui_hp_infodialog.h \
+    include/ui_hp_mdiwindow.h \
+    include/ui_hp_settingsdlg.h \
+    include/ui_mainwindow.h \
+    include/ui_options.h \
+    include/ui_variableview.h \
+    include/variableview.h \
+    include/vartablemodel.h \
+    include/version.h \
     libhpcalcs/include/error.h \
     libhpcalcs/include/export.h \
     libhpcalcs/include/filetypes.h \
@@ -101,30 +135,7 @@ HEADERS += \
     libhpcalcs/include/logging.h \
     libhpcalcs/include/prime_cmd.h \
     libhpcalcs/include/typesprime.h \
-    libhpcalcs/include/utils.h \
-    datamodel.h \
-    treemodel.h \
-    hpdata.h \
-    texteditor.h \
-    variableview.h \
-    hptreeitem.h \
-    hp_mdiwindow.h \
-    hp_mditexteditor.h \
-    hp_mdivariableedit.h \
-    vartablemodel.h \
-    hp_infodialog.h \
-    getnumber.h \
-    hpusb.h \
-    hp_settingsdlg.h \
-    version.h \
-    cntfilesystemmodel.h \
-    abstractdata.h \
-    matrixdata.h \
-    options.h \
-    hp_typedef.h \
-    eventtimer.h \
-    eventthread.h \
-    eventthread.h
+    libhpcalcs/include/utils.h
 
 FORMS += \
     mainwindow.ui \
@@ -142,6 +153,7 @@ else:unix: LIBS +=
 #-L$$PWD/../../../../usr/local/lib/ -lhpcalcs
 
 INCLUDEPATH += $$PWD/../../../../usr/local/include
+INCLUDEPATH += $$PWD/include
 INCLUDEPATH += $$PWD/libhpcalcs/include/
 INCLUDEPATH += $$PWD/hidapi/
 

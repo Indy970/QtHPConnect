@@ -15,48 +15,35 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hp_mdivariableedit.h"
-#include "hptreeitem.h"
+#include "hp_mdilogwindow.h"
+#include <QDebug>
 
-
-
-hp_mdiVariableEdit::hp_mdiVariableEdit(QWidget *parent,
-            hpTreeItem * treeItem,
-            hpCalcData * dataStore)
-    : hp_MdiWindow(parent)
+hp_MdiLogWindow::hp_MdiLogWindow(QWidget * parent)
+    :hp_MdiWindow(parent)
 {
-    setMinimumSize(200,200);
+    setMinimumSize(500,400);
     setMaximumSize(1000,1000);
     setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
-
-    hptreeitem=treeItem;
-    hpcalc = dataStore;
-    filename=treeItem->getFileName();
-    type=treeItem->getType();
-
     setup();
-
-    setWindowTitle(filename);
 }
 
-void hp_mdiVariableEdit::setup() {
+void hp_MdiLogWindow::setup() {
 
-    if (hpcalc) {
-        varmodel = new varTableModel(this,hpcalc,filename,type);
-        tableView = new QTableView(this);
-        tableView->setModel(varmodel);
-        setWidget(tableView);
-    }
+    textEdit = new QTextEdit(this);
+    setWidget(textEdit);
 }
 
-void hp_mdiVariableEdit::show() {
-    if(tableView)
-        tableView->show();
+QTextEdit * hp_MdiLogWindow::getEditor() {
+    return textEdit;
+}
+
+void hp_MdiLogWindow::show() {
+    textEdit->show();
     hp_MdiWindow::show();
 }
 
-hp_mdiVariableEdit::~hp_mdiVariableEdit() {
+hp_MdiLogWindow::~hp_MdiLogWindow() {
 
-    qDebug()<<"Entering ~hpmdiVariableEdit()";
+    qDebug()<<"Entering ~hpmdiLogWindow()";
 
 }

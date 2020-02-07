@@ -22,7 +22,6 @@
 #include <QWidget>
 #include <QMdiSubWindow>
 
-#include "texteditor.h"
 
 class hp_MdiWindow: public QMdiSubWindow
 {
@@ -30,12 +29,13 @@ class hp_MdiWindow: public QMdiSubWindow
 
 protected:
 
-    QTextEdit * textEdit;
+
 
 public:
     hp_MdiWindow(QWidget * parent);
     void setup();
-    QTextEdit * getEditor();
+    virtual bool save();
+    virtual bool saveAs();
     void show();
     ~hp_MdiWindow();
 

@@ -19,7 +19,7 @@
  */
 
 
-#include "mainwindow.h"
+#include <mainwindow.h>
 #include "ui_mainwindow.h"
 
 #include <QtWidgets/QApplication>
@@ -40,7 +40,7 @@
 #include "treemodel.h"
 #include "variableview.h"
 #include "texteditor.h"
-#include "hp_mdiwindow.h"
+#include "hp_mdilogwindow.h"
 #include "hptreeitem.h"
 #include "hpdata.h"
 #include "hp_mdivariableedit.h"
@@ -346,6 +346,7 @@ void MainWindow::selectionChangedSlot(const QItemSelection & /*newSelection*/, c
 void MainWindow::clickedCalculator(QModelIndex index) {
 
 //    QStandardItem * item = hpTreeModel->itemFromIndex(index);
+    qDebug()<<"MainWindow::clickedCalculator";
 
     if (hpTreeModel!=nullptr) {
         hpTreeModel->clickAction(getMdi(),index);
@@ -374,10 +375,34 @@ void MainWindow::clickedCalculator(QModelIndex index) {
 
 }
 
-
 void MainWindow::eventSave() {
 
+    hp_MdiWindow * activechild;
+
+    activechild = activeMdiChild();
     qDebug()<<"Save Pressed";
+
+    if (activechild!=nullptr) {
+        if (activechild->save()) {
+            qDebug()<<"Save Succesfull";
+            statusBar()->showMessage(tr("File saved"), 2000);
+        }
+        else {
+               qDebug()<<"Save not successfull";
+               statusBar()->showMessage(tr("File not saved!"), 2000);
+        }
+    }
+    else {
+           qDebug()<<"No active window";
+    }
+}
+
+hp_MdiWindow * MainWindow::activeMdiChild() {
+ QMdiArea * mdi=getMdi();
+
+ if (QMdiSubWindow *activeSubWindow = mdi->activeSubWindow())
+         return qobject_cast<hp_MdiWindow *>(activeSubWindow);
+     return nullptr;
 }
 
 void MainWindow::eventSaveAs() {
@@ -387,17 +412,41 @@ void MainWindow::eventSaveAs() {
 
 void MainWindow::eventCreateFolder() {
 
-    return contentModel.createNewFolder();
+    QString newName= QStringLiteral("New Folder");
+    bool ok;
+    newName = QInputDialog::getText(this, tr("Enter new folder name"),
+                                                     tr("Folder name:"), QLineEdit::Normal,
+                                                     newName, &ok);
+
+    contentModel.createNewFolder(newName);
+
+    return;
 }
 
 void MainWindow::eventCreateNote() {
 
-    qDebug()<<"Create new note pressed";
+    QString newName= QStringLiteral("New Note");
+    bool ok;
+    newName = QInputDialog::getText(this, tr("Enter new Note name"),
+                                                     tr("Note name:"), QLineEdit::Normal,
+                                                     newName, &ok);
+
+    contentModel.createNewNote(getMdi(),newName);
+
+    return;
 }
 
 void MainWindow::eventCreateProgram() {
 
-    qDebug()<<"Create new program pressed";
+    QString newName= QStringLiteral("New Program");
+    bool ok;
+    newName = QInputDialog::getText(this, tr("Enter new Program name"),
+                                                     tr("Program name:"), QLineEdit::Normal,
+                                                     newName, &ok);
+
+    contentModel.createNewProgram(getMdi(),newName);
+
+    return;
 }
 
 
@@ -612,7 +661,7 @@ void MainWindow::createTextWindow() {
 void MainWindow::createLogWindow() {
 
     if (!logWindow)
-        logWindow = new hp_MdiWindow(ui->mdiArea);
+        logWindow = new hp_MdiLogWindow(ui->mdiArea);
     else
         logWindow->show();
    if (!logEdit)

@@ -46,9 +46,9 @@ public:
     QString getFileType(hp_DataType) const;
     AbstractData * readFile(QFileInfo fileinfo) const;
     int writeFile(QFileInfo fileinfo, QByteArray data_in) const;
-    void createNewFolder();
-    void createNewNote();
-    void createNewProgram();
+    bool createNewFolder(QString foldername);
+    bool createNewNote(QMdiArea * mdiwin,QString foldername);
+    bool createNewProgram(QMdiArea * mdiwin,QString foldername);
     ~contentFileSystemModel();
 
 private:

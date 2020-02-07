@@ -1,4 +1,4 @@
-#include "hptoolbox.h"
+#include <hptoolbox.h>
 #include "ui_hptoolbox.h"
 
 hpToolBox::hpToolBox(QWidget *parent) :
