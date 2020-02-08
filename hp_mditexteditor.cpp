@@ -21,6 +21,9 @@
 #include <hptreeitem.h>
 #include <hpdata.h>
 #include <abstractdata.h>
+#include <QBoxLayout>
+#include <QToolBar>
+#include <QToolButton>
 
 //Called by the calculator Window
 hp_mdiTextEdit::hp_mdiTextEdit(QWidget * parent,hpTreeItem * treeItem, AbstractData * calcData)
@@ -28,7 +31,7 @@ hp_mdiTextEdit::hp_mdiTextEdit(QWidget * parent,hpTreeItem * treeItem, AbstractD
 {
     setMinimumSize(200,200);
     setMaximumSize(1000,1000);
-    setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
+    setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
 
     qDebug()<<"hp_mdiTextEdit::hp_mdiTextEdit 1";
     hptreeitem=treeItem;
@@ -51,7 +54,7 @@ hp_mdiTextEdit::hp_mdiTextEdit(QWidget * parent, QFileInfo filedata, AbstractDat
       qDebug()<<"hp_mdiTextEdit::hp_mdiTextEdit 2";
     setMinimumSize(200,200);
     setMaximumSize(1000,1000);
-    setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
+  //  setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     calculator=QStringLiteral("Content: ");
     content=true;
     hptreeitem=nullptr;
@@ -61,6 +64,7 @@ hp_mdiTextEdit::hp_mdiTextEdit(QWidget * parent, QFileInfo filedata, AbstractDat
     type=calcData->getType();
     setup();
     setWindowTitle(calculator+filename);
+    resize(450,350);
 }
 
 void hp_mdiTextEdit::setup() {
@@ -92,7 +96,41 @@ void hp_mdiTextEdit::setup() {
     else {
         qDebug()<<"hp_mdiTextEdit::setup - Data Null";
     }
-    setWidget(textEdit);
+
+    QIcon save(":/icons/save_22x22.png");
+    QAction * actionSave= new QAction(save,"Save",this);
+
+    QWidget * top = new QWidget();
+    QBoxLayout * layout = new QVBoxLayout();
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+    top->setLayout(layout);
+
+    QToolBar * toolbar = new QToolBar("Save");
+    toolbar->addAction(actionSave);
+
+    QToolButton *saveButton=new QToolButton();
+    QMenu * menu = new QMenu(saveButton);
+    menu->addAction(actionSave);
+    layout->setMenuBar(menu);
+//      layout->addWidget(toolbar);
+//      QSizePolicy sizePolicy1(QSizePolicy::Expanding, QSizePolicy::Expanding);
+//      sizePolicy1.setHorizontalStretch(0);
+//      sizePolicy1.setVerticalStretch(0);
+//      sizePolicy1.setHeightForWidth(textEdit->sizePolicy().hasHeightForWidth());
+//      textEdit->setSizePolicy(sizePolicy1);
+//      layout->setSizeConstraint(QLayout::SetNoConstraint);
+
+    layout->addWidget(textEdit);
+    setWidget(top);
+
+    connect(actionSave,SIGNAL(triggered()),this,SLOT(eventSave()));
+
+    return;
+}
+
+void hp_mdiTextEdit::eventSave(){
+    save();
 }
 
 bool hp_mdiTextEdit::save(){
@@ -146,7 +184,6 @@ bool hp_mdiTextEdit::maybeSave()
     }
     return true;
 }
-
 
 void hp_mdiTextEdit::show() {
 

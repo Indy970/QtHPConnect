@@ -27,7 +27,7 @@ textEditor::textEditor(QWidget *parent) :
     QSettings appSettings("IRGP","QtHPconnect");
     wParent = parent;
     setAttribute(Qt::WA_DeleteOnClose);
-    setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+//    setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     isUntitled = true;
 
     defaultPath=QDir(appSettings.value("contentPath").toString());

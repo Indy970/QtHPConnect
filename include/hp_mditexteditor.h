@@ -62,6 +62,7 @@ public:
 signals:
 
 public slots:
+    void eventSave();
 
 };
 

@@ -39,6 +39,9 @@ public:
     void show();
     ~hp_MdiWindow();
 
+private slots:
+        void eventSave();
+
 };
 
 #endif // HP_MDIWINDOW_H

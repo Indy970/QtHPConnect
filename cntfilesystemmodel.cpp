@@ -18,6 +18,7 @@
 #include <global.h>
 #include <cntfilesystemmodel.h>
 #include <QMimeData>
+#include <QList>
 #include <QStringListModel>
 
 #include <hp_mditexteditor.h>
@@ -83,6 +84,8 @@ QMimeData* contentFileSystemModel::mimeData(const QModelIndexList &indexes) cons
 
     qDebug()<<"contentFileSystemModel::mimeData";
 
+    foreach(index,indexes) {
+
     index=indexes.first();
  //   qDebug()<<index.data(Qt::DisplayRole);
  //   QString data;
@@ -108,6 +111,7 @@ QMimeData* contentFileSystemModel::mimeData(const QModelIndexList &indexes) cons
         }
         mimeDataPtr->setText(info.baseName());
 
+
         switch (filedata.type) {
 
             case HP_PROG:
@@ -130,6 +134,20 @@ QMimeData* contentFileSystemModel::mimeData(const QModelIndexList &indexes) cons
     }
 
     file.close();
+    }
+
+    //Allow copy to external file managers
+    QList<QUrl> urls;
+    QFileInfo info;
+    QUrl url;
+    foreach(index,indexes) {
+        info = contentFileSystemModel::fileInfo(index);
+
+        url = QUrl::fromLocalFile(info.absoluteFilePath());
+
+        urls.append(url);
+    }
+    mimeDataPtr->setUrls(urls);
 
     return mimeDataPtr;
 }
@@ -154,7 +172,18 @@ Qt::ItemFlags contentFileSystemModel::flags(const QModelIndex &index) const
 //Allow drop in location
 bool contentFileSystemModel::canDropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) const
 {
-    return true;
+
+    qDebug()<<data->formats();
+
+    if (data->hasUrls()) {
+        return true;
+    }
+
+    if (data->hasText()) {
+        return true;
+    }
+
+    return false;
 }
 
 //Process the drop action
@@ -184,6 +213,29 @@ bool contentFileSystemModel::dropMimeData(const QMimeData* md_data, Qt::DropActi
         return true;
     }
 
+    //Check for external file drop
+    if (md_data->hasUrls()) {
+
+        QString name = md_data->text();
+        QList<QUrl> urls = md_data->urls();
+        QUrl url;
+        QString filefrom;
+        QString fileto;
+
+        foreach(url,urls) {
+            filefrom=url.toLocalFile();
+            QFileInfo fileinfo(filefrom);
+            fileto=path+"/"+url.fileName();
+            if(isFileType(fileinfo)) {
+                //consider check to limit unusual file types
+                QFile::copy(filefrom,fileto);
+            }
+        }
+
+      return true;
+    }
+
+    //rework
     QByteArray data_in;
     QByteArray typeary;
     QString name = md_data->text();
@@ -197,7 +249,6 @@ bool contentFileSystemModel::dropMimeData(const QMimeData* md_data, Qt::DropActi
 
     qDebug()<<data_in;
     qDebug()<<fileinfo;
-
 
 //	QDataStream stream(&encodedData, QIODevice::ReadOnly);
 
@@ -305,6 +356,8 @@ AbstractData * contentFileSystemModel::readFile(QFileInfo fileinfo) const {
 
     if (file.open(QIODevice::ReadOnly),QFileDevice::AutoCloseHandle) {
         QDataStream in(&file);
+//        QTextCodec *codec = QTextCodec::codecForName("UTF-16");
+//        in.setCodec(codec);
         in.setByteOrder(QDataStream::LittleEndian);
 
         filedata=getFileType(fileinfo);
@@ -317,6 +370,12 @@ AbstractData * contentFileSystemModel::readFile(QFileInfo fileinfo) const {
                 data->parseData(in);
             }
             break;
+            case HP_NOTE: {
+                qDebug()<<"HP_NOTE";
+                data = new Notes(filedata.filename, HP_NOTE, QStringLiteral(""));
+                data->parseData(in);
+            }
+        break;
             default: ;
         }
 
@@ -332,10 +391,10 @@ int contentFileSystemModel::writeFile(QFileInfo fileinfo, QByteArray data_in) co
     QFile file(fileinfo.absoluteFilePath());
 
     if (file.open(QIODevice::ReadWrite)) {
-        QTextStream out(&file);
-        QTextCodec *codec = QTextCodec::codecForName("UTF-16");
-        out.setCodec(codec);
-//        out.setByteOrder(QDataStream::LittleEndian);
+        QDataStream out(&file);
+//        QTextCodec *codec = QTextCodec::codecForName("UTF-8");
+//        out.setCodec(codec);
+        out.setByteOrder(QDataStream::LittleEndian);
 
 //        quint8 c;
 //        for (int i =0 ;i< data_in.length();i++)
@@ -384,36 +443,26 @@ bool contentFileSystemModel::createNewProgram(QMdiArea * mdiwin, QString filenam
     QDir dir(path);
     QFileInfo fileinfo(dir,filename+"."+getFileType(HP_PROG));
 
-    /*
-    QFile file(fileinfo.absoluteFilePath());
-
-    if (file.open(QIODevice::WriteOnly)) {
-
-      QTextStream out(&file);
-      out << "" << endl;
-    } else {
-      qWarning()<<tr("Could not open file");
-    }
-
-    file.close();
-*/
     qDebug()<<"Create new program pressed";
     return openFile(mdiwin,fileinfo);
 }
 
 //create a new note file
-bool contentFileSystemModel::createNewNote(QMdiArea * mdiwin,QString foldername) {
+bool contentFileSystemModel::createNewNote(QMdiArea * mdiwin,QString filename) {
 
     QSettings appSettings("IRGP","QtHPconnect");
     QString path=appSettings.value("contentPath").toString();
+    QDir dir(path);
+    QFileInfo fileinfo(dir,filename+"."+getFileType(HP_NOTE));
 
-    qDebug()<<"Create new note pressed";
-    return false;
+    qDebug()<<"Create new program pressed";
+    return openFile(mdiwin,fileinfo);
 }
 
 //return the file type
 hp_DataStruct contentFileSystemModel::getFileType(QFileInfo info) const {
     hp_DataStruct filedata;
+
     int i;
     QString suffix;
     hp_DataType type=HP_MAIN;
@@ -429,6 +478,21 @@ hp_DataStruct contentFileSystemModel::getFileType(QFileInfo info) const {
     }
 
     return filedata;
+}
+
+//return the file type
+bool contentFileSystemModel::isFileType(QFileInfo info) const {
+    hp_DataStruct filedata;
+
+    int i;
+    QString suffix;
+    suffix=info.completeSuffix();
+    for (i=0;i<FILE_TYPE;i++) {
+        if (suffix==file_type[i])
+            return true;
+    }
+
+    return false;
 }
 
 //return the file type suffix

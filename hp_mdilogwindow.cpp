@@ -21,10 +21,11 @@
 hp_MdiLogWindow::hp_MdiLogWindow(QWidget * parent)
     :hp_MdiWindow(parent)
 {
-    setMinimumSize(500,400);
+    setMinimumSize(200,200);
     setMaximumSize(1000,1000);
     setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
     setup();
+    resize(500,400);
 }
 
 void hp_MdiLogWindow::setup() {

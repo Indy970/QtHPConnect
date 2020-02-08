@@ -314,7 +314,7 @@ void AbstractData::parseData() {
 }
 
 void AbstractData::parseData(QDataStream& in) {
-     qDebug()<<"AbstractData::parseData(DS)";
+     qDebug()<<"AbstractData::parseData(DataStream)";
 
      in.setByteOrder(QDataStream::LittleEndian);
      qint8 c;
@@ -322,7 +322,6 @@ void AbstractData::parseData(QDataStream& in) {
      uint length;
      length=16;
 
-     qDebug()<<"Parsing Matrix";
      in.startTransaction();
      while(!in.atEnd()) {
          in>>c;
@@ -905,7 +904,7 @@ void Program::setProg(QString data_in) {
 
 void Program::parseData() {
 
-    QTextCodec * codec = QTextCodec::codecForName("UTF8");
+    QTextCodec * codec = QTextCodec::codecForName("ISO 8859-1");
     QByteArray a1;
     a1=getData();
     text = codec->toUnicode(a1);
@@ -915,7 +914,7 @@ void Program::parseData() {
 
 void Program::parseData(QDataStream& in) {
 
-    QTextCodec * codec = QTextCodec::codecForName("UTF-16");
+    QTextCodec * codec = QTextCodec::codecForName("ISO 8859-1");
     QByteArrayMatcher matcher;
     QByteArray search;
     QByteArray phrase;
@@ -1008,7 +1007,7 @@ void Notes::parseData() {
 
 //    quint16 len1,len2;
     int formatstart;
-    QTextCodec * codec = QTextCodec::codecForName("UTF-16LE");
+    QTextCodec * codec = QTextCodec::codecForName("UTF-8");
 
     QByteArray a1,a3;
 

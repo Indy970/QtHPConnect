@@ -17,6 +17,10 @@
 
 #include "hp_mdiwindow.h"
 #include <QDebug>
+#include <QMenu>
+#include <QToolBar>
+#include <QToolButton>
+#include <QBoxLayout>
 
 hp_MdiWindow::hp_MdiWindow(QWidget * parent)
     :QMdiSubWindow(parent)
@@ -30,6 +34,10 @@ hp_MdiWindow::hp_MdiWindow(QWidget * parent)
 void hp_MdiWindow::setup() {
 
 
+}
+
+void hp_MdiWindow::eventSave() {
+    qDebug()<<"Save pressed";
 }
 
 bool hp_MdiWindow::save() {

@@ -44,6 +44,7 @@ public:
     void deleteFile(QModelIndex &index);
     void renameFile(QModelIndex &index, QString newName);
     hp_DataStruct getFileType(QFileInfo info) const;
+    bool isFileType(QFileInfo info) const;
     QString getFileType(hp_DataType) const;
     AbstractData * readFile(QFileInfo fileinfo) const;
     int writeFile(QFileInfo fileinfo, QByteArray data_in) const;
