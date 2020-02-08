@@ -40,19 +40,24 @@ protected:
     hpTreeItem * hptreeitem =nullptr;
 //    hpCalcData * hpcalc =nullptr;
     QString filename;
+    QFileInfo file;
     hp_DataType type;
     AbstractData * data =nullptr;
+    QString calculator;
+    bool content;
+   void closeEvent(QCloseEvent *event) override;
 
 public:
     hp_mdiTextEdit(QWidget * parent = nullptr, hpTreeItem * treeItem = nullptr,
                    AbstractData * calcData =nullptr);
-    hp_mdiTextEdit(QWidget * parent, hp_DataStruct filename,
+    hp_mdiTextEdit(QWidget * parent, QFileInfo filename,
                    AbstractData * calcData);
     void setup();
-    bool save();
-    bool saveAs();
+    bool save() override;
+    bool saveAs() override;
+    bool maybeSave();
     void show();
-    ~hp_mdiTextEdit();
+    ~hp_mdiTextEdit() override;
 
 signals:
 

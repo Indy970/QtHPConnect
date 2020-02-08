@@ -108,17 +108,9 @@ HEADERS += \
     include/main.h \
     include/mainwindow.h \
     include/matrixdata.h \
-    include/moc_predefs.h \
     include/options.h \
     include/texteditor.h \
     include/treemodel.h \
-    include/ui_getnumber.h \
-    include/ui_hp_infodialog.h \
-    include/ui_hp_mdiwindow.h \
-    include/ui_hp_settingsdlg.h \
-    include/ui_mainwindow.h \
-    include/ui_options.h \
-    include/ui_variableview.h \
     include/variableview.h \
     include/vartablemodel.h \
     include/version.h \

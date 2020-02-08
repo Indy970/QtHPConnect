@@ -29,27 +29,25 @@ class textEditor : public QTextEdit
 public:
     explicit textEditor(QWidget *parent = nullptr);
     ~textEditor() override;
-    void newFile();
-    bool loadFile(const QString &fileName);
-    bool save();
-    bool saveAs();
+    bool save(QFileInfo file);
+    bool saveAs(QFileInfo file);
+    bool save(QString calculator);
+    bool saveAs(QString calculator);
     bool saveFile(const QString &fileName);
     QString userFriendlyCurrentFile();
     QString currentFile() { return curFile; }
 
-
 protected:
-    void closeEvent(QCloseEvent *event) override;
+
 
 private slots:
     void documentWasModified();
 
 private:
     QWidget * wParent;
-    bool maybeSave();
+
     void setCurrentFile(const QString &fileName);
     QString strippedName(const QString &fullFileName);
-
     QString curFile;
     bool isUntitled;
     QDir defaultPath;

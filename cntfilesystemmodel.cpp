@@ -19,6 +19,7 @@
 #include <cntfilesystemmodel.h>
 #include <QMimeData>
 #include <QStringListModel>
+
 #include <hp_mditexteditor.h>
 #include <QSettings>
 #include <QTextCodec>
@@ -170,10 +171,10 @@ bool contentFileSystemModel::dropMimeData(const QMimeData* md_data, Qt::DropActi
     dir= rootDirectory();
 
     if (!dir.exists()) {
-        qDebug()<<"Content Path Does not Exist:"<<path;
+        qWarning()<<tr("Content Path Does not exist: ")<<path;
         if(!dir.mkpath("."))
         {
-           qDebug()<<"Path could not be created"<<path;
+           qWarning()<<tr("Path could not be created: ")<<path;
            return false;
         }
     }
@@ -232,29 +233,37 @@ QVariant contentFileSystemModel::data( const QModelIndex &index, int role ) cons
 
 //action if file is left clicked
 void contentFileSystemModel::clickAction(QMdiArea * mdiwin, QModelIndex &index) {
-    return openFile(mdiwin,index);
+    openFile(mdiwin,index);
+    return;
 }
 
 //open a file in the mdi window
-void contentFileSystemModel::openFile(QMdiArea * mdiwin, QModelIndex &index) {
-
-    hp_mdiTextEdit * hptextedit = nullptr;
-    hp_DataStruct filedata;
-    AbstractData * data=nullptr;
+bool contentFileSystemModel::openFile(QMdiArea * mdiwin, QModelIndex &index) {
 
     QFileInfo info = contentFileSystemModel::fileInfo(index);
+    return openFile(mdiwin,info);
+}
 
-    data = readFile(info);
+//open a file in the mdi window
+bool contentFileSystemModel::openFile(QMdiArea * mdiwin,QFileInfo info) {
+
+    hp_mdiTextEdit * hptextedit = nullptr;
+    AbstractData * data=nullptr;
+
+     data = readFile(info);
 
         if (data!=nullptr) {
            if (hptextedit==nullptr)
-                hptextedit = new hp_mdiTextEdit(mdiwin,filedata, data);
-             if (hptextedit!=nullptr)
+                hptextedit = new hp_mdiTextEdit(mdiwin,info, data);
+             if (hptextedit!=nullptr) {
                 hptextedit ->show();
+                return true;
+             }
         }
         else {
-            qDebug()<<"Null data";
+            qWarning()<<"Read file return null data";
         }
+        return false;
     qDebug()<<"ClickAction "<<info.absoluteFilePath();
 
 }
@@ -368,17 +377,28 @@ bool contentFileSystemModel::createNewFolder(QString foldername) {
 }
 
 //create a new program file
-bool contentFileSystemModel::createNewProgram(QMdiArea * mdiwin,QString foldername) {
+bool contentFileSystemModel::createNewProgram(QMdiArea * mdiwin, QString filename) {
 
     QSettings appSettings("IRGP","QtHPconnect");
     QString path=appSettings.value("contentPath").toString();
+    QDir dir(path);
+    QFileInfo fileinfo(dir,filename+"."+getFileType(HP_PROG));
 
-//    QFileInfo fileinfo =
+    /*
+    QFile file(fileinfo.absoluteFilePath());
 
-    //....
-    //openFile(mdiwin,fileinfo);
+    if (file.open(QIODevice::WriteOnly)) {
+
+      QTextStream out(&file);
+      out << "" << endl;
+    } else {
+      qWarning()<<tr("Could not open file");
+    }
+
+    file.close();
+*/
     qDebug()<<"Create new program pressed";
-    return false;
+    return openFile(mdiwin,fileinfo);
 }
 
 //create a new note file

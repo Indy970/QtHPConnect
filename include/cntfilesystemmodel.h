@@ -39,7 +39,8 @@ public:
 
     Qt::ItemFlags flags(const QModelIndex &index) const;
     void clickAction(QMdiArea * mdiwin,QModelIndex &index);
-    void openFile(QMdiArea * mdiwin,QModelIndex &index);
+    bool openFile(QMdiArea * mdiwin,QModelIndex &index);
+    bool openFile(QMdiArea * mdiwin,QFileInfo file);
     void deleteFile(QModelIndex &index);
     void renameFile(QModelIndex &index, QString newName);
     hp_DataStruct getFileType(QFileInfo info) const;

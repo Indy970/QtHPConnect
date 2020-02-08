@@ -34,7 +34,7 @@
 #include <QFileIconProvider>
 #include <QToolButton>
 
-#include "global.h"
+#include <global.h>
 #include "hpusb.h"
 #include "datamodel.h"
 #include "treemodel.h"

@@ -34,6 +34,7 @@ textEditor::textEditor(QWidget *parent) :
     qDebug()<<defaultPath;
 }
 
+/*
 void textEditor::newFile()
 {
     static int sequenceNumber = 1;
@@ -45,7 +46,9 @@ void textEditor::newFile()
     connect(document(), &QTextDocument::contentsChanged,
             this, &textEditor::documentWasModified);
 }
+*/
 
+/*
 bool textEditor::loadFile(const QString &fileName)
 {
     QFile file(fileName);
@@ -69,22 +72,44 @@ bool textEditor::loadFile(const QString &fileName)
 
     return true;
 }
+*/
 
-bool textEditor::save()
+bool textEditor::save(QString Calculator)
 {
     if (isUntitled) {
-        return saveAs();
+        return saveAs(Calculator);
     } else {
         return saveFile(curFile);
     }
 }
 
-bool textEditor::saveAs()
+bool textEditor::save(QFileInfo file)
 {
-    QFileInfo fileinfo(defaultPath,curFile);
+    if (isUntitled) {
+        return saveAs(file);
+    } else {
+        return saveFile(curFile);
+    }
+}
+
+bool textEditor::saveAs(QFileInfo fileinfo)
+{
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
                                                     fileinfo.absoluteFilePath());
+    if (fileName.isEmpty())
+        return false;
+
+    return saveFile(fileName);
+}
+
+
+bool textEditor::saveAs(QString calculaor)
+{
+
+//    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
+//                                                    fileinfo.absoluteFilePath());
+    QString fileName=curFile;
     if (fileName.isEmpty())
         return false;
 
@@ -116,41 +141,9 @@ QString textEditor::userFriendlyCurrentFile()
     return strippedName(curFile);
 }
 
-void textEditor::closeEvent(QCloseEvent *event)
-{
-    if (maybeSave()) {
-        event->accept();
-    } else {
-        event->ignore();
-    }
-}
-
 void textEditor::documentWasModified()
 {
     setWindowModified(document()->isModified());
-}
-
-bool textEditor::maybeSave()
-{
-    if (!document()->isModified())
-        return true;
-
-    const QMessageBox::StandardButton ret
-            = QMessageBox::warning(this, tr("MDI"),
-                                   tr("'%1' has been modified.\n"
-                                      "Do you want to save your changes?")
-                                   .arg(userFriendlyCurrentFile()),
-                                   QMessageBox::Save | QMessageBox::Discard
-                                   | QMessageBox::Cancel);
-    switch (ret) {
-    case QMessageBox::Save:
-        return save();
-    case QMessageBox::Cancel:
-        return false;
-    default:
-        break;
-    }
-    return true;
 }
 
 void textEditor::setCurrentFile(const QString &fileName)
