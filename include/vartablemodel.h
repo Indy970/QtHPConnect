@@ -42,7 +42,7 @@ private:
 
 public:
     varTableModel(QObject *parent = nullptr,
-                  hpCalcData * dataStore =nullptr,
+                  AbstractData * data =nullptr,
                   QString file = QStringLiteral(""),
                   hp_DataType dtype = HP_MAIN);
     QModelIndex parent(const QModelIndex &index) const;

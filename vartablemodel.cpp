@@ -65,13 +65,13 @@ const QStringList varTableModel::complex_header={ "Z0",
                                            };
 
 varTableModel::varTableModel(QObject *parent,
-        hpCalcData * dataStore,
+        AbstractData * data,
         QString file,
         hp_DataType dtype)
     :QAbstractTableModel(parent)
 {
     q_parent=parent;
-    hpcalc = dataStore;
+    dataobj = data;
     filename=file;
     type=dtype;
     setup();
@@ -90,14 +90,15 @@ QModelIndex varTableModel::index(int row, int column, const QModelIndex &parent)
     return createIndex(row,column);
 }
 
+
 void varTableModel::setup()
 {
-    if (hpcalc) {
+//    if (hpcalc) {
 
-        dataobj=hpcalc->getData(filename,type);
+//        dataobj=hpcalc->getData(filename,type);
 
   //      qDebug()<<"varTableModel: type"<<dataobj->getType();
-    }
+//    }
 
    return;
 }

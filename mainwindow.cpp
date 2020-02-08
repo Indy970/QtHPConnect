@@ -81,14 +81,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     setWindowIcon(QIcon::fromTheme("accessories-calculator",
                                    QIcon(":/icons/monitor_32x32.png")));
-    createActions();
     createLogWindow();
     setTreeMenu();
     setContentWindow();
 
-
     //create some sub menus
-
     QToolButton *createNewButton=
                dynamic_cast<QToolButton*>(ui->toolBar->widgetForAction(ui->actionCreateNew));
        createNewButton->setPopupMode(QToolButton::InstantPopup);
@@ -109,7 +106,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
        createNewButton->setMenu(createMenu);
 
-
     //Hack to fix QT resizing bug
     resizeDocks({ui->dwCalculator,ui->dwContent},{0,0}, Qt::Horizontal);
 
@@ -121,10 +117,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tvCalculators->setDropIndicatorShown(true);
     ui->tvCalculators->show();
 
-
-
-
-
+    //setup actions
     connect(ui->actionOpen,SIGNAL(triggered()),this,SLOT(onOpen()));
     connect(ui->actionAbout_HP_Connect,SIGNAL(triggered()),this,SLOT(about()));
   //  connect(ui->actionExit,SIGNAL(triggered()),this,SLOT(exit()));
@@ -150,6 +143,15 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->tvCalculators, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(on_tvCalculators_customContextMenuRequested(const QPoint &)));
     connect(ui->tvContent, SIGNAL(customContextMenuRequested(const QPoint &)), this, SLOT(on_tvContent_customContextMenuRequested(const QPoint &)));
     connect(hpapi, SIGNAL(hotplug(int)), this, SLOT(hotplug_handler(int)));
+
+    connect(ui->actionTile,SIGNAL(triggered()),this,SLOT(eventTileWindow()));
+    connect(ui->actionCascade,SIGNAL(triggered()),this,SLOT(eventCascadeWindow()));
+    connect(ui->actionClose,SIGNAL(triggered()),this,SLOT(eventCloseWindow()));
+    connect(ui->actionClose_all,SIGNAL(triggered()),this,SLOT(eventCloseAllWindow()));
+    connect(ui->actionNext,SIGNAL(triggered()),this,SLOT(eventNext()));
+    connect(ui->actionPrevious,SIGNAL(triggered()),this,SLOT(eventPrevious()));
+
+    connect(ui->actionExit,SIGNAL(triggered()),this,SLOT(eventExit()));
 
     //default data
     log("Initialising....");
@@ -410,6 +412,48 @@ void MainWindow::eventSaveAs() {
     qDebug()<<"Save As Pressed";
 }
 
+void MainWindow::eventTileWindow() {
+
+     QMdiArea * mdi=getMdi();
+     mdi->tileSubWindows();
+}
+
+void MainWindow::eventCascadeWindow() {
+
+     QMdiArea * mdi=getMdi();
+     mdi->cascadeSubWindows();
+}
+
+void MainWindow::eventCloseWindow() {
+
+     QMdiArea * mdi=getMdi();
+     mdi->closeActiveSubWindow();
+}
+
+void MainWindow::eventCloseAllWindow() {
+
+     QMdiArea * mdi=getMdi();
+     mdi->closeAllSubWindows();
+}
+
+void MainWindow::eventPrevious() {
+
+     QMdiArea * mdi=getMdi();
+     mdi->activatePreviousSubWindow();
+}
+
+void MainWindow::eventNext() {
+
+     QMdiArea * mdi=getMdi();
+     mdi->activateNextSubWindow();
+}
+
+void MainWindow::eventExit() {
+    QMdiArea * mdi=getMdi();
+    mdi->closeAllSubWindows();
+    close();
+}
+
 void MainWindow::eventCreateFolder() {
 
     QString newName= QStringLiteral("New Folder");
@@ -468,16 +512,6 @@ void MainWindow::onOptions(bool clicked)
     Options * optiondlg = new Options(this);
     optiondlg->show();
 }
-
-//Dummy from examples -- edit
-void MainWindow::createActions()
-{
-
-  //  ui->toolBar->addWidget(QPushButton(QIcon(":/icons/about_32x32.png"),"test"));
-//    const QIcon newIcon = QIcon::fromTheme("document-new", QIcon(":/icons/new.png"));
-//    QAction *newAct = new QAction(newIcon, tr("&New"), this);
-
-};
 
 //show or hide content window
 void MainWindow::showContent() {

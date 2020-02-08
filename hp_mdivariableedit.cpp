@@ -31,18 +31,58 @@ hp_mdiVariableEdit::hp_mdiVariableEdit(QWidget *parent,
 
     hptreeitem=treeItem;
     hpcalc = dataStore;
-    filename=treeItem->getFileName();
-    type=treeItem->getType();
+    filename = QStringLiteral("NULL");
+
+    if (hpcalc!=nullptr) {
+        calculator=hpcalc->getCalculatorName();
+
+        if (treeItem!=nullptr) {
+            filename=treeItem->getFileName();
+            type=treeItem->getType();
+        }
+        else {
+            qWarning()<<"hpcalc is null";
+        }
+        data=hpcalc->getData(filename,type);
+    }
+    else {
+        qWarning()<<"hpcalc is null";
+    }
+    content=false;
+    setup();
+
+    setWindowTitle(calculator+": "+filename);
+}
+
+hp_mdiVariableEdit::hp_mdiVariableEdit(QWidget *parent,
+            QFileInfo file,
+            AbstractData * data_in)
+    : hp_MdiWindow(parent)
+{
+    setMinimumSize(200,200);
+    setMaximumSize(1000,1000);
+    setSizePolicy(QSizePolicy::Ignored,QSizePolicy::Ignored);
+
+    calculator=QStringLiteral("Content: ");
+    content=true;
+    hptreeitem=nullptr;
+    hpcalc = nullptr;
+    filename=file.fileName();
+
+    data = data_in;
+
+    if (data!=nullptr)
+        type=data->getType();
 
     setup();
 
-    setWindowTitle(filename);
+    setWindowTitle(calculator+filename);
 }
 
 void hp_mdiVariableEdit::setup() {
 
-    if (hpcalc) {
-        varmodel = new varTableModel(this,hpcalc,filename,type);
+    if (data!=nullptr) {
+        varmodel = new varTableModel(this,data,filename,type);
         tableView = new QTableView(this);
         tableView->setModel(varmodel);
         setWidget(tableView);
@@ -50,8 +90,11 @@ void hp_mdiVariableEdit::setup() {
 }
 
 void hp_mdiVariableEdit::show() {
-    if(tableView)
+    if(tableView!=nullptr)
         tableView->show();
+    else {
+        qWarning()<<"hp_mdiVariableEdit::show tableView null";
+    }
     hp_MdiWindow::show();
 }
 

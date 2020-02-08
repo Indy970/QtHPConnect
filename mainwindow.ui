@@ -64,9 +64,6 @@
     <property name="title">
      <string>Edit</string>
     </property>
-    <addaction name="actionCut"/>
-    <addaction name="actionCopy"/>
-    <addaction name="actionPaste"/>
     <addaction name="separator"/>
     <addaction name="actionPreferences"/>
    </widget>

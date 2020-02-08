@@ -22,6 +22,7 @@
 #include <QWidget>
 #include <QMdiSubWindow>
 #include <QTableView>
+#include <QFileInfo>
 #include "vartablemodel.h"
 #include "hpdata.h"
 #include "hp_mdiwindow.h"
@@ -37,19 +38,23 @@ protected:
         hpTreeItem * hptreeitem  =nullptr;
         varTableModel * varmodel  =nullptr;
         hpCalcData * hpcalc =nullptr;
+        AbstractData * data = nullptr;
         QString filename;
-        hp_DataType type;
+        hp_DataType type=HP_MAIN;
+        QFileInfo file;
+        QString calculator;
+        bool content;
         void setup();
 
 public:
-    explicit hp_mdiVariableEdit(QWidget *parent = nullptr,
+    hp_mdiVariableEdit(QWidget *parent = nullptr,
                                 hpTreeItem * treeItem = nullptr,
                                 hpCalcData * dataStore =nullptr
                                 );
-//    explicit hp_mdiVariableEdit(QWidget *parent,
-//                                    hp_DataStruct filedata,
-//                                    hpCalcData * dataStore
-//                                    );
+    hp_mdiVariableEdit(QWidget *parent,
+                                    QFileInfo file,
+                                    AbstractData * data
+                                    );
     void show();
     ~hp_mdiVariableEdit();
 

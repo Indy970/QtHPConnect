@@ -57,7 +57,6 @@ public:
     void writeStatus(QString);
     void writeChatter(QString);
     void addDummy();
-    void createActions();
     hpusb * getAPI();
 
 signals:
@@ -84,11 +83,20 @@ private slots:
     void readSettings();
     void setTimerStopped();
 
+    void eventTileWindow();
+    void eventCascadeWindow();
+    void eventCloseWindow();
+    void eventCloseAllWindow();
+    void eventPrevious();
+    void eventNext();
+
     void eventSave();
     void eventSaveAs();
     void eventCreateFolder();
     void eventCreateNote();
     void eventCreateProgram();
+
+    void eventExit();
 
     treeModel * getTreeModel();
 

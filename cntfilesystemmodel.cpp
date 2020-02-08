@@ -22,6 +22,8 @@
 #include <QStringListModel>
 
 #include <hp_mditexteditor.h>
+#include <hp_infodialog.h>
+#include <hp_mdivariableedit.h>
 #include <QSettings>
 #include <QTextCodec>
 #include <utility>
@@ -301,15 +303,43 @@ bool contentFileSystemModel::openFile(QMdiArea * mdiwin,QFileInfo info) {
     hp_mdiTextEdit * hptextedit = nullptr;
     AbstractData * data=nullptr;
 
+    QString calc;
+    QString name;
+
+    hp_DataType type;
+    hp_Information hpinfo;
+//    hp_infoDialog * hpinfodlg;
+    hp_mdiVariableEdit * hpvaredit=nullptr;
+
      data = readFile(info);
 
         if (data!=nullptr) {
-           if (hptextedit==nullptr)
-                hptextedit = new hp_mdiTextEdit(mdiwin,info, data);
-             if (hptextedit!=nullptr) {
-                hptextedit ->show();
-                return true;
-             }
+            type=data->getType();
+            switch (type) {
+                case HP_NOTE:
+                case HP_PROG:   {
+                    if (hptextedit==nullptr)
+                        hptextedit = new hp_mdiTextEdit(mdiwin,info, data);
+                    if (hptextedit!=nullptr)
+                        hptextedit ->show();
+                    }
+                    break;
+                case HP_CAS:
+                case HP_REAL:
+                case HP_COMPLEX:
+                case HP_LIST:
+                case HP_MATRIX: {
+                    if (hpvaredit==nullptr) {
+                        if (data!=nullptr) {
+                            qDebug()<<"Opening Varedit";
+                            hpvaredit = new hp_mdiVariableEdit(mdiwin,info,data);
+                        }
+                    }
+                    if (hpvaredit!=nullptr)
+                        hpvaredit ->show();
+                    }
+                    break;
+            }
         }
         else {
             qWarning()<<"Read file return null data";
@@ -375,7 +405,19 @@ AbstractData * contentFileSystemModel::readFile(QFileInfo fileinfo) const {
                 data = new Notes(filedata.filename, HP_NOTE, QStringLiteral(""));
                 data->parseData(in);
             }
-        break;
+            break;
+            case HP_LIST: {
+                qDebug()<<"HP_LIST";
+                data = new List(filedata.filename, HP_LIST);
+                data->parseData(in);
+            }
+            break;
+            case HP_MATRIX: {
+                qDebug()<<"HP_MATRIX";
+                data = new Matrix(filedata.filename, HP_MATRIX);
+                data->parseData(in);
+            }
+            break;
             default: ;
         }
 

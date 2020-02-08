@@ -26,6 +26,8 @@
 
 #include "treemodel.h"
 #include "hptreeitem.h"
+#include <hp_infodialog.h>
+#include <hp_mdivariableedit.h>
 #include <hp_mditexteditor.h>
 #include <QStringListModel>
 #include <QMimeData>
@@ -123,18 +125,59 @@ void treeModel::openFile(QMdiArea * mdiwin, QModelIndex &index) {
     hp_mdiTextEdit * hptextedit = nullptr;
     AbstractData * data=nullptr;
     hpTreeItem * item=nullptr;
+    QString calc;
+    QString name;
+
+    hp_DataType type;
+    hp_Information hpinfo;
+    hp_infoDialog * hpinfodlg=nullptr;
+    hpCalcData * hpdata=nullptr;
+    hp_mdiVariableEdit * hpvaredit=nullptr;
 
     item = static_cast<hpTreeItem *>(itemFromIndex(index));
     data=getData(index);
+
     if ((data!=nullptr)&&(item!=nullptr)) {
-           if (hptextedit==nullptr)
-                hptextedit = new hp_mdiTextEdit(mdiwin,item, data);
-             if (hptextedit!=nullptr)
-                hptextedit ->show();
+        calc=item->getCalculatorName();
+        name=item->getFileName();
+        type=data->getType();
+        hpdata=getHpCalcData(calc);
+        switch (type) {
+                case HP_MAIN:   {
+                    hpinfo=hpdata->getInfo();
+                    hpinfodlg = new hp_infoDialog(mdiwin,hpinfo);
+                    hpinfodlg->show();
+                }
+                break;
+                case HP_NOTE:
+                case HP_PROG:   {
+                    if (hptextedit==nullptr)
+                        hptextedit = new hp_mdiTextEdit(mdiwin,item, data);
+                    if (hptextedit!=nullptr)
+                        hptextedit ->show();
+                    }
+                    break;
+                case HP_CAS:
+                case HP_REAL:
+                case HP_COMPLEX:
+                case HP_LIST:
+                case HP_MATRIX: {
+                    if (hpvaredit==nullptr) {
+                        if (data!=nullptr) {
+                            hpvaredit = new hp_mdiVariableEdit(mdiwin,item,hpdata);
+                        }
+                    }
+                    if (hpvaredit!=nullptr)
+                        hpvaredit ->show();
+                    }
+                    break;
+        }
         }
         else {
             qDebug()<<"Null data";
         }
+
+    return;
 }
 
 void treeModel::renameFile(QModelIndex &index,QString newName) {
