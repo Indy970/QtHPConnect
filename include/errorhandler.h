@@ -15,15 +15,15 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ERRORHANDLER_H
-#define ERRORHANDLER_H
-
 #include <QObject>
 #include <QFile>
 #include <QTextStream>
 #include <QMutexLocker>
 #include <QDateTime>
 #include <QDebug>
+
+#ifndef ERRORHANDLER_H
+#define ERRORHANDLER_H
 
 enum ErrLevel {
     L0,    //abort

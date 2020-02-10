@@ -162,7 +162,7 @@ void hpCalcData::readSettings() {
     hp_Handle * handle;
     hp_Settings hpset;
 
-    log("hpCalcData::readSettings: -Reading Settings");
+    errlog("hpCalcData::readSettings: -Reading Settings");
     qDebug()<<"Reading Settings";
     api=getAPI();
     handle=getHandle();
@@ -175,11 +175,11 @@ void hpCalcData::readSettings() {
         }
       }
       else {
-              log("hpCalcData::readSettings Handle null");
+              errlog("hpCalcData::readSettings Handle null");
       }
     }
     else {
-     log("hpCalcData::readSettings API null");
+     errlog("hpCalcData::readSettings API null");
     }
  //   hp_homesettings=hpset;
 
@@ -195,7 +195,7 @@ void hpCalcData::readScreen() {
     hp_Handle * handle;
     hp_Settings hpset;
 
-    log("Reading Screen");
+    errlog("Reading Screen");
 
     api=getAPI();
     handle=getHandle();
@@ -222,7 +222,7 @@ void hpCalcData::readScreen() {
 //recieve Screenshot
 void hpCalcData::recvScreen(hp_ScreenShot shot) {
 
-    log("Recieving Screen");
+    errlog("Recieving Screen");
 
     QByteArray imageData;
     if (screenShot!=nullptr) {
@@ -237,7 +237,7 @@ void hpCalcData::recvScreen(hp_ScreenShot shot) {
 void hpCalcData::recvSettings(hp_Data data) {
 
     QString filename;
-    log("hpCalcData::recvSettings: Recieving Setting");
+    errlog("hpCalcData::recvSettings: Recieving Setting");
     filename = data.name;
     qDebug()<<filename;
 
@@ -245,14 +245,14 @@ void hpCalcData::recvSettings(hp_Data data) {
         qDebug()<<"hpCalcData::recvSetting - Setting";
 
         qDebug()<<"hpCalcData::recvSetting - Real";
-        log("hpCalcData::recvSetting - Real");
+        errlog("hpCalcData::recvSetting - Real");
         Real * obj1 = new Real(data.name,HP_REAL);
         obj1->setData(data.data);
         addData(obj1);
         emit emitChange(HP_REAL);
 
         qDebug()<<"hpCalcData::recvSetting - Complex";
-        log("hpCalcData::recvSetting - Complex");
+        errlog("hpCalcData::recvSetting - Complex");
         Complex * obj2 = new Complex(data.name,HP_COMPLEX);
         obj2->setData(data.data);
         addData(obj2);
@@ -294,7 +294,7 @@ void hpCalcData::recvSettings(hp_Data data) {
 //recieve Program
 void hpCalcData::recvProg(hp_Prog program) {
 
-    log("Recieving Program");
+    errlog("Recieving Program");
     qDebug()<<"hpCalcData::recvProg";
 
     qDebug()<<program.filename;
@@ -310,7 +310,7 @@ void hpCalcData::recvProg(hp_Prog program) {
 //recieve Program
 void hpCalcData::recvNote(hp_Note note) {
 
-    log("Recieving Note");
+    errlog("Recieving Note");
     qDebug()<<"hpCalcData::recvNote";
 
     qDebug()<<note.filename;
@@ -325,7 +325,7 @@ void hpCalcData::recvNote(hp_Note note) {
 //recieve Program
 void hpCalcData::recvData(hp_Data data) {
 
-    log("Recieving Data");
+    errlog("Recieving Data");
 
     switch (data.type) {
         case HP_APP: {

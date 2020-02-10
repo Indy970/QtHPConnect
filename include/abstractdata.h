@@ -25,8 +25,6 @@
 #include "hpusb.h"
 #include "matrixdata.h"
 
-
-
 struct m_Size {
     int row;
     int column;

@@ -66,6 +66,7 @@ void MatrixData::addRow(int row)
     int i;
     QList<itemData> * rowlist;
 
+
 //    qDebug()<<"MatrixData::addRow" << row;
     rows=matrix.size();
     if (rows<=row)
@@ -147,6 +148,8 @@ void MatrixData::upsize(int newrow,int newcol) {
     qDebug()<<"MatrixData::upsize";
 
     itemData item;
+    item.sValue=QStringLiteral("0");
+
     rows = matrix.size();
 //    qDebug()<<"MatrixData::upsize - rows:"<<newrow<<" columns:"<<newcol;
 

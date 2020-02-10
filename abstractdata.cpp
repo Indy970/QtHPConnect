@@ -22,9 +22,9 @@
 #include <QByteArray>
 
 #include "global.h"
-#include "abstractdata.h"
 #include "hpusb.h"
 #include "matrixdata.h"
+#include "abstractdata.h"
 
 uint16_t crc16_block(const uint8_t * buffer, uint32_t len);
 
@@ -40,7 +40,7 @@ int BCD2I(quint8 num) {
             ret=0;
         }
 
-   log(QString("Num= %1 Ret= %2").arg(num,1,16).arg(ret));
+    errlog(QString("Num= %1 Ret= %2").arg(num,1,16).arg(ret));
     return ret;
 }
 
@@ -49,7 +49,7 @@ qint32 TwosComplement2Int(quint32 rawValue)
 
     qint32 ret;
 
-    log(QString("2C: %1").arg(rawValue& 0x80000000,1,16));
+    errlog(QString("2C: %1").arg(rawValue& 0x80000000,1,16));
 
     // If a positive value, return it
     if ((rawValue & 0x80000000) == 0)
@@ -58,12 +58,12 @@ qint32 TwosComplement2Int(quint32 rawValue)
     }
     else {
        // Otherwise perform the 2's complement math on the value
-      log(QString("List 2C Negative Detected"));
+     errlog(QString("List 2C Negative Detected"));
 
        ret = static_cast<qint32>(~(rawValue - 0x01)) * - 1;
 //          ret = ~rawValue;
     }
-    log(QString("2C: %1 %2").arg(rawValue,1,16).arg(ret,1,16));
+    errlog(QString("2C: %1 %2").arg(rawValue,1,16).arg(ret,1,16));
 
     return ret;
 }
@@ -149,7 +149,7 @@ itemData extract16(QByteArray item) {
 
         exp=((((((((static_cast<qint8>(item[7])&0xFF)<<8)+(static_cast<qint8>(item[6])&0xFF))<<8)+(static_cast<qint8>(item[5])&0xFF)))<<8)
                 +(static_cast<qint8>(item[4])&0xFF));
-        log(QString("extract16: exp %1").arg(exp));
+        errlog(QString("extract16: exp %1").arg(exp));
 //        exp=TwosComplement2Int(exp);
 
         m=0;
@@ -166,8 +166,8 @@ itemData extract16(QByteArray item) {
         msg=QString("multi:%1 base:%2 sign:%3 exp:%4 m:%5").arg(multi).arg(base).arg(sign).arg(exp).arg(m);
 //        msg=QString("value: %1").arg(value);
 
-        log(msg);
-        log((QString("Ans: %1").arg(ret)));
+        errlog(msg);
+        errlog((QString("Ans: %1").arg(ret)));
 
        listvalue.dReal=ret;
        listvalue.sValue=value;
@@ -371,10 +371,10 @@ void Real::parseData() {
     itemData listvalue;
 
     QString name;
-    log("Real: Parsing Vars");
+    errlog("Real: Parsing Vars");
 
     name=getName();
-    log(name);
+    errlog(name);
     a1.clear();
     a1=getData();
 
@@ -387,7 +387,7 @@ void Real::parseData() {
     else
         len=0;
 
-    log(QString("Real: %1 %2 %3").arg(ind,0,10)
+    errlog(QString("Real: %1 %2 %3").arg(ind,0,10)
         .arg(searchstr.size())
         .arg(len,2,10));
     //   ind=a1.indexOf(searchstr,0);
@@ -423,7 +423,7 @@ void Real::parseData() {
 
         setListItem(getListSize(),listvalue);
       }
-//    log("Real Dump");
+//    errlog("Real Dump");
 //    main_err->dump((uint8_t *)a1.constData(),a1.size());
 }
 
@@ -498,10 +498,10 @@ void Complex::parseData() {
     itemData value2;
     itemData listvalue;
     QString name;
-    log("Complex: Parsing Vars");
+    errlog("Complex: Parsing Vars");
 
     name=getName();
-    log(name);
+    errlog(name);
     a1.clear();
     a1=getData();
 
@@ -512,7 +512,7 @@ void Complex::parseData() {
        else
            len=0;
 
-       log(QString("Real: %1 %2 %3").arg(ind,0,10)
+       errlog(QString("Real: %1 %2 %3").arg(ind,0,10)
            .arg(searchstr.size())
            .arg(len,2,10));
        //   ind=a1.indexOf(searchstr,0);
@@ -678,13 +678,18 @@ itemData List::getListItem(int row) {
 void List::setListItem(int row, itemData item) {
 
     //May need to pad for missing items
+
     values.insert(row,item);
 
 }
 
 //Gets a  string representation of the list item in the list at position row
 QString List::getItem(int row) {
-    return QString("%1").arg(values.at(row).dReal);
+
+    if (row<values.size()) {
+        return QString("%1").arg(values.at(row).dReal);
+    }
+    return QString("");
 }
 
 //Passes a  string representation of the list item in the list at position row
@@ -762,31 +767,31 @@ void Matrix::parseData() {
     qDebug()<<"Matrix: Parsing a Matrix";
 
     name=getName();
-    log(name);
+    errlog(name);
     a1=data;
 //    ind=a1.indexOf(searchstr,0);
     ind=0;
     vtype=a1[ind+2];
 
-    log(QString("vtype=%1").arg(vtype,1,16));
+    errlog(QString("vtype=%1").arg(vtype,1,16));
     if ((vtype&0x7F)==0x14) {
-       log("matrix found");
+       errlog("matrix found");
        flag =1;
     }
-        log(QString("vtype=%1").arg(vtype&0x7F,1,16));
+        errlog(QString("vtype=%1").arg(vtype&0x7F,1,16));
     if ((vtype&0x80)==0x80) {
-       log("complex found");
+       errlog("complex found");
        flag =2;
     }
-    log(QString("vtype=%1").arg(vtype&0x80,1,16));
+    errlog(QString("vtype=%1").arg(vtype&0x80,1,16));
 
     //look for 00 14
-    log(QString("Found string at %1").arg(ind));
+    errlog(QString("Found string at %1").arg(ind));
 
     mcolumns=a1[ind+12];
     mrows=a1[ind+8];
     qDebug()<<QString("Matrix: Row %1 Column %2").arg(mrows).arg(mcolumns);
-    log(QString("Matrix: Row %1 Column %2").arg(mrows).arg(mcolumns));
+    errlog(QString("Matrix: Row %1 Column %2").arg(mrows).arg(mcolumns));
 
     start=ind+16;
     for(j=0;j<mrows;j++) {
@@ -845,10 +850,7 @@ QString Matrix::getItem(int row, int column) {
 //Passes a  string representation of the item in the matrix at position position row,column
 void Matrix::setItem(int row, int column, QString string) {
 
-    itemData item;
-    item.dReal=string.toDouble();
-    item.sValue=string;
-    setListItem(row,column, item);
+    setItem(row,column,string,string.toDouble());
 }
 
 //Passes a  string representation of the list item in the matrix at position row,column
@@ -951,14 +953,14 @@ void Program::parseData(QDataStream& in) {
                 phrase=a1.mid(ind,16*3);
                 //add array to catch variable list
                 str=codec->toUnicode(phrase);
-                log(QString("TD...%1 %2").arg(pos,0,16).arg(ind));
+                errlog(QString("TD...%1 %2").arg(pos,0,16).arg(ind));
                 main_err->dump((uint8_t *)phrase.data(),3*16);
-                log(str);
+                errlog(str);
             }
         }
     }
     else {
-        log("Data is not a program file");
+        errlog("Data is not a program file");
     }
 
 
@@ -1086,11 +1088,11 @@ void Settings::setData(QByteArray datain) {
 
         int len1=data.size();
         int len2=datain.size();
-        log(QString("Settings Compare %1 %2").arg(len1).arg(len2));
+        errlog(QString("Settings Compare %1 %2").arg(len1).arg(len2));
         int i=0;
         while ((i<len1)&&(i<len2)) {
             if (data[i]!=datain[i]) {
-                log(QString("Settings diff at:%1").arg(i));
+                errlog(QString("Settings diff at:%1").arg(i));
             }
             i++;
         }
@@ -1098,7 +1100,7 @@ void Settings::setData(QByteArray datain) {
         data = datain;
         len1=data.size();
         len2=datain.size();
-        log(QString("Settings Compare 2 %1 %2").arg(len1).arg(len2));
+        errlog(QString("Settings Compare 2 %1 %2").arg(len1).arg(len2));
 
         //parseData();
 }

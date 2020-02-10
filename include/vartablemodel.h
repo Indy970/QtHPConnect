@@ -15,11 +15,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef VARTABLEMODEL_H
-#define VARTABLEMODEL_H
-
+#include <QtWidgets>
 #include <QAbstractTableModel>
 #include <QStringList>
+#include <QFileInfo>
+#include <QDir>
+
+#ifndef VARTABLEMODEL_H
+#define VARTABLEMODEL_H
 
 #include "hpdata.h"
 #include "abstractdata.h"
@@ -27,7 +30,6 @@
 class varTableModel: public QAbstractTableModel
 {
     Q_OBJECT
-
 
 private:
     QObject * q_parent;
@@ -40,18 +42,32 @@ private:
     QList<QList<double>> dataarray;
     void setup();
 
+    bool isUntitled;
+    QDir defaultPath;
+
+
 public:
     varTableModel(QObject *parent = nullptr,
                   AbstractData * data =nullptr,
                   QString file = QStringLiteral(""),
                   hp_DataType dtype = HP_MAIN);
-    QModelIndex parent(const QModelIndex &index) const;
-    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const;
+    QModelIndex parent(const QModelIndex &index) const override;
+    QModelIndex index(int row, int column, const QModelIndex &parent = QModelIndex()) const override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+    void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles);
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
+    bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+
+    bool save(QFileInfo file);
+    bool saveAs(QFileInfo file);
+    bool save(QString calculator);
+    bool saveAs(QString calculator);
+    bool saveFile(const QString &fileName);
+
     QVariant  headerData(int section, Qt::Orientation orientation, int role) const override;
-    ~varTableModel();
+    ~varTableModel() override;
 };
 
 #endif // VARTABLEMODEL_H

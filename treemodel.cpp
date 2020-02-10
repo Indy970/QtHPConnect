@@ -53,7 +53,7 @@ int treeModel::createRoot()
 AbstractData * treeModel::createData(hp_Data data_in) {
 
     AbstractData * obj=nullptr;
-    log("TreeModel::Creating Data Stucture");
+    errlog("TreeModel::Creating Data Stucture");
 
     switch (data_in.type) {
         case HP_APP: {

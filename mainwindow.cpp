@@ -34,7 +34,7 @@
 #include <QFileIconProvider>
 #include <QToolButton>
 
-#include <global.h>
+//#include <global.h>
 #include "hpusb.h"
 #include "datamodel.h"
 #include "treemodel.h"
@@ -50,7 +50,7 @@
 #include "eventtimer.h"
 
 errorHandler *main_err;
-#define log(a) main_err->error(L7,0,QString(a),QString());
+#define errlog(a) main_err->error(L7,0,QString(a),QString());
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -154,7 +154,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionExit,SIGNAL(triggered()),this,SLOT(eventExit()));
 
     //default data
-    log("Initialising....");
+    errlog("Initialising....");
 
     if (hpapi->hp_init())
         err(L1,0,QString().sprintf("%s Failed to open libusb",__FUNCTION__));
@@ -187,11 +187,11 @@ void MainWindow::testFunction() {
     if (pH) {
 
         cmd   = QInputDialog::getInt(this,"Get Command","CMD:",0,0,0xFFFF);
-        log("command is "+QString().sprintf("%x",cmd));
+        errlog("command is "+QString().sprintf("%x",cmd));
         pH->vpkt_send_experiments(cmd);
     }
     else
-        log("Could not get calculator");
+        errlog("Could not get calculator");
 
 }
 
@@ -651,7 +651,7 @@ void MainWindow::monitorAddImage(hp_ScreenShot  scrnshot) {
      }
      else
      {
-         log("Could not load image");
+         errlog("Could not load image");
      }
      ui->dwMonitor->show();
 }
@@ -803,7 +803,7 @@ void MainWindow::treeMenuAction(bool clicked) {
         }
         else
         {
-            log(QStringLiteral("treeItem is null"));
+            errlog(QStringLiteral("treeItem is null"));
         }
     }
 }

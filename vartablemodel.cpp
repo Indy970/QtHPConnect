@@ -19,9 +19,14 @@
  */
 
 
+#include <QMessageBox>
+#include <QFile>
+#include <QFileDialog>
+#include <QApplication>
+#include <QSettings>
+
 #include "global.h"
 #include "vartablemodel.h"
-#include "abstractdata.h"
 
 const QStringList varTableModel::real_header={ "A",
                                             "B",
@@ -80,8 +85,12 @@ varTableModel::varTableModel(QObject *parent,
 //REWORK!
 QModelIndex varTableModel::parent(const QModelIndex &index) const {
 
-
     return QModelIndex();
+}
+
+Qt::ItemFlags varTableModel::flags(const QModelIndex &index) const {
+
+    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
 }
 
 //rework!
@@ -90,6 +99,38 @@ QModelIndex varTableModel::index(int row, int column, const QModelIndex &parent)
     return createIndex(row,column);
 }
 
+//alter the data table if data is edited
+bool varTableModel::setData(const QModelIndex &index, const QVariant &value, int role) {
+
+    qDebug()<<"Data Changed";
+
+    if (type==HP_LIST) {
+           List * list;
+           list = static_cast<List *>(dataobj);
+           list->setItem(index.row(),value.toString(),value.toReal());
+           return true;
+     }
+    if (type==HP_MATRIX) {
+           Matrix * matrix;
+           matrix = static_cast<Matrix *>(dataobj);
+           matrix->setItem(index.row(),index.column(),value.toString(),value.toReal());
+           return true;
+     }
+    if (type==HP_REAL) {
+           Real * real;
+           real = static_cast<Real *>(dataobj);
+ //          item = real->getItem(index.row());
+ //          return item;
+     }
+    if (type==HP_COMPLEX) {
+           Complex * complex;
+           complex = static_cast<Complex *>(dataobj);
+ //          item = complex->getItem(index.row());
+ //          return item;
+     }
+
+    return false;
+}
 
 void varTableModel::setup()
 {
@@ -108,23 +149,23 @@ int varTableModel::rowCount(const QModelIndex & parent) const
   int size=16; //should be zero
   if (type==HP_LIST) {
       List * list;
-      list = (List *)dataobj;
-      size= list->getListSize();
+      list = static_cast<List *>(dataobj);
+      size= list->getListSize()+1;
   }
   if (type==HP_REAL) {
       Real * real;
-      real = (Real *)dataobj;
+      real = static_cast<Real *>(dataobj);
       size= real->getListSize();
   }
   if (type==HP_COMPLEX) {
       Complex * complex;
-      complex = (Complex *)dataobj;
+      complex = static_cast<Complex *>(dataobj);
       size= complex->getListSize();
   }
   if (type==HP_MATRIX) {
       Matrix * matrix;
-      matrix = (Matrix *)dataobj;
-      size= matrix->getMatrixRows();
+      matrix = static_cast<Matrix *>(dataobj);
+      size= matrix->getMatrixRows()+1;
 //      qDebug()<<matrix->getName()<<" row"<<size;
   }
 
@@ -136,20 +177,29 @@ int varTableModel::columnCount(const QModelIndex & /*parent*/) const
     int size=1;
     if (type==HP_MATRIX) {
         Matrix * matrix;
-        matrix = (Matrix *)dataobj;
-        size= matrix->getMatrixColumns();
+        matrix = static_cast<Matrix *>(dataobj);
+        size= matrix->getMatrixColumns()+1;
  //       qDebug()<<matrix->getName()<<" column"<<size;
 
     }
     if (type==HP_COMPLEX) {
         Complex * complex;
-        complex = (Complex *)dataobj;
+        complex = static_cast<Complex *>(dataobj);
  //       size= matrix->getMatrixColumns();
  //       qDebug()<<matrix->getName()<<" column"<<size;
         return 1;
     }
     return size;
 }
+
+void varTableModel::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles) {
+
+
+    qDebug()<<"Data Changed";
+
+
+}
+
 
 QVariant varTableModel::data(const QModelIndex &index, int role) const
 {
@@ -159,25 +209,25 @@ QVariant varTableModel::data(const QModelIndex &index, int role) const
 
       if (type==HP_LIST) {
              List * list;
-             list = (List *)dataobj;
+             list = static_cast<List *>(dataobj);
              item = list->getItem(index.row());
              return item;
        }
       if (type==HP_MATRIX) {
              Matrix * matrix;
-             matrix = (Matrix *)dataobj;
+             matrix = static_cast<Matrix *>(dataobj);
              item = matrix->getItem(index.row(),index.column());
              return item;
        }
       if (type==HP_REAL) {
              Real * real;
-             real = (Real *)dataobj;
+             real = static_cast<Real *>(dataobj);
              item = real->getItem(index.row());
              return item;
        }
       if (type==HP_COMPLEX) {
              Complex * complex;
-             complex = (Complex *)dataobj;
+             complex = static_cast<Complex *>(dataobj);
              item = complex->getItem(index.row());
              return item;
        }
@@ -226,6 +276,72 @@ QVariant  varTableModel::headerData(int section, Qt::Orientation orientation, in
 
     return QVariant();
 }
+
+
+bool varTableModel::save(QString Calculator)
+{
+    if (isUntitled) {
+        return saveAs(Calculator);
+    } else {
+        return saveFile("xx");
+    }
+}
+
+bool varTableModel::save(QFileInfo file)
+{
+    if (isUntitled) {
+        return saveAs(file);
+    } else {
+        return saveFile("xx");
+    }
+}
+
+bool varTableModel::saveAs(QFileInfo fileinfo)
+{
+
+//    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
+//                                                    fileinfo.absoluteFilePath());
+//    if (fileName.isEmpty())
+//        return false;
+
+    //return saveFile(fileName);
+
+
+}
+
+
+bool varTableModel::saveAs(QString calculaor)
+{
+
+//    QString fileName = QFileDialog::getSaveFileName(this, tr("Save As"),
+//                                                    fileinfo.absoluteFilePath());
+    QString fileName="";
+    if (fileName.isEmpty())
+        return false;
+
+    return saveFile(fileName);
+}
+
+bool varTableModel::saveFile(const QString &fileName)
+{
+    QFileInfo fileinfo(defaultPath,fileName);
+    QFile file(fileinfo.absoluteFilePath());
+    if (!file.open(QFile::WriteOnly | QFile::Text)) {
+ //       QMessageBox::warning(this, tr("MDI"),
+ //                            tr("Cannot write file %1:\n%2.")
+ //                            .arg(QDir::toNativeSeparators(fileName), file.errorString()));
+        return false;
+    }
+
+    QTextStream out(&file);
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+ //   out << toPlainText();
+    QApplication::restoreOverrideCursor();
+
+//    setCurrentFile(fileName);
+    return true;
+}
+
 
 varTableModel::~varTableModel() {
        qDebug()<<"Entering ~varTableModel()";

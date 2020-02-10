@@ -15,14 +15,14 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HP_MDIVARIABLEEDIT_H
-#define HP_MDIVARIABLEEDIT_H
-
-#include <QObject>
 #include <QWidget>
 #include <QMdiSubWindow>
 #include <QTableView>
 #include <QFileInfo>
+
+#ifndef HP_MDIVARIABLEEDIT_H
+#define HP_MDIVARIABLEEDIT_H
+
 #include "vartablemodel.h"
 #include "hpdata.h"
 #include "hp_mdiwindow.h"
@@ -45,6 +45,8 @@ protected:
         QString calculator;
         bool content;
         void setup();
+        void closeEvent(QCloseEvent *event) override;
+
 
 public:
     hp_mdiVariableEdit(QWidget *parent = nullptr,
@@ -56,12 +58,15 @@ public:
                                     AbstractData * data
                                     );
     void show();
-    ~hp_mdiVariableEdit();
+    bool save() override;
+    bool saveAs() override;
+    bool maybeSave();
+    ~hp_mdiVariableEdit() override;
 
 signals:
 
 public slots:
-
+    void eventSave();
 };
 
 #endif // HP_MDIVARIABLEEDIT_H
