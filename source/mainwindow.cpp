@@ -49,6 +49,9 @@
 #include "eventthread.h"
 #include "eventtimer.h"
 
+
+extern QString I2BCDS(int num);
+
 errorHandler *main_err;
 #define errlog(a) main_err->error(L7,0,QString(a),QString());
 
@@ -136,6 +139,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->tvContent,SIGNAL(clicked(QModelIndex)),this,SLOT(clickedContent(QModelIndex)));
     connect(ui->actionLog,SIGNAL(triggered()),this,SLOT(createLogWindow()));
     connect(ui->actionTest,SIGNAL(triggered()),this,SLOT(testFunction()));
+    connect(ui->actionTestFunction,SIGNAL(triggered()),this,SLOT(testFunction2()));
     connect(ui->actionTestSettings,SIGNAL(triggered()),this,SLOT(onTestSettings()));
     connect(ui->actionTestScreen,SIGNAL(triggered()),this,SLOT(onTestScreen()));
     connect(ui->actionRefresh,SIGNAL(triggered(bool)),this,SLOT(refresh(bool)));
@@ -193,6 +197,20 @@ void MainWindow::testFunction() {
     else
         errlog("Could not get calculator");
 
+}
+
+void MainWindow::testFunction2() {
+
+    hpCalcData * pH;
+
+    int cmd;
+    qDebug()<<"In Test Function 2";
+
+        QString out;
+        cmd   = QInputDialog::getInt(this,"Get Command","CMD:",0,0,0xFFFF);
+        out=I2BCDS(cmd);
+        errlog("command is "+QString().sprintf("%x",cmd));
+        qDebug()<<out;
 }
 
 treeModel * MainWindow::getTreeModel() {

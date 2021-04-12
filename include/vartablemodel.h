@@ -41,7 +41,7 @@ private:
     AbstractData * dataobj =nullptr;
     QList<QList<double>> dataarray;
     void setup();
-
+    bool ismodified=false;
     bool isUntitled;
     QDir defaultPath;
 
@@ -59,12 +59,9 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
     bool setData(const QModelIndex &index, const QVariant &value, int role) override;
-
-    bool save(QFileInfo file);
-    bool saveAs(QFileInfo file);
-    bool save(QString calculator);
-    bool saveAs(QString calculator);
-    bool saveFile(const QString &fileName);
+    bool getData(  QDataStream &ds);
+    bool isModified();
+    void resetModified();
 
     QVariant  headerData(int section, Qt::Orientation orientation, int role) const override;
     ~varTableModel() override;

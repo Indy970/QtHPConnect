@@ -168,6 +168,8 @@ bool hp_mdiVariableEdit::saveFile(const QFileInfo fileinfo)
     QDataStream ds(&file);
 
     ds.setByteOrder(QDataStream::LittleEndian);
+
+
     varmodel->getData(ds);
 
 

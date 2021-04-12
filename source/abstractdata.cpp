@@ -18,6 +18,8 @@
 #include <QDebug>
 #include <QTextCodec>
 #include <QtMath>
+#include <QBuffer>
+#include <math.h>
 #include <QByteArrayMatcher>
 #include <QByteArray>
 
@@ -48,6 +50,7 @@ quint8 I2BCD(int num) {
 
         quint8 ret;
         int shift =0;
+        ret=0;
         while (num > 0) {
            ret |= (num % 10) << (shift++ << 2);
            num /= 10;
@@ -57,6 +60,23 @@ quint8 I2BCD(int num) {
 
     qDebug()<<QString("Num= %1 Ret= %2").arg(num,1,16).arg(ret);
     return ret;
+}
+
+QString I2BCDS(int num) {
+
+        quint8 ret;
+        QString out=QStringLiteral("OUT");
+        int shift =0;
+        ret=0;
+        while (num > 0) {
+           ret |= (num % 10) << (shift++ << 2);
+           num /= 10;
+        }
+
+    errlog(QString("Num= %1 Ret= %2").arg(num,1,16).arg(ret));
+
+    qDebug()<<QString("Num= %1 Ret= %2").arg(num,1,16).arg(ret);
+    return out;
 }
 
 qint32 TwosComplement2Int(quint32 rawValue)
@@ -252,50 +272,96 @@ itemData extract8(QByteArray item) {
        return listvalue;
 }
 
-bool BCD(QDataStream &ds, double real) {
 
-qint16 out;
-
-double exp;
-double base;
-double mant;
-exp = real;
-int i;
-
-qDebug()<<"BCD from "<<real;
-QString mants=QStringLiteral("");
-
-int bcd;
-int num1;
-num1=(int)real;
-
-bcd=I2BCD(num1);
-
-
-
-double dig;
-int num;
-    base=mant;
-    for (i=0;i<12;i++) {
-        dig=round(base);
-        num=(int)dig;
-        base=base-dig;
-        base=base *10;
-        ds<<(quint8)num;
-        mants=mants+(quint8)num;
+double step(double edge, double x) {
+    if ( x < edge ) {
+        return 0.0;
     }
-    qDebug()<<mants;
-
-    base=exp;
-    for (i=0;i<3;i++) {
-        base=base/10;
-        dig=fmod(base,1)*10;
-        num=(int)dig;
-        base=base-dig;
-        ds<<(quint8)num;
+    else {
+        return 1.0;
     }
 }
 
+//I to BCD
+quint8 BCDi(quint8 in1, quint8 in2) {
+
+quint8 out = ((in1<<4)&0b11110000) | (in2&0b00001111);
+return out;
+}
+
+
+///Real to BCD
+bool BCD(QDataStream &ds, double real) {
+
+double base=0.0;
+int i;
+
+qDebug()<<"BCD from "<<real;
+
+double fractpart, intpart;
+quint8 num1;
+quint8 num2;
+quint8 num;
+double F = abs(real);
+double Sign = step(0.0,-real);
+double Exponent = floor(log10(F));
+double Mantissa = real/(pow(10,Exponent));
+
+/*
+if(Mantissa < 1)
+     Exponent -= 1;
+ Exponent +=  127;
+*/
+
+     qDebug()<<F;
+     qDebug()<<Exponent;
+     qDebug()<<Mantissa;
+     qDebug()<<Sign;
+     qDebug()<<"---";
+
+base=Mantissa;
+
+//**TODO --- Reverse Order - LittleEndine
+
+
+    for (i=0;i<6;i++) {
+        fractpart=modf(base,&intpart);
+        num1=(quint8)intpart;
+        base=fractpart*10.0;
+//        num1=i*2;
+        fractpart=modf(base,&intpart);
+        num2=(quint8)intpart;
+        base=fractpart*10.0;
+//        num2=i*2+1;
+        num=BCDi(num1,num2);
+        qDebug()<<"base: "<<base;
+        ds<<(quint8)num;
+
+        qDebug()<<"i= "<<i<<": "<<hex<<num;
+    }
+
+    base=Exponent;
+    for (i=0;i<2;i++) {
+        fractpart=modf(base,&intpart);
+        num1=(quint8)intpart;
+        base=fractpart*10.0;
+//        num1=i*2;
+        fractpart=modf(base,&intpart);
+        num2=(quint8)intpart;
+        base=fractpart*10.0;
+//        num2=i*2+1;
+        num=BCDi(num1,num2);
+
+        qDebug()<<"base: "<<base;
+        ds<<(quint8)num;
+
+        qDebug()<<"i= "<<i<<": "<<hex<<num;
+    }
+
+   // ds<<(quint8)Sign;
+
+   return true;
+}
 
 
 ////////////////////////
@@ -930,10 +996,8 @@ void Matrix::setItem(int row, int column, QString string, double value) {
 
 bool Matrix::getData(QDataStream &ds) {
     qDebug()<<"Matrix::getData(ds)";
-//    QByteArray out;
-//    out.clear();
-    mdata.dataOut(ds);
-    return true;
+
+    return mdata.dataOut(ds);
 }
 
 //Passes the number of entries in the list

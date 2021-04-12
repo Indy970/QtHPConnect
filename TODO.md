@@ -1,14 +1,11 @@
 
 1 GUI
-    About
-    Content - fix icons
-    Content - fix columns
-    Content - fix resizing
-    Create storage path if it does not exist
-    Load and read program files
-    Add options - set default paths
 
-    Drag and drop from content window to calc
+    matrix data output to correct format
+    list data output
+    
+    
+    confirm output formats are correct
 
 2 Comms
 
@@ -22,5 +19,7 @@
     Decoding data. Lists 90% complete
 
     Extract vars file
+    
+    write to calculator 
 
 3 Backup to disk

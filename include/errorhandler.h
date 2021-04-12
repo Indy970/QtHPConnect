@@ -21,6 +21,7 @@
 #include <QMutexLocker>
 #include <QDateTime>
 #include <QDebug>
+#include <QMutex>
 
 #ifndef ERRORHANDLER_H
 #define ERRORHANDLER_H

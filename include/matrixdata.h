@@ -19,6 +19,8 @@
 #define MATRIXDATA_H
 
 #include <QList>
+#include <QString>
+
 
 struct itemData {
     double dReal=0.0;
@@ -40,6 +42,7 @@ public:
     int rows();
     void addRow(int);
     int columns();
+    bool dataOut(QDataStream &out);
     void resize(int,int);
     void upsize(int,int);
     void matchsize();

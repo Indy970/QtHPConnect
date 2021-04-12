@@ -79,6 +79,7 @@ private slots:
     void closeEvent(QCloseEvent *) override;
     void createLogWindow();
     void testFunction();
+    void testFunction2();
     void writeSettings();
     void readSettings();
     void setTimerStopped();

@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>input.txt</file>
         <file>icons/about_16x16.png</file>
         <file>icons/about_32x32.png</file>
         <file>icons/add_background_16x16.png</file>

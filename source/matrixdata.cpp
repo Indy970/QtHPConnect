@@ -19,6 +19,8 @@
  */
 
 #include <QDebug>
+#include <QDataStream>
+#include <QBuffer>
 #include "matrixdata.h"
 
 extern bool BCD(QDataStream &ds, double real) ;
@@ -88,7 +90,7 @@ bool MatrixData::dataOut(QDataStream & ds) {
     int column;
     int i,j=0;
 
-        qDebug()<<"MatrixData::dataOut(ds)";
+    qDebug()<<"MatrixData::dataOut(ds)";
 
     row=rows();
     column=columns();
@@ -97,29 +99,36 @@ bool MatrixData::dataOut(QDataStream & ds) {
     QString str;
     //header
 
-    static const quint8 mydata[] = {0x02, 0x01, 0x04,0x03,0x06,0x05,0x08,0x07};
+   // static const quint8 mydata[] = {0x02, 0x01, 0x04,0x03,0x06,0x05,0x08,0x07};
 
-    QByteArray test= QByteArray::fromRawData((char *)mydata,sizeof (mydata));
+    //QByteArray test= QByteArray::fromRawData((char *)mydata,sizeof (mydata));
 
-    ds<<static_cast<quint16>(0x0001);
-    ds<<static_cast<quint16>(0x8014);
-    ds<<static_cast<quint16>(0x0002);
-    ds<<static_cast<quint16>(0x0000);
+    //QDataStream ds(&test, QIODevice::ReadWrite);
+
+    //ds.writeRawData((char *)mydata,sizeof(mydata));
+
+
+    ds<<(quint16)0x0001;
+    ds<<(quint16)0x8014;
+    ds<<(quint16)0x0002;
+    ds<<(quint16)0x0000;
 
     ds<<static_cast<quint32>(row);
     ds<<static_cast<quint32>(column);
-//    ds<<static_cast<quint8>(0x30);
-//    ds<<static_cast<quint8>(0x31);
 
-   //  qDebug()<<test;
     //body
     double real;
+    QStringList l1;
+    quint8 g;
     for (i=0;i<row;i++) {
         for (j=0;j<column;j++) {
             item=at(i,j);
 
             real=item.dReal;
+
             BCD(ds,real);
+
+
  //           if(j!=column)
  //               out.append("");
         }
@@ -128,6 +137,12 @@ bool MatrixData::dataOut(QDataStream & ds) {
     }
 
     //footer
+
+    ds.device()->seek(0);
+    ds>>g;
+    qDebug()<<g;
+
+
 
     return true;
 }

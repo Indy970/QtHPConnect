@@ -60,6 +60,7 @@ public:
     void show();
     bool save() override;
     bool saveAs() override;
+    bool saveFile(const QFileInfo fileinfo);
     bool maybeSave();
     ~hp_mdiVariableEdit() override;
 

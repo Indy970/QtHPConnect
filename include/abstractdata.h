@@ -53,6 +53,7 @@ public:
     hp_pkt_type getFileCode();
     virtual void setData(QByteArray);
     virtual QByteArray getData(); //data extract
+    virtual bool getData(QDataStream &ds);
     virtual void parseData();
     virtual void parseData(QDataStream& in);
     virtual QByteArray fileOut(); //full data out in file transmittable format
@@ -103,10 +104,10 @@ class List:  public AbstractData
 {
 private:
     QList <itemData>values;
-    void parseData();
+    void parseData() override;
 public:
     List(QString, hp_DataType);
-    QByteArray getData();
+    QByteArray getData() override;
     itemData getListItem(int);
     void setListItem(int, itemData);
     QString getItem(int);
@@ -123,11 +124,13 @@ public:
     Matrix(QString, hp_DataType);
     itemData getListItem(int row, int column);
     void setListItem(int, int, itemData);
-    void parseData();
-    virtual void parseData(QDataStream& in);
+    void parseData() override;
+    virtual void parseData(QDataStream& in) override;
     QString getItem(int row, int column);
     void setItem(int, int, QString);
     void setItem(int, int, QString, double);
+//    QByteArray getData() override;
+    bool getData(QDataStream &ds);
     m_Size getMatrixSize();
     int getMatrixRows();
     int getMatrixColumns();
