@@ -166,12 +166,9 @@ bool hp_mdiVariableEdit::saveFile(const QFileInfo fileinfo)
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     QDataStream ds(&file);
-
     ds.setByteOrder(QDataStream::LittleEndian);
 
-
     varmodel->getData(ds);
-
 
     //reset busy cursor
     QApplication::restoreOverrideCursor();

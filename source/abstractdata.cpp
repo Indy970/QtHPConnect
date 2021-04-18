@@ -294,73 +294,73 @@ return out;
 bool BCD(QDataStream &ds, double real) {
 
 double base=0.0;
+quint16 expn;
 int i;
-
-qDebug()<<"BCD from "<<real;
-
 double fractpart, intpart;
 quint8 num1;
 quint8 num2;
 quint8 num;
 double F = abs(real);
-double Sign = step(0.0,-real);
-double Exponent = floor(log10(F));
-double Mantissa = real/(pow(10,Exponent));
+double sign;
+double exponent = floor(log10(F));
+double mantissa = F/(pow(10,exponent));
+quint8 data[8];
 
-/*
-if(Mantissa < 1)
-     Exponent -= 1;
- Exponent +=  127;
-*/
 
-     qDebug()<<F;
-     qDebug()<<Exponent;
-     qDebug()<<Mantissa;
-     qDebug()<<Sign;
-     qDebug()<<"---";
+qDebug()<<"BCD from "<<real;
 
-base=Mantissa;
+    if(exponent < 0)
+        exponent +=  0x1000;
+
+    if (real<0)
+        sign=1;
+    else
+        sign =0;
+
+    qDebug()<<F;
+    qDebug()<<exponent;
+    qDebug()<<mantissa;
+    qDebug()<<sign;
+    qDebug()<<"---";
+
+    base=mantissa;
 
 //**TODO --- Reverse Order - LittleEndine
 
+    if (sign==1)
+        num1=9;
+    else
+        num1=0;
 
     for (i=0;i<6;i++) {
+        if (i>0) {
         fractpart=modf(base,&intpart);
         num1=(quint8)intpart;
         base=fractpart*10.0;
 //        num1=i*2;
+        }
         fractpart=modf(base,&intpart);
         num2=(quint8)intpart;
         base=fractpart*10.0;
 //        num2=i*2+1;
         num=BCDi(num1,num2);
         qDebug()<<"base: "<<base;
-        ds<<(quint8)num;
+//        ds<<(quint8)num;
+        data[7-i]=(quint8)num;
 
         qDebug()<<"i= "<<i<<": "<<hex<<num;
     }
 
-    base=Exponent;
-    for (i=0;i<2;i++) {
-        fractpart=modf(base,&intpart);
-        num1=(quint8)intpart;
-        base=fractpart*10.0;
-//        num1=i*2;
-        fractpart=modf(base,&intpart);
-        num2=(quint8)intpart;
-        base=fractpart*10.0;
-//        num2=i*2+1;
-        num=BCDi(num1,num2);
+    expn=(quint16)exponent;
+    //EXP is in binary
+    qDebug()<<hex<<expn;
+    ds<<expn;
 
-        qDebug()<<"base: "<<base;
-        ds<<(quint8)num;
-
-        qDebug()<<"i= "<<i<<": "<<hex<<num;
+    for (i=2; i<8; i++) {
+        ds<<data[i];
     }
 
-   // ds<<(quint8)Sign;
-
-   return true;
+    return true;
 }
 
 
@@ -874,7 +874,8 @@ void Matrix::parseData(QDataStream & in) {
     parseData();
 }
 
-
+//Parse a matrix
+//
 void Matrix::parseData() {
 
     QByteArray a1;
@@ -893,8 +894,16 @@ void Matrix::parseData() {
 
     QString ds;
 //    QByteArray searchstr((char *)std::begin<quint8>({0x01,0x00}),2);
+
+   //Matrix header
    //Start keeps changing 01 or 02
+   //0x00
    //0x14 real 0x94 Complex
+   //0x80?? CRC??
+   //0x02
+   //0x00
+   //0x00
+   //0x00
 
     qDebug()<<"Matrix: Parsing a Matrix";
 

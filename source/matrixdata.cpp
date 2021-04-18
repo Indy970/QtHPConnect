@@ -61,6 +61,9 @@ void MatrixData::insert(int row, int column, itemData data)
    if(rowlist) {
         rowlist->replace(column,data);
    }
+
+   //TODO
+   //If data is complex convert to matric to a complex matrix
 }
 
 //Add a new row
@@ -99,7 +102,7 @@ bool MatrixData::dataOut(QDataStream & ds) {
     QString str;
     //header
 
-   // static const quint8 mydata[] = {0x02, 0x01, 0x04,0x03,0x06,0x05,0x08,0x07};
+    // static const quint8 mydata[] = {0x02, 0x01, 0x04,0x03,0x06,0x05,0x08,0x07};
 
     //QByteArray test= QByteArray::fromRawData((char *)mydata,sizeof (mydata));
 
@@ -107,9 +110,9 @@ bool MatrixData::dataOut(QDataStream & ds) {
 
     //ds.writeRawData((char *)mydata,sizeof(mydata));
 
-
-    ds<<(quint16)0x0001;
-    ds<<(quint16)0x8014;
+    ds<<(quint16)0x0001; //somes time 02?
+    ds<<(quint8)0x14; //94 when complex TODO - manage change
+    ds<<(quint8)0x80; //CRC??
     ds<<(quint16)0x0002;
     ds<<(quint16)0x0000;
 
@@ -117,6 +120,7 @@ bool MatrixData::dataOut(QDataStream & ds) {
     ds<<static_cast<quint32>(column);
 
     //body
+    //If real type matrix _ TODO
     double real;
     QStringList l1;
     quint8 g;
@@ -127,22 +131,9 @@ bool MatrixData::dataOut(QDataStream & ds) {
             real=item.dReal;
 
             BCD(ds,real);
-
-
- //           if(j!=column)
- //               out.append("");
         }
-//        if (i!=row)
-//            out.append("");
     }
-
     //footer
-
-    ds.device()->seek(0);
-    ds>>g;
-    qDebug()<<g;
-
-
 
     return true;
 }

@@ -2,8 +2,10 @@
 1 GUI
 
     matrix data output to correct format
+        For real done
+        Compex matrix required
+        
     list data output
-    
     
     confirm output formats are correct
 
