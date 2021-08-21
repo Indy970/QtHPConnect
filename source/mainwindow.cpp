@@ -161,7 +161,7 @@ MainWindow::MainWindow(QWidget *parent) :
     errlog("Initialising....");
 
     if (hpapi->hp_init())
-        err(L1,0,QString().sprintf("%s Failed to open libusb",__FUNCTION__));
+        err(L1,0,QString().asprintf("%s Failed to open libusb",__FUNCTION__));
 
     //setup event handler
     eventThread = new EventThread(this);
@@ -191,7 +191,7 @@ void MainWindow::testFunction() {
     if (pH) {
 
         cmd   = QInputDialog::getInt(this,"Get Command","CMD:",0,0,0xFFFF);
-        errlog("command is "+QString().sprintf("%x",cmd));
+        errlog("command is "+QString().asprintf("%x",cmd));
         pH->vpkt_send_experiments(cmd);
     }
     else
@@ -209,7 +209,7 @@ void MainWindow::testFunction2() {
         QString out;
         cmd   = QInputDialog::getInt(this,"Get Command","CMD:",0,0,0xFFFF);
         out=I2BCDS(cmd);
-        errlog("command is "+QString().sprintf("%x",cmd));
+        errlog("command is "+QString().asprintf("%x",cmd));
         qDebug()<<out;
 }
 

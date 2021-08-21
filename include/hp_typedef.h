@@ -97,7 +97,4 @@ const QString mimetypes[FUNC_NUM][2]={     {"Main","application/x-calc"},
         QByteArray data;
     };
 
-
-
-
 #endif // HP_TYPEDEF_H

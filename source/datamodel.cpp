@@ -52,7 +52,7 @@ QVariant dataModel::data(const QModelIndex &index, int role) const
                 .arg(row + 1)
                 .arg(col +1);
         break;
-    case Qt::FontRole:
+/*    case Qt::FontRole:
         if (row == 0 && col == 0) //change font only for cell(0,0)
         {
             QFont boldFont;
@@ -81,7 +81,7 @@ QVariant dataModel::data(const QModelIndex &index, int role) const
         {
             return Qt::Checked;
         }
-    }
+*/    }
     return QVariant();
 }
 

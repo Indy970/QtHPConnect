@@ -25,7 +25,7 @@
 #include <hp_infodialog.h>
 #include <hp_mdivariableedit.h>
 #include <QSettings>
-#include <QTextCodec>
+//#include <QTextCodec>
 #include <utility>
 #define FILE_NUM 9
 

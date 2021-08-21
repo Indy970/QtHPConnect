@@ -108,6 +108,7 @@ private:
 public:
     List(QString, hp_DataType);
     QByteArray getData() override;
+    bool getData(QDataStream &ds) override;
     itemData getListItem(int);
     void setListItem(int, itemData);
     QString getItem(int);
@@ -130,7 +131,7 @@ public:
     void setItem(int, int, QString);
     void setItem(int, int, QString, double);
 //    QByteArray getData() override;
-    bool getData(QDataStream &ds);
+    bool getData(QDataStream &ds) override;
     m_Size getMatrixSize();
     int getMatrixRows();
     int getMatrixColumns();

@@ -282,16 +282,16 @@ QVariant  varTableModel::headerData(int section, Qt::Orientation orientation, in
 
 bool varTableModel::getData(QDataStream &ds) {
 
-//    QByteArray buf;
-//    buf.clear();
-//    QDataStream ds_test(&buf, QIODevice::ReadWrite);
-//    ds_test.setByteOrder(QDataStream::LittleEndian);
+    QByteArray buf;
+    buf.clear();
+    QDataStream ds_test(&buf, QIODevice::ReadWrite);
+    ds_test.setByteOrder(QDataStream::LittleEndian);
 
     if(dataobj!=nullptr) {
-        dataobj->getData(ds);
-//        dataobj->getData(ds_test);
-//        qDebug()<<"VarTableModel::getData";
-//        qDebug()<<"Out:"<<buf.toHex();
+//        dataobj->getData(ds);
+        dataobj->getData(ds_test);
+        qDebug()<<"VarTableModel::getData";
+        qDebug()<<"Out:"<<buf.toHex();
         return true;
     }
 

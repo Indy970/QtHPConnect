@@ -46,7 +46,7 @@ void hp_SettingsDlg::setupSettings() {
     ui->cb_font->setCurrentIndex(dlgset.font_size);
     ui->cb_theme->setCurrentIndex(dlgset.theme);
 
-    ui->le_integer->setText(QString().sprintf("%d",dlgset.bits));
+    ui->le_integer->setText(QString().asprintf("%d",dlgset.bits));
 
     if (dlgset.textbook)
             ui->ch_textbook->setCheckState(Qt::Checked);

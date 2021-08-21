@@ -169,7 +169,7 @@ void hpCalcData::readSettings() {
 
     if (api) {
       if(handle) {
-        qDebug()<<QString().sprintf("%s %p",__FUNCTION__,handle->usbhandle);
+        qDebug()<<QString().asprintf("%s %p",__FUNCTION__,handle->usbhandle);
         if (api) {
             api->get_settings(handle);
         }
@@ -204,7 +204,7 @@ void hpCalcData::readScreen() {
 
     if (api) {
       if(handle) {
-        qDebug()<<QString().sprintf("%s %p",__FUNCTION__,handle->usbhandle);
+        qDebug()<<QString().asprintf("%s %p",__FUNCTION__,handle->usbhandle);
         if (api) {
             api->get_screen_shot(handle);
  //           if (screenShot!=nullptr) {
@@ -398,7 +398,7 @@ void hpCalcData::readInfo() {
 
     if (api) {
       if(handle) {
-        qDebug()<<QString().sprintf("%s %p",__FUNCTION__,handle->usbhandle);
+        qDebug()<<QString().asprintf("%s %p",__FUNCTION__,handle->usbhandle);
         if (api)
             api->load_info(handle);
       }

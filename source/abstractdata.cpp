@@ -16,7 +16,7 @@
  */
 
 #include <QDebug>
-#include <QTextCodec>
+//#include <QTextCodec>
 #include <QtMath>
 #include <QBuffer>
 #include <math.h>
@@ -146,8 +146,8 @@ QString value2Str(int sign, double m, double exp) {
 QString complex2Str(QString real, QString imag) {
     QString value;
 
-    if((imag[0]!="+")&&(imag[0]!="-")) {
-       value = real+"+"+imag+"*i";
+    if((imag.at(0)!=u'+')&&(imag.at(0)!=u'-')) {
+       value = real+u'+'+imag+"*i";
     }
     else
     {
@@ -163,8 +163,9 @@ QString complex2Str(QString real, QString imag) {
     return value;
 }
 
+//Parse 16byte real
 itemData extract16(QByteArray item) {
-;
+
     itemData listvalue;
     QString msg;
     QString value=QStringLiteral("");
@@ -290,7 +291,15 @@ return out;
 }
 
 
-///Real to BCD
+///Real to BCD List format
+bool BCDL(QDataStream &ds, double real) {
+
+    qDebug()<<"BCD List from "<<real;
+
+
+}
+
+///Real to BCD for Matrix
 bool BCD(QDataStream &ds, double real) {
 
 double base=0.0;
@@ -305,9 +314,6 @@ double sign;
 double exponent = floor(log10(F));
 double mantissa = F/(pow(10,exponent));
 quint8 data[8];
-
-
-qDebug()<<"BCD from "<<real;
 
     if(exponent < 0)
         exponent +=  0x1000;
@@ -348,12 +354,12 @@ qDebug()<<"BCD from "<<real;
 //        ds<<(quint8)num;
         data[7-i]=(quint8)num;
 
-        qDebug()<<"i= "<<i<<": "<<hex<<num;
+ //       qDebug()<<"i= "<<i<<": "<<hex<<num;
     }
 
     expn=(quint16)exponent;
     //EXP is in binary
-    qDebug()<<hex<<expn;
+//    qDebug()<<hex<<expn;
     ds<<expn;
 
     for (i=2; i<8; i++) {
@@ -741,9 +747,43 @@ List::List(QString name_in, hp_DataType type_in):
 }
 
 QByteArray List::getData() {
+
+    qDebug()<<"List::getData()";
+
     return data;
 }
 
+//resturns a datastream of the datafile
+bool List::getData(QDataStream &ds) {
+
+    qDebug()<<"List::getData(ds)";
+
+    int list,i;
+    itemData item;
+    list=getListSize();
+    ds<<(quint16)0xfffe;  //?
+    ds<<(quint8)0x16;     //?
+    ds<<(quint8)0x00;     //?
+    ds<<(quint16)list; //Size
+    ds<<(quint16)0x0000;  //?
+
+
+    for (i=0;i<list;i++)
+    {
+        item=getListItem(i);
+
+    }
+    return true;
+}
+
+//Look for list
+//Format of header
+// FE
+// FF
+// 16
+// 00
+// Size
+// ??
 void List::parseData() {
 
     QByteArray a1;
@@ -1053,17 +1093,17 @@ void Program::setProg(QString data_in) {
 
 void Program::parseData() {
 
-    QTextCodec * codec = QTextCodec::codecForName("ISO 8859-1");
+    //QTextCodec * codec = QTextCodec::codecForName("ISO 8859-1");
     QByteArray a1;
     a1=getData();
-    text = codec->toUnicode(a1);
-
+    //text = codec->toUnicode(a1);
+    text = a1;
     return;
 }
 
 void Program::parseData(QDataStream& in) {
 
-    QTextCodec * codec = QTextCodec::codecForName("ISO 8859-1");
+    //QTextCodec * codec = QTextCodec::codecForName("ISO 8859-1");
     QByteArrayMatcher matcher;
     QByteArray search;
     QByteArray phrase;
@@ -1099,7 +1139,8 @@ void Program::parseData(QDataStream& in) {
                 ind=pos+10;
                 phrase=a1.mid(ind,16*3);
                 //add array to catch variable list
-                str=codec->toUnicode(phrase);
+                //str=codec->toUnicode(phrase);
+                str = phrase;
                 errlog(QString("TD...%1 %2").arg(pos,0,16).arg(ind));
                 main_err->dump((uint8_t *)phrase.data(),3*16);
                 errlog(str);
@@ -1118,8 +1159,8 @@ void Program::parseData(QDataStream& in) {
 
 //    a1=getData();
 //    qDebug()<<codec->toUnicode(a1);
-    setProg(codec->toUnicode(a1));
-
+//    setProg(codec->toUnicode(a1));
+    setProg(a1);
     return;
 }
 
@@ -1156,7 +1197,7 @@ void Notes::parseData() {
 
 //    quint16 len1,len2;
     int formatstart;
-    QTextCodec * codec = QTextCodec::codecForName("UTF-8");
+    //QTextCodec * codec = QTextCodec::codecForName("UTF-8");
 
     QByteArray a1,a3;
 
@@ -1166,9 +1207,10 @@ void Notes::parseData() {
     a3=a1.mid(formatstart,-1);
     a1=a1.mid(0,formatstart);
 
-    text = codec->toUnicode(a1);
-    format = codec->toUnicode(a3);
-
+    //text = codec->toUnicode(a1);
+    text = a1;
+    //format = codec->toUnicode(a3);
+    format=a3;
 }
 
 void Notes::setNote(QString data_in) {

@@ -25,6 +25,8 @@
 struct itemData {
     double dReal=0.0;
     double dImaginary=0.0;
+    QByteArray buf_real[16];
+    QByteArray buf_imag[16];
     QString sValue=QStringLiteral("");
 };
 

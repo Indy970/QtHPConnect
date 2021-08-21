@@ -9,7 +9,7 @@
 // return 0 = success
 // return <> 0 = error
 
-#include <QTextCodec>
+// #include <QTextCodec>
 #include <QObject>
 
 #include "global.h"
@@ -111,7 +111,7 @@ int hpusb::hp_init()
             return ret;
     }
     else
-        err(L3,ret,QString(QString().sprintf("Could not open libusb: %d",ret)));
+        err(L3,ret,QString(QString().asprintf("Could not open libusb: %d",ret)));
     }
     return ret;
 }
@@ -166,17 +166,17 @@ int hpusb::hp_open(hp_Handle * handle) {
             //claim interface
             ret =  libusb_kernel_driver_active	( handle->usbhandle, 0x0) ;
             if (ret==1) {
-                errlog(QString().sprintf("Keneral active"));
+                errlog(QString().asprintf("Keneral active"));
                     ret =  libusb_detach_kernel_driver( handle->usbhandle, 0x0) ;
-                errlog(QString().sprintf("Keneral detach: %s\n", libusb_error_name(ret)));
+                errlog(QString().asprintf("Keneral detach: %s\n", libusb_error_name(ret)));
                 if (ret!=0) {
-                    errlog(QString().sprintf("Keneral detach error: %s\n", libusb_error_name(ret)));
+                    errlog(QString().asprintf("Keneral detach error: %s\n", libusb_error_name(ret)));
                     goto endfunc;
                 }
             }
             else
             if (ret!=0) {
-                errlog(QString().sprintf("Kernal error %s\n", libusb_error_name(ret)));
+                errlog(QString().asprintf("Kernal error %s\n", libusb_error_name(ret)));
                 goto endfunc;
             }
 
@@ -192,7 +192,7 @@ int hpusb::hp_open(hp_Handle * handle) {
 
             ret = libusb_claim_interface(handle->usbhandle, 0x0);
             if (ret!=0) {
-                errlog(QString().sprintf("Claim interface Error: %s\n", libusb_error_name(ret)));
+                errlog(QString().asprintf("Claim interface Error: %s\n", libusb_error_name(ret)));
                 return -1;
             }
         }
@@ -235,20 +235,20 @@ void hpusb::dumpDevice(libusb_device * device) {
     if (device) {
         rc = libusb_get_device_descriptor(device, &desc);
         if (!rc) {
-        dump+=QString().sprintf("bLength: %d\n",(int)desc.bLength);
-        dump+=QString().sprintf("bDescriptor Type: %d\n",(int)desc.bDescriptorType);
-        dump+=QString().sprintf("bcdUSB: %d\n",(int)desc.bcdUSB);
-        dump+=QString().sprintf("bDeviceClass: %d\n",(int)desc.bDeviceClass);
-        dump+=QString().sprintf("bDeviceSubClass: %d\n",(int)desc.bDeviceSubClass);
-        dump+=QString().sprintf("bDeviceProtocal: %d\n",(int)desc.bDeviceProtocol);
-        dump+=QString().sprintf("bMaxPacketSize0: %d\n",(int)desc.bMaxPacketSize0);
-        dump+=QString().sprintf("idVendor: %X\n",(int)desc.idVendor);
-        dump+=QString().sprintf("idProduct: %d\n",(int)desc.idProduct);
-        dump+=QString().sprintf("bcdDevicel: %d\n",(int)desc.bcdDevice);
-        dump+=QString().sprintf("iManufacture: %i\n",desc.iManufacturer);
-        dump+=QString().sprintf("iProduct: %i\n",desc.iProduct);
-        dump+=QString().sprintf("iSerialNumber: %i\n",desc.iSerialNumber);
-        dump+=QString().sprintf("bNumConfigurations: %d\n",desc.bNumConfigurations);
+        dump+=QString().asprintf("bLength: %d\n",(int)desc.bLength);
+        dump+=QString().asprintf("bDescriptor Type: %d\n",(int)desc.bDescriptorType);
+        dump+=QString().asprintf("bcdUSB: %d\n",(int)desc.bcdUSB);
+        dump+=QString().asprintf("bDeviceClass: %d\n",(int)desc.bDeviceClass);
+        dump+=QString().asprintf("bDeviceSubClass: %d\n",(int)desc.bDeviceSubClass);
+        dump+=QString().asprintf("bDeviceProtocal: %d\n",(int)desc.bDeviceProtocol);
+        dump+=QString().asprintf("bMaxPacketSize0: %d\n",(int)desc.bMaxPacketSize0);
+        dump+=QString().asprintf("idVendor: %X\n",(int)desc.idVendor);
+        dump+=QString().asprintf("idProduct: %d\n",(int)desc.idProduct);
+        dump+=QString().asprintf("bcdDevicel: %d\n",(int)desc.bcdDevice);
+        dump+=QString().asprintf("iManufacture: %i\n",desc.iManufacturer);
+        dump+=QString().asprintf("iProduct: %i\n",desc.iProduct);
+        dump+=QString().asprintf("iSerialNumber: %i\n",desc.iSerialNumber);
+        dump+=QString().asprintf("bNumConfigurations: %d\n",desc.bNumConfigurations);
         }
     }
     errlog(dump);
@@ -292,19 +292,19 @@ int hpusb::submit_sync_s_transfer(hp_Handle * handle, hp_pkt_out * pktout) {
                 }
 
                 errlog("In sync send transfer");
-                qDebug()<<QString().sprintf("%s %p",__FUNCTION__,handle->usbhandle);
+                qDebug()<<QString().asprintf("%s %p",__FUNCTION__,handle->usbhandle);
 
                 //write
                 errlog("Send..");
                 ret = libusb_interrupt_transfer(devh, ENDPOINT_OUT, raw.data, raw.size,
                                              &trans,10000);
                 if (ret) {
-                    errlog(QString().sprintf("Write Error: %s\n", libusb_error_name(ret)));
+                    errlog(QString().asprintf("Write Error: %s\n", libusb_error_name(ret)));
                     r = 0;
                     break;
                 }
                 else {
-                    errlog(QString().sprintf("Write bytes: %d\n", trans));
+                    errlog(QString().asprintf("Write bytes: %d\n", trans));
                 }
                 // Increment packet ID, which seems to be necessary for computer -> calc packets
                 pkt_id++;
@@ -331,10 +331,10 @@ int hpusb::submit_sync_s_transfer(hp_Handle * handle, hp_pkt_out * pktout) {
                                              &trans,10000);
 
                 if (ret) {
-                    errlog(QString().sprintf("Write Error: %s\n", libusb_error_name(ret)));
+                    errlog(QString().asprintf("Write Error: %s\n", libusb_error_name(ret)));
                }
                 else {
-                    errlog(QString().sprintf("Write bytes: %d\n", trans));
+                    errlog(QString().asprintf("Write bytes: %d\n", trans));
                 }
             }
 
@@ -476,7 +476,7 @@ int hpusb::submit_sync_r_transfer(hp_Handle * handle, hp_pkt_in * pktin) {
    libusb_device_handle * devh = handle->usbhandle;
 
    errlog("hpusb::submit_sync_r_transfer: Receive...");
-   qDebug()<<QString().sprintf("%s %p",__FUNCTION__,handle->usbhandle);
+   qDebug()<<QString().asprintf("%s %p",__FUNCTION__,handle->usbhandle);
 
    if (!handle) {
        errlog("Null handle");
@@ -626,16 +626,17 @@ int hpusb::send_info(hp_pkt_in * pkt) {
 
        errlog("Unpacking Data");
        int ind=0;
-       QTextCodec * codec = QTextCodec::codecForName("UTF-16LE");
-       QTextCodec * codec8 = QTextCodec::codecForName("UTF-8");
+  //     QTextCodec * codec = QTextCodec::codecForName("UTF-16LE");
+  //     QTextCodec * codec8 = QTextCodec::codecForName("UTF-8");
        QByteArray rd= pkt->array;
 
             //find name
-            ind=rd.indexOf(QChar(0x6c),0)+1;
+            ind=rd.indexOf(0x6c,0)+1;
             QByteArray str1 =rd.mid(ind,64);
 
             QString name;
-            name = codec->toUnicode(str1);
+            //name = codec->toUnicode(str1);
+            name = str1;
             hpinfo.name=name;
 
         //unsigned char searchstr[] = {0x80,0x20,0x80,0x01,0x62};
@@ -666,7 +667,8 @@ int hpusb::send_info(hp_pkt_in * pkt) {
         //end test
         qDebug()<<str1;
         QString app;
-        app = codec8->toUnicode(str1);
+        //app = codec8->toUnicode(str1);
+        app=str1;
         hpinfo.appver=QString("v%1").arg(listnum[4]);
         errlog(app);
 
@@ -675,7 +677,8 @@ int hpusb::send_info(hp_pkt_in * pkt) {
         str1 =rd.mid(ind,16);
 //        qDebug()<<str1;
         QString osv;
-        osv = codec8->toUnicode(str1);
+        //osv = codec8->toUnicode(str1);
+        osv=str1;
         hpinfo.osver=osv;
 //        qDebug()<<osv;
         errlog(osv);
@@ -684,7 +687,8 @@ int hpusb::send_info(hp_pkt_in * pkt) {
         ind+=16;
         str1 =rd.mid(ind,16);
         QString serial;
-        serial = codec8->toUnicode(str1);
+        //serial = codec8->toUnicode(str1);
+        serial=str1;
         hpinfo.serialnum=serial;
         errlog(serial);
         pkt->calc->recvInfo(hpinfo);
@@ -728,7 +732,7 @@ int hpusb::send_file(hp_pkt_in * pkt) {
     qDebug()<<"hpusb::send_file: In File Processor";
 
     QString filename;
-    QTextCodec * codec = QTextCodec::codecForName("UTF-16LE");
+    //QTextCodec * codec = QTextCodec::codecForName("UTF-16LE");
     QByteArray rd= pkt->array;
     int len;
     qint8 crc;
@@ -751,7 +755,8 @@ int hpusb::send_file(hp_pkt_in * pkt) {
 
     //find file name
     QByteArray str1 =rd.mid(3,len);
-    filename = codec->toUnicode(str1);
+    //filename = codec->toUnicode(str1);
+    filename = str1;
     errlog(QString("File: %1 Type: %2").arg(filename).arg(pkt->pkt_type));
 
     qDebug()<<"hpusb:Checking file type";
@@ -809,7 +814,8 @@ int hpusb::send_file(hp_pkt_in * pkt) {
             qDebug()<<QString("%1 %2 %3").arg((uint8_t)rd[len],1,16).arg((uint8_t)rd[len+1],1,16).arg((uint8_t)rd[len+2],1,16);
             size=rd[len+1]; //Is the byte a size?
             QByteArray str1 =rd.mid(len+3,-1);
-            note.text = codec->toUnicode(str1);
+            //note.text = codec->toUnicode(str1);
+            note.text=str1;
             note.data=str1;
             pkt->calc->recvNote(note);
         }
@@ -825,7 +831,8 @@ int hpusb::send_file(hp_pkt_in * pkt) {
              size=rd[len+1];
              QByteArray str1 =rd.mid(len+3,-1);
              prog.data=str1;
-             prog.prog = codec->toUnicode(str1);
+             //prog.prog = codec->toUnicode(str1);
+             prog.prog = str1;
              pkt->calc->recvProg(prog);
         }
         break;
@@ -984,8 +991,9 @@ int hpusb::lookfordouble (QByteArray rd, int start) {
     long double num=0;
     QString app;
     QByteArray str1;
-    QTextCodec * codec = QTextCodec::codecForName("UTF-16");
-    app = codec->toUnicode(str1);
+    //QTextCodec * codec = QTextCodec::codecForName("UTF-16");
+    //app = codec->toUnicode(str1);
+    app=str1;
     errlog(app);
 
     int i,ind;
@@ -995,9 +1003,10 @@ int hpusb::lookfordouble (QByteArray rd, int start) {
         ind+=1;
         str1 =rd.mid(ind,sizeof(num));
         num= *(long double*)(str1.constData());
-        app = codec->toUnicode(str1);
+        //app = codec->toUnicode(str1);
+        app =str1;
        // qDebug()<<num;
-        qDebug()<<QString().sprintf("%e",num);
+        qDebug()<<QString().asprintf("%e",num);
         qDebug()<<app;
     }
     return 0;
@@ -1164,17 +1173,17 @@ void hpusb::print_libusb_transfer(struct libusb_transfer *p_t)
     }
     else {
         errlog("libusb_transfer structure:\n");
-        errlog(QString().sprintf("flags   =%x \n", p_t->flags));
-        errlog(QString().sprintf("endpoint=%x \n", p_t->endpoint));
-        errlog(QString().sprintf("type    =%x \n", p_t->type));
-        errlog(QString().sprintf("timeout =%d \n", p_t->timeout));
+        errlog(QString().asprintf("flags   =%x \n", p_t->flags));
+        errlog(QString().asprintf("endpoint=%x \n", p_t->endpoint));
+        errlog(QString().asprintf("type    =%x \n", p_t->type));
+        errlog(QString().asprintf("timeout =%d \n", p_t->timeout));
         // length, and buffer are commands sent to the device
-        errlog(QString().sprintf("length        =%d \n", p_t->length));
-        errlog(QString().sprintf("actual_length =%d \n", p_t->actual_length));
-        errlog(QString().sprintf("buffer    =%p \n", p_t->buffer));
+        errlog(QString().asprintf("length        =%d \n", p_t->length));
+        errlog(QString().asprintf("actual_length =%d \n", p_t->actual_length));
+        errlog(QString().asprintf("buffer    =%p \n", p_t->buffer));
 
         for (i=0; i < p_t->length; i++){
-            errlog(QString().sprintf("%d %x", i, p_t->buffer[i]));
+            errlog(QString().asprintf("%d %x", i, p_t->buffer[i]));
         }
     }
     return;
@@ -1325,7 +1334,7 @@ void sighandler(int signum)
 //   - This is called after the Out transfer has been received by libusb
 void cb_out(struct libusb_transfer *transfer) {
 
-    QString().sprintf("status =%d, actual_length=%d\n",
+    QString().asprintf("status =%d, actual_length=%d\n",
                                 transfer->status, transfer->actual_length);
 
 }
